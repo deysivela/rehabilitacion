@@ -1,0 +1,132 @@
+/* Contenedor principal del sidebar */
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color: #2c3e50;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    transition: width 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.sidebar.closed {
+    width: 70px;
+}
+
+/* Encabezado del sidebar */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.699);
+   /* background-color: #34495e;*/
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Logo */
+.sidebar-logo {
+    max-width: 150px;
+    height: auto;
+    transition: max-width 0.3s ease-in-out;
+}
+
+.sidebar.closed .sidebar-logo {
+    max-width: 50px;
+}
+
+/* Botón de colapso */
+.toggle-btn {
+    background: #34495e;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    width: 30px;
+    height: 30px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease-in-out;
+}
+
+.toggle-btn:hover {
+    transform: rotate(180deg);
+}
+
+/* Menú del sidebar */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.sidebar-menu li {
+    margin: 8px 0;
+}
+
+.sidebar-menu li a {
+    text-decoration: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.sidebar-menu li a:hover {
+    background-color: #34495e;
+}
+
+/* Estilo para el último elemento (Salir) */
+.sidebar-menu li.logout {
+    margin-top: auto;
+}
+
+.sidebar-menu li.logout a {
+    color: #e74c3c;
+}
+
+.sidebar-menu li.logout a:hover {
+    background-color: #c0392b;
+}
+
+/* Estado colapsado */
+.sidebar.closed .sidebar-menu li a {
+    justify-content: center;
+}
+
+.sidebar.closed .sidebar-menu li a span {
+    display: none;
+}
+
+/* Íconos */
+.sidebar-menu li a svg {
+    font-size: 1.2rem;
+}
+
+/* Ocultar texto en el encabezado al colapsar */
+.sidebar.closed .sidebar-header h2 {
+    display: none;
+}
+/* Ajustes dinámicos del contenido */
+body.sidebar-expanded .main-content {
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+  }
+  
+  body.sidebar-collapsed .main-content {
+    margin-left: 70px;
+    transition: margin-left 0.3s ease;
+  }
+  

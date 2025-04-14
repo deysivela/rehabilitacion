@@ -1,0 +1,47 @@
+.admin-container {
+  font-family: Arial, sans-serif;
+  padding: 10px; /* Se redujo el padding */
+  color: #333;
+  text-align: center;
+}
+
+.admin-main {
+  margin-top: 10px; /* Espaciado reducido */
+}
+
+.admin-modulos {
+  margin-bottom: 20px;
+}
+
+.admin-links {
+  display: flex;
+  justify-content: center;
+  gap: 15px; /* Reduce el espacio entre enlaces */
+  flex-wrap: wrap;
+}
+
+.admin-link {
+  text-decoration: none;
+  color: white;
+  background-color: #34495e;
+  padding: 10px 20px; /* Se redujo el padding */
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+}
+
+.admin-link:hover {
+  background-color: #2c3e50;
+}
+
+.admin-indicadores ul {
+  list-style: none;
+  padding: 0;
+}
+
+.admin-indicadores li {
+  margin-bottom: 5px; /* Reducido */
+  font-size: 1.1rem;
+}
+
+
