@@ -2,7 +2,7 @@
   "name": "rehabilitacion",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://deysivela.github.io/rehabilitacion",
+  "homepage": "https://deysivela.github.io/rehabilitacion/frontend",
   "dependencies": {
     "axios": "^1.7.9",
     "react-scripts": "^5.0.1"
