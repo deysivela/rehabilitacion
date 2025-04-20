@@ -15,7 +15,7 @@ const RegistrarPaciente = () => {
     Telefono_pac: "",
     Direccion_pac: "",
     Seguro: "",
-    Discapacidad: false,
+    Tienediscapacidad: false,
     Diagnostico: "",
     // Campos relacionados con discapacidad
     Tipo_disc: "",
@@ -72,7 +72,7 @@ const RegistrarPaciente = () => {
       );
 
       // Si el paciente se registró exitosamente, registrar los detalles de la discapacidad
-      if (nuevoPaciente.Discapacidad) {
+      if (nuevoPaciente.Tienediscapacidad) {
         await axios.post("http://localhost:5000/api/discapacidad/registrar", {
           Idpac: response.data.Idpac, // Usar el ID del paciente recién creado
           Tipo_disc: nuevoPaciente.Tipo_disc,
@@ -172,14 +172,14 @@ const RegistrarPaciente = () => {
         <label>
           <input
             type="checkbox"
-            name="Discapacidad"
-            checked={nuevoPaciente.Discapacidad}
+            name="Tienediscapacidad"
+            checked={nuevoPaciente.Tienediscapacidad}
             onChange={handleChange}
           />
           Discapacidad
         </label>
 
-        {nuevoPaciente.Discapacidad && (
+        {nuevoPaciente.Tienediscapacidad && (
           <div className="discapacidad-info">
             <select
               name="Tipo_disc"

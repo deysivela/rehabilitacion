@@ -18,12 +18,10 @@ const Pacientes = () => {
     const mes = hoy.getMonth() - nacimiento.getMonth();
     const dia = hoy.getDate() - nacimiento.getDate();
 
-    // Ajuste si aún no cumplió años este año
     if (mes < 0 || (mes === 0 && dia < 0)) {
       edadAnios--;
     }
 
-    // Si tiene menos de 1 año, mostrar en meses
     if (edadAnios < 1) {
       let edadMeses =
         hoy.getMonth() -
@@ -51,14 +49,13 @@ const Pacientes = () => {
 
     fetchPacientes();
   }, []);
-  //eliminar paciente
+
+  // Eliminar paciente
   const eliminarPaciente = async (id) => {
     try {
-      console.log("Eliminando paciente con ID:", id); // Asegúrate de que el ID se muestra correctamente
       const response = await axios.delete(
         `http://localhost:5000/api/paciente/eliminar/${id}`
       );
-      console.log(response);
 
       if (response.status === 200) {
         setPacientes(pacientes.filter((paciente) => paciente.Idpac !== id));
@@ -68,7 +65,7 @@ const Pacientes = () => {
       }
     } catch (error) {
       console.error("Error al eliminar paciente:", error);
-      alert(`Hubo un problema al eliminar al paciente: ${error.message}`); // Imprime más detalles del error
+      alert(`Hubo un problema al eliminar al paciente: ${error.message}`);
     }
   };
 
@@ -97,20 +94,14 @@ const Pacientes = () => {
         <tbody>
           {pacientes.map((paciente) => (
             <tr key={paciente.Idpac}>
-              <td>{`${paciente.Nombre_pac} ${paciente.Appaterno_pac || ""} ${
-                paciente.Apmaterno_pac || ""
-              }`}</td>
+              <td>{`${paciente.Nombre_pac} ${paciente.Appaterno_pac || ""} ${paciente.Apmaterno_pac || ""}`}</td>
               <td>{paciente.Genero_pac}</td>
               <td>{calcularEdad(paciente.Fnaci_pac)}</td>
               <td>{paciente.Ci_pac}</td>
               <td>{paciente.Telefono_pac}</td>
               <td>{paciente.Diagnostico}</td>
               <td>
-                {paciente.Discapacidad === null
-                  ? "!!!"
-                  : Number(paciente.Discapacidad) === 1
-                  ? "Sí"
-                  : "No"}
+                {paciente.Tienediscapacidad?.toLowerCase() === "sí" ? "Sí" : "No"}
               </td>
               <td>
                 <Link
@@ -140,3 +131,4 @@ const Pacientes = () => {
 };
 
 export default Pacientes;
+

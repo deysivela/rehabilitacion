@@ -2,61 +2,63 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../conexion/db');
 const Discapacidad = require('./discapacidad');
 
-
-const Paciente = sequelize.define('paciente', {
+const Paciente = sequelize.define('Paciente', {
   Idpac: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    autoIncrement: true,
+    autoIncrement: true
   },
   Nombre_pac: {
     type: DataTypes.STRING(50),
-    allowNull: false,
+    allowNull: false
   },
   Appaterno_pac: {
-    type: DataTypes.STRING(50),
+    type: DataTypes.STRING(50)
   },
   Apmaterno_pac: {
-    type: DataTypes.STRING(50),
+    type: DataTypes.STRING(50)
   },
   Fnaci_pac: {
     type: DataTypes.DATE,
-    allowNull: false,
+    allowNull: false
   },
   Genero_pac: {
-    type: DataTypes.ENUM('F', 'M'),
+    type: DataTypes.ENUM('F', 'M')
   },
   Ci_pac: {
     type: DataTypes.STRING(20),
-    unique: true,
+    unique: true
   },
   Telefono_pac: {
-    type: DataTypes.STRING(20),
+    type: DataTypes.STRING(20)
   },
   Direccion_pac: {
-    type: DataTypes.TEXT,
+    type: DataTypes.TEXT
   },
   Seguro: {
-    type: DataTypes.STRING(50),
+    type: DataTypes.STRING(50)
   },
-  Discapacidad: {
-    type: DataTypes.BOOLEAN,
+  Tienediscapacidad: {  // Cambiar el nombre de este atributo
+    type: DataTypes.BOOLEAN
   },
   Diagnostico: {
-    type: DataTypes.TEXT,
+    type: DataTypes.TEXT
   },
   Iddisc: {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'discapacidad', // Tabla referenciada
-      key: 'Iddisc',
-    },
-  },
+      model: 'discapacidad', // Nombre de la tabla referenciada
+      key: 'Iddisc'
+    }
+  }
 }, {
   tableName: 'paciente',
-  timestamps: false, 
+  timestamps: false
 });
 
-module.exports = Paciente;
+// Relación entre Paciente y Discapacidad
+Paciente.belongsTo(Discapacidad, { foreignKey: 'Iddisc', as: 'Discapacidad' });
+Discapacidad.hasOne(Paciente, { foreignKey: 'Iddisc', as: 'Paciente' });
 
+module.exports = Paciente;

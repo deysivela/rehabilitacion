@@ -6,13 +6,28 @@ const ValidarPac = require('../validacion/ValidarPac');
 // Crear paciente
 router.post('/registrar', ValidarPac, async (req, res) => {
   try {
+    // Crear el paciente primero
     const paciente = await Paciente.create(req.body);
-    res.status(201).json(paciente);
+
+    // Si hay una discapacidad en la solicitud, crearla y asociarla al paciente
+    if (req.body.discapacidad) {
+      const discapacidad = await Discapacidad.create({
+        ...req.body.discapacidad,
+        paciente_id: paciente.id // Asociar la discapacidad con el paciente
+      });
+
+      // Devolver los datos del paciente y su discapacidad
+      res.status(201).json({ paciente, discapacidad });
+    } else {
+      res.status(201).json(paciente); // Si no hay discapacidad, solo devolver el paciente
+    }
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
+
+// Listar todos los pacientes con su discapacidad (si tiene)
 // Listar todos los pacientes con su discapacidad (si tiene)
 router.get('/listar', async (req, res) => {
   try {
@@ -23,12 +38,21 @@ router.get('/listar', async (req, res) => {
         required: false
       }
     });
-    res.json(pacientes);
+
+    // Modificar la columna 'Tienediscapacidad' antes de devolverla
+    const pacientesModificados = pacientes.map(paciente => {
+      // Cambiar 'true' o 'false' a 'sí' o 'no'
+      paciente.Tienediscapacidad = paciente.Tienediscapacidad ? 'Sí' : 'No';
+      return paciente;
+    });
+
+    res.json(pacientesModificados);
   } catch (error) {
     console.error('Error al listar pacientes:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // Obtener paciente por ID
 router.get('/:id', async (req, res) => {
@@ -72,8 +96,8 @@ router.delete('/eliminar/:id', async (req, res) => {
   }
 });
 
+/// Editar paciente y su discapacidad
 // Editar paciente y su discapacidad
-
 router.put('/editar/:id', async (req, res) => {
   try {
     const id = req.params.id;
@@ -88,20 +112,27 @@ router.put('/editar/:id', async (req, res) => {
       Direccion_pac,
       Seguro,
       Diagnostico,
-      tieneDiscapacidad,  
+      Tienediscapacidad,  // Valor que indica si tiene discapacidad (true/false)
       Tipo_disc,
       Grado_disc,
       Obs
     } = req.body;
 
+    console.log("Datos recibidos:", req.body); // Verifica los datos que llegan del frontend
+
     const paciente = await Paciente.findByPk(id, {
-      include: { model: Discapacidad, as: 'detalleDiscapacidad' } // Asegurarse de que la discapacidad esté incluida
+      include: { model: Discapacidad, as: 'detalleDiscapacidad' }
     });
 
     if (!paciente) {
       return res.status(404).json({ error: 'Paciente no encontrado' });
     }
-    // Actualizamos los datos del paciente
+
+    // Convierte Tienediscapacidad en booleano (true/false)
+    const tieneDisc = Tienediscapacidad === "true" || Tienediscapacidad === true;
+    console.log("Valor de Tienediscapacidad:", tieneDisc); // Verifica el valor de Tienediscapacidad
+
+    // Actualizar datos del paciente (sin cambiar el campo Discapacidad aún)
     await paciente.update({
       Nombre_pac,
       Appaterno_pac,
@@ -112,33 +143,40 @@ router.put('/editar/:id', async (req, res) => {
       Telefono_pac,
       Direccion_pac,
       Seguro,
-      Diagnostico,
-      Discapacidad: tieneDiscapacidad ? 1 : 0
+      Diagnostico
     });
 
     // Si tiene discapacidad
-    if (tieneDiscapacidad) {
+    if (tieneDisc) {
       if (paciente.Iddisc) {
-        // Actualizar discapacidad existente
         const discapacidadExistente = await Discapacidad.findByPk(paciente.Iddisc);
         if (discapacidadExistente) {
           await discapacidadExistente.update({ Tipo_disc, Grado_disc, Obs });
         } else {
           return res.status(404).json({ error: 'Discapacidad no encontrada para actualizar' });
         }
+        console.log("Actualizando Discapacidad a 1");
+        await paciente.update({ Tienediscapacidad: 1 });
       } else {
-        // Crear nueva discapacidad y asociar
+        console.log("Creando nueva discapacidad y asociando...");
         const nuevaDiscapacidad = await Discapacidad.create({ Tipo_disc, Grado_disc, Obs });
-        await paciente.update({ Iddisc: nuevaDiscapacidad.Iddisc });
+        await paciente.update({ Iddisc: nuevaDiscapacidad.Iddisc, Tienediscapacidad: 1 });
       }
+    } else {
+      if (paciente.Iddisc) {
+        await paciente.update({ Iddisc: null });
+      }
+      await paciente.update({ Tienediscapacidad: 0 });
     }
+    
+    
 
-    // Vuelve a obtener el paciente con la discapacidad asociada y devolver los datos actualizados
+    // Obtener el paciente actualizado con la discapacidad asociada
     const pacienteActualizado = await Paciente.findByPk(id, {
-      include: { model: Discapacidad, as: 'detalleDiscapacidad' } // Incluir la discapacidad actualizada
+      include: { model: Discapacidad, as: 'detalleDiscapacidad' }
     });
 
-    res.json(pacienteActualizado); // Devolver el paciente actualizado con la discapacidad
+    res.json(pacienteActualizado);
 
   } catch (error) {
     console.error("Error al actualizar paciente:", error);

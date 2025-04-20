@@ -16,7 +16,7 @@ const EditarPaciente = () => {
     Telefono_pac: "",
     Direccion_pac: "",
     Seguro: "",
-    Discapacidad: false,
+    Tienediscapacidad: false,
     Diagnostico: "",
     Tipo_disc: "",
     Grado_disc: "",
@@ -30,7 +30,6 @@ const EditarPaciente = () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/paciente/${id}`);
         const data = response.data;
-  
         // Extraer los datos de discapacidad si existen
         const discapacidadData = data.detalleDiscapacidad || {};  // Asegúrate de usar el alias correcto
   
@@ -44,7 +43,7 @@ const EditarPaciente = () => {
           Telefono_pac: data.Telefono_pac || "",
           Direccion_pac: data.Direccion_pac || "",
           Seguro: data.Seguro || "",
-          Discapacidad: data.Discapacidad || false,
+          Tienediscapacidad: data.Tienediscapacidad || false,
           Diagnostico: data.Diagnostico || "",
           Tipo_disc: discapacidadData.Tipo_disc || "",
           Grado_disc: discapacidadData.Grado_disc || "",
@@ -165,16 +164,17 @@ const EditarPaciente = () => {
         />
 
         <label>
+          ¿Tiene discapacidad?
           <input
             type="checkbox"
-            name="Discapacidad"
-            checked={paciente.Discapacidad}
-            onChange={handleChange}
+            checked={paciente.Tienediscapacidad}
+            onChange={(e) =>
+              setPaciente({ ...paciente, Tienediscapacidad: e.target.checked })
+            }
           />
-          Discapacidad
         </label>
-
-        {paciente.Discapacidad && (
+        
+        {paciente.Tienediscapacidad && (
           <div className="discapacidad-info">
             <select
               name="Tipo_disc"
