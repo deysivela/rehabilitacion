@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../conexion/db');
-const Discapacidad = require('./discapacidad');
+/* const Discapacidad = require('./discapacidad'); */
 
 const Paciente = sequelize.define('Paciente', {
   Idpac: {
@@ -58,7 +58,7 @@ const Paciente = sequelize.define('Paciente', {
 });
 
 // Relación entre Paciente y Discapacidad
-Paciente.belongsTo(Discapacidad, { foreignKey: 'Iddisc', as: 'Discapacidad' });
+/* Paciente.belongsTo(Discapacidad, { foreignKey: 'Iddisc', as: 'Discapacidad' });
 Discapacidad.hasOne(Paciente, { foreignKey: 'Iddisc', as: 'Paciente' });
-
+ */
 module.exports = Paciente;

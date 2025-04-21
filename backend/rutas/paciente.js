@@ -6,28 +6,29 @@ const ValidarPac = require('../validacion/ValidarPac');
 // Crear paciente
 router.post('/registrar', ValidarPac, async (req, res) => {
   try {
-    // Crear el paciente primero
-    const paciente = await Paciente.create(req.body);
-
-    // Si hay una discapacidad en la solicitud, crearla y asociarla al paciente
-    if (req.body.discapacidad) {
-      const discapacidad = await Discapacidad.create({
-        ...req.body.discapacidad,
-        paciente_id: paciente.id // Asociar la discapacidad con el paciente
-      });
-
-      // Devolver los datos del paciente y su discapacidad
-      res.status(201).json({ paciente, discapacidad });
-    } else {
-      res.status(201).json(paciente); // Si no hay discapacidad, solo devolver el paciente
-    }
+    //console.log(" Datos recibidos en el backend:", req.body);
+    // Crear el paciente con el Iddisc si fue registrado
+    const paciente = await Paciente.create({
+      Nombre_pac: req.body.Nombre_pac,
+      Appaterno_pac: req.body.Appaterno_pac,
+      Apmaterno_pac: req.body.Apmaterno_pac,
+      Fnaci_pac: req.body.Fnaci_pac,
+      Genero_pac: req.body.Genero_pac,
+      Ci_pac: req.body.Ci_pac,
+      Telefono_pac: req.body.Telefono_pac,
+      Direccion_pac: req.body.Direccion_pac,
+      Seguro: req.body.Seguro,
+      Tienediscapacidad:req.body.Tienediscapacidad,
+      Diagnostico: req.body.Diagnostico,
+      Iddisc: req.body.Iddisc  // puede ser null si no hubo discapacidad
+    });
+    res.status(201).json({ paciente });
   } catch (error) {
+    console.error("❌ Error al registrar paciente:", error);
     res.status(400).json({ error: error.message });
   }
 });
 
-
-// Listar todos los pacientes con su discapacidad (si tiene)
 // Listar todos los pacientes con su discapacidad (si tiene)
 router.get('/listar', async (req, res) => {
   try {
@@ -39,12 +40,12 @@ router.get('/listar', async (req, res) => {
       }
     });
 
-    // Modificar la columna 'Tienediscapacidad' antes de devolverla
-    const pacientesModificados = pacientes.map(paciente => {
-      // Cambiar 'true' o 'false' a 'sí' o 'no'
-      paciente.Tienediscapacidad = paciente.Tienediscapacidad ? 'Sí' : 'No';
-      return paciente;
-    });
+      // Modificar la columna 'Tienediscapacidad' antes de devolverla
+      const pacientesModificados = pacientes.map(paciente => {
+        // Cambiar 'true' o 'false' a 'sí' o 'no'
+        paciente.Tienediscapacidad = paciente.Tienediscapacidad ? 'Sí' : 'No';
+        return paciente;
+      });
 
     res.json(pacientesModificados);
   } catch (error) {
@@ -186,5 +187,3 @@ router.put('/editar/:id', async (req, res) => {
 
 
 module.exports = router;
-
-

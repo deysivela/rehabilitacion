@@ -10,7 +10,8 @@ router.post('/registrar', async (req, res) => {
       Tipo_disc, 
       Grado_disc,  
       Obs          
-    });
+    }); 
+    console.log("📌 Discapacidad creada:", discp);
     res.status(201).json(discp); // Enviar respuesta con la discapacidad registrada
   } catch (error) {
     res.status(400).json({ error: error.message });

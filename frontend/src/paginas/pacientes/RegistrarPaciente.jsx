@@ -17,79 +17,66 @@ const RegistrarPaciente = () => {
     Seguro: "",
     Tienediscapacidad: false,
     Diagnostico: "",
-    // Campos relacionados con discapacidad
     Tipo_disc: "",
     Grado_disc: "",
     Obs: "",
   });
   const [errores, setErrores] = useState([]);
-
-  // Manejar el cambio de campos del formulario
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setNuevoPaciente({
       ...nuevoPaciente,
       [name]: type === "checkbox" ? checked : value,
     });
-
-    // Si se marca la discapacidad, podemos mostrar los campos adicionales
-    if (name === "Discapacidad" && checked) {
-      // Consultar a la base de datos para obtener información adicional
-      DiscapacidadInfo();
-    }
   };
-
-  const DiscapacidadInfo = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:5000/api/discapacidad", // Asegúrate que la URL y la ruta estén correctas
-        {
-          params: { idPaciente: nuevoPaciente.Ci_pac }, // Asegúrate de que el parámetro esté bien definido
-        }
-      );
-
-      // Si la respuesta es exitosa, actualizar el estado con la información
-      setNuevoPaciente({
-        ...nuevoPaciente,
-        Tipo_disc: response.data.Tipo_disc,
-        Grado_disc: response.data.Grado_disc,
-        Obs: response.data.Obs,
-      });
-    } catch (error) {
-      console.error("Error al obtener la información de discapacidad:", error);
-    }
-  };
-
-  // Manejar la creación de un nuevo paciente
   const registrar = async (e) => {
     e.preventDefault();
     setErrores([]);
     try {
-      // Enviar todos los datos del paciente, incluyendo la discapacidad si está marcada
-      const response = await axios.post(
-        "http://localhost:5000/api/paciente/registrar",
-        nuevoPaciente // Enviar el objeto completo con los datos
-      );
-
-      // Si el paciente se registró exitosamente, registrar los detalles de la discapacidad
+      let idDiscapacidad = null;
+      // Si tiene discapacidad, registrarla primero
       if (nuevoPaciente.Tienediscapacidad) {
-        await axios.post("http://localhost:5000/api/discapacidad/registrar", {
-          Idpac: response.data.Idpac, // Usar el ID del paciente recién creado
+        const discResponse = await axios.post("http://localhost:5000/api/discapacidad/registrar", {
           Tipo_disc: nuevoPaciente.Tipo_disc,
           Grado_disc: nuevoPaciente.Grado_disc,
           Obs: nuevoPaciente.Obs,
         });
+        idDiscapacidad = discResponse.data.Iddisc; // ID generado por la BD
+        //console.log(" ID de Discapacidad registrado en react:", idDiscapacidad); 
       }
-
-      navigate("/pacientes"); // Redirigir a la lista de pacientes después de registrar
+      // Preparar el objeto paciente con el idDiscapacidad si existe
+      const datosPaciente = {
+        Nombre_pac: nuevoPaciente.Nombre_pac,
+        Appaterno_pac: nuevoPaciente.Appaterno_pac,
+        Apmaterno_pac: nuevoPaciente.Apmaterno_pac,
+        Fnaci_pac: nuevoPaciente.Fnaci_pac,
+        Genero_pac: nuevoPaciente.Genero_pac,
+        Ci_pac: nuevoPaciente.Ci_pac,
+        Telefono_pac: nuevoPaciente.Telefono_pac,
+        Direccion_pac: nuevoPaciente.Direccion_pac,
+        Seguro: nuevoPaciente.Seguro,
+        Diagnostico: nuevoPaciente.Diagnostico,
+        Tienediscapacidad:nuevoPaciente.Tienediscapacidad,
+        Iddisc:idDiscapacidad,
+        discapacidad: nuevoPaciente.Tienediscapacidad ? {
+          Tipo_disc: nuevoPaciente.Tipo_disc,
+          Grado_disc: nuevoPaciente.Grado_disc,
+          Obs: nuevoPaciente.Obs,
+        } : null
+      };
+      console.log("Datos enviados al backend:", datosPaciente);
+      // 3. Registrar paciente
+      await axios.post("http://localhost:5000/api/paciente/registrar", datosPaciente);
+      navigate("/pacientes");
     } catch (error) {
-      if (error.response && error.response.data.errors) {
+      if (error.response?.data?.errors) {
         setErrores(error.response.data.errors);
       } else {
-        console.error("Error al registrar paciente:", error);
+        console.error("Error al registrar paciente o discapacidad:", error);
       }
     }
   };
+
   return (
     <div className="registrar-container">
       <h1>Registrar Nuevo Paciente</h1>
