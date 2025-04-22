@@ -1,0 +1,83 @@
+.area-container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+  }
+  
+  .area-container h2 {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  
+  .btn-registrar {
+    background-color: #4caf50;
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  
+  .tabla-areas {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .tabla-areas th,
+  .tabla-areas td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .tabla-areas th {
+    background-color: #e0e0e0;
+  }
+  
+  .acciones {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .icono {
+    font-size: 1.2em;
+    cursor: pointer;
+  }
+  
+  .icono-editar { color: #ff9800; }
+  .icono-eliminar { color: #f44336; }
+  
+  /* Modal */
+  .modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 20px;
+    width: 90%; max-width: 400px;
+    border-radius: 8px;
+  }
+  
+  .form-vertical input,
+  .form-vertical textarea,
+  .form-vertical button {
+    display: block;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 8px;
+  }
+  
+  .btn-cancel {
+    background: #ccc;
+    color: #333;
+  }
+  
+  

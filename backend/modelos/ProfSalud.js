@@ -9,8 +9,18 @@ ProfSalud.init(
     Nombre_prof: { type: DataTypes.STRING, allowNull: false },
     Appaterno_prof: { type: DataTypes.STRING, allowNull: false },
     Apmaterno_prof: { type: DataTypes.STRING },
+    Ci_prof: { type: DataTypes.STRING, unique: true },
+    Fnaci_prof: { type: DataTypes.DATE, allowNull: false },
+    Genero_prof: { type: DataTypes.ENUM('F', 'M') },
     Especialidad: { type: DataTypes.STRING },
-    // Otros campos...
+    Telefono_prof: { type: DataTypes.STRING },
+    Idarea: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'Area',
+        key: 'Idarea',
+      },
+    },
   },
   {
     sequelize,
@@ -21,3 +31,4 @@ ProfSalud.init(
 );
 
 module.exports = ProfSalud;
+

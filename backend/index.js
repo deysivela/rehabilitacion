@@ -1,12 +1,14 @@
 const express = require('express');
 const sequelize = require('./conexion/db');
-const pacienteRoutes = require('./rutas/paciente');
-const usuarioRoutes = require('./rutas/usuario');
-const discapacidadRoutes = require('./rutas/discapacidad');
+const pacienteRutas = require('./rutas/paciente');
+const usuarioRutas = require('./rutas/usuario');
+const areaRutas = require('./rutas/area');
+const discapacidadRutas = require('./rutas/discapacidad');
+const profesionalRutas = require('./rutas/prof_salud');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const authRoutes = require('./rutas/auth'); 
-const asociaciones=require('./rutas/asociaciones');const asociacionesRoutes = require('./rutas/asociaciones');
+const authRutas = require('./rutas/auth'); 
+const asociacionesRutas = require('./rutas/asociaciones');
 
 
 const app = express();
@@ -19,11 +21,13 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'] // Encabezados permitidos
 }));
 // Rutas principales
-app.use('/api/auth', authRoutes);
-app.use('/api/usuario', usuarioRoutes);
-app.use('/api/paciente', pacienteRoutes);
-app.use('/api/discapacidad', discapacidadRoutes);
-app.use('/api/asociaciones', asociacionesRoutes);
+app.use('/api/auth', authRutas);
+app.use('/api/usuario', usuarioRutas);
+app.use('/api/paciente', pacienteRutas);
+app.use('/api/discapacidad', discapacidadRutas);
+app.use('/api/asociaciones', asociacionesRutas);
+app.use('/api/prof_salud', profesionalRutas);
+app.use('/api/area', areaRutas);
 // Sincronizar base de datos y arrancar el servidor
 sequelize
   .sync()

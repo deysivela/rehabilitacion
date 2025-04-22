@@ -1,0 +1,148 @@
+.usuario-container {
+    padding: 20px;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  .usuario-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .btn-registrar {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+  
+  .btn-registrar:hover {
+    background-color: #0056b3;
+  }
+  
+  .tabla-usuarios {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  .tabla-usuarios th,
+  .tabla-usuarios td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .tabla-usuarios th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+  }
+  
+  .acciones .icono {
+    margin: 0 6px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: transform 0.2s ease;
+  }
+  
+  .icono-ver {
+    color: #17a2b8;
+  }
+  .icono-editar {
+    color: #ffc107;
+  }
+  .icono-eliminar {
+    color: #dc3545;
+  }
+  
+  .icono:hover {
+    transform: scale(1.2);
+  }
+  
+  /* MODAL */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0px 0px 10px #888;
+  }
+  
+  .modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 22px;
+    text-align: center;
+  }
+  
+  /* FORMULARIO */
+  .form-vertical {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-label {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  
+  input[type="text"],
+  input[type="password"],
+  select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-top: 4px;
+  }
+  
+  input:read-only {
+    background-color: #f8f8f8;
+  }
+  
+  button[type="submit"] {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin-top: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  button[type="submit"]:hover {
+    background-color: #218838;
+  }
+  
+  .btn-cancel {
+    margin-top: 10px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .btn-cancel:hover {
+    background-color: #5a6268;
+  }
+  

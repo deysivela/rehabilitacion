@@ -9,8 +9,10 @@ import Profesionales from './paginas/Profesionales';
 import Citas from './paginas/Citas';
 import Salir from './paginas/Salir';
 import Login from './paginas/Login';
-import Administrador from './paginas/Administrador';
-
+import Administrador from './paginas/administrador/Administrador';
+import Usuario from './paginas/administrador/Usuario'; 
+import Area from './paginas/administrador/Area'; 
+import Profesional from './paginas/administrador/Profesional'; 
 
 // Componente para proteger rutas privadas
 const PrivateRoute = ({ children }) => {
@@ -41,6 +43,9 @@ const App = () => {
                     <Route path="/pacientes/editar/:id" element={<EditarPaciente />} />
                     <Route path="/administrador" element={<Administrador/>} />
                     <Route path="/profesionales" element={<Profesionales />} />
+                    <Route path="/usuario" element={<Usuario />} />
+                    <Route path="/areas" element={<Area />} />
+                    <Route path="/profesional" element={<Profesional />} />
                     <Route path="/citas" element={<Citas />} />
                     <Route path="/salir" element={<Salir />} />
                   </Routes>                                                                     

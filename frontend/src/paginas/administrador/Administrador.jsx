@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './Administrador.css'; // Archivo CSS para los estilos
-import Footer from '../componentes/Footer';
+import './Administrador.css'; 
+import Footer from '../../componentes/Footer';
 
 
 const Administrador = () => {
@@ -15,7 +15,10 @@ const Administrador = () => {
         <section className="admin-modulos">
           <h3>Accesos Directos</h3>
           <div className="admin-links">
-            <Link to="/usuarios" className="admin-link">
+          <Link to="/profesional" className="admin-link">
+              Gestionar Profesionales
+            </Link>
+            <Link to="/usuario" className="admin-link">
               Gestionar Usuarios
             </Link>
             <Link to="/areas" className="admin-link">
