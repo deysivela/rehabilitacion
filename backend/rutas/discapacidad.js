@@ -1,22 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const Discapacidad = require('../modelos/discapacidad');
+const { Discapacidad } = require('../modelos');
 
 // Ruta para registrar discapacidad
 router.post('/registrar', async (req, res) => {
   try {
-    const { Idpac, Tipo_disc, Grado_disc, Obs } = req.body;
-    const discp = await Discapacidad.create({       
-      Tipo_disc, 
-      Grado_disc,  
-      Obs          
-    }); 
-    console.log("📌 Discapacidad creada:", discp);
-    res.status(201).json(discp); // Enviar respuesta con la discapacidad registrada
+    const { Tipo_disc, Grado_disc, Obs } = req.body;
+
+    const discp = await Discapacidad.create({ Tipo_disc, Grado_disc, Obs });
+    console.log("Discapacidad creada:", discp);
+
+    res.status(201).json(discp);
   } catch (error) {
+    console.error("Error al registrar discapacidad:", error.message);
     res.status(400).json({ error: error.message });
   }
 });
+
 
 // Ruta para listar las discapacidades
 router.get('/listar', async (req, res) => {
@@ -51,6 +51,7 @@ router.put('/editar/:id', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 module.exports = router;

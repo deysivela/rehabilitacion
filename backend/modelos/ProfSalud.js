@@ -1,7 +1,15 @@
+// modelos/profSalud.js
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../conexion/db');
 
-class ProfSalud extends Model {}
+class ProfSalud extends Model {
+  static associate(models) {
+    Paciente.belongsTo(models.Area, {
+      foreignKey: 'Idarea',
+      as: 'area'
+    });
+  }
+}
 
 ProfSalud.init(
   {
@@ -30,5 +38,5 @@ ProfSalud.init(
   }
 );
 
-module.exports = ProfSalud;
 
+module.exports = ProfSalud;

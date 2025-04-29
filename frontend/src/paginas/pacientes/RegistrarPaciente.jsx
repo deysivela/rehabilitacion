@@ -42,7 +42,7 @@ const RegistrarPaciente = () => {
           Obs: nuevoPaciente.Obs,
         });
         idDiscapacidad = discResponse.data.Iddisc; // ID generado por la BD
-        //console.log(" ID de Discapacidad registrado en react:", idDiscapacidad); 
+        console.log(" ID de Discapacidad registrado en react:", idDiscapacidad); 
       }
       // Preparar el objeto paciente con el idDiscapacidad si existe
       const datosPaciente = {

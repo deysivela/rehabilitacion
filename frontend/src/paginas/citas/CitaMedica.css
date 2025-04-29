@@ -1,0 +1,20 @@
+.cita-container {
+    padding: 20px;
+  }
+  
+  .cita-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  
+  .cita-table th, .cita-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .cita-table th {
+    background-color: #f0f0f0;
+  }
+  

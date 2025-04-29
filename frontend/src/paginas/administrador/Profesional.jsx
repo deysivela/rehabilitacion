@@ -29,7 +29,6 @@ const Profesional = () => {
     return edad;
   };
   
-
   const [modalOpen, setModalOpen] = useState(false);
   const [detalleOpen, setDetalleOpen] = useState(false);
   const [profSeleccionado, setProfSeleccionado] = useState(null);

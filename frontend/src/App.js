@@ -6,7 +6,7 @@ import RegistrarPaciente from './paginas/pacientes/RegistrarPaciente';
 import EditarPaciente from './paginas/pacientes/EditarPacientes';
 import Inicio from './paginas/Inicios';
 import Profesionales from './paginas/Profesionales';
-import Citas from './paginas/Citas';
+import Citas from './paginas/citas/CalendarioCitas';
 import Salir from './paginas/Salir';
 import Login from './paginas/Login';
 import Administrador from './paginas/administrador/Administrador';

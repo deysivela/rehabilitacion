@@ -1,0 +1,107 @@
+/* Estilos generales de los eventos */
+.fc-event {
+  border-radius: 5px;
+  padding: 5px;
+}
+
+/* Colores según estado de la cita */
+.evento-programada {
+  background-color: #4CAF50; /* Verde */
+  color: white;
+}
+
+.evento-finalizada {
+  background-color: #2196F3; /* Azul */
+  color: white;
+}
+
+.evento-ausente {
+  background-color: #f44336; /* Rojo */
+  color: white;
+}
+
+.evento-default {
+  background-color: #9E9E9E; /* Gris */
+  color: white;
+}
+
+/* Estilos para el modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  position: relative;
+  text-align: left;
+}
+
+.modal-cerrar {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* Estilos para el formulario dentro del modal */
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-content form input,
+.modal-content form select {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Botón para agregar cita */
+.btn-agregar-cita {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-agregar-cita:hover {
+  background-color: #45a049;
+}
+
+/* Botón de enviar del formulario */
+.modal-content form button[type="submit"] {
+  background-color: #2196F3;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.modal-content form button[type="submit"]:hover {
+  background-color: #1976D2;
+}
