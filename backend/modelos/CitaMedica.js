@@ -16,6 +16,7 @@ const CitaMedica = sequelize.define("CitaMedica", {
     type: DataTypes.TIME,
     allowNull: false
   },
+
   motivo_cita: {
     type: DataTypes.TEXT
   },

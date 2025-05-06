@@ -11,7 +11,12 @@ const estadisticasRutas = require('./rutas/estadisticas');
 const discapacidadRutas = require('./rutas/discapacidad');
 const profesionalRutas = require('./rutas/prof_salud');
 const citaRutas = require('./rutas/cita');
+const sesionRutas = require('./rutas/sesion');
+const tratamientoRutas = require('./rutas/tratamiento');
 const authRutas = require('./rutas/auth');
+const tecnicaRutas = require('./rutas/tecnica');
+
+
 
 const app = express();
 app.use(express.json());
@@ -31,8 +36,11 @@ app.use('/api/paciente', pacienteRutas);
 app.use('/api/discapacidad', discapacidadRutas);
 app.use('/api/prof_salud', profesionalRutas);
 app.use('/api/cita', citaRutas);
+app.use('/api/sesion', sesionRutas);
+app.use('/api/tratamiento', tratamientoRutas);
 app.use('/api/area', areaRutas);
 app.use('/api/estadisticas', estadisticasRutas);
+app.use('/api/tecnica', tecnicaRutas);
 
 // Conexión a la base de datos
 sequelize.authenticate()

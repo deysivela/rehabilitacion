@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
-import { es } from 'date-fns/locale';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-import './CalendarioCitas.css';
+import React, { useEffect, useState, useCallback } from "react"; 
+import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { es } from "date-fns/locale";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import "./CalendarioCitas.css";
 
 const locales = { es };
 
@@ -16,279 +16,253 @@ const localizer = dateFnsLocalizer({
 });
 
 const CalendarioCitas = () => {
+  const DURACION_MS = 60 * 60000;
   const [citas, setCitas] = useState([]);
-  const [citaSeleccionada, setCitaSeleccionada] = useState(null);
-  const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [horasOcupadas, setHorasOcupadas] = useState([]);
-  const [formularioCita, setFormularioCita] = useState({
-    fecha_cita: '',
-    hora_cita: '',
-    Ci_pac: '',
-    Idpac: '',
-    Idprof: '',
-    motivo_cita: '',
-    estado_cita: 'Programada',
-    duracion: 30, // 👉 Añadido: valor inicial 30 minutos
-  });
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [citaSeleccionada, setCitaSeleccionada] = useState(null);
   const [profesionales, setProfesionales] = useState([]);
+  const [formularioCita, setFormularioCita] = useState({
+    fecha_cita: "",
+    hora_cita: "",
+    Ci_pac: "",
+    Idpac: "",
+    Idprof: "",
+    motivo_cita: "",
+    estado_cita: "Programada",
+  });
+
+  const citasOrdenadas = [...citas].sort((a, b) => b.start - a.start);
+
+  const cargarCitas = useCallback(async () => {
+    const res = await fetch("http://localhost:5000/api/cita/listar");
+    const data = await res.json();
+    const eventos = data.map((cita) => {
+      const startDate = new Date(`${cita.fecha_cita}T${cita.hora_cita}`);
+      const endDate = new Date(startDate.getTime() + DURACION_MS);
+      return {
+        id: cita.Idcita,
+        title: `${cita.profesional?.nombreCompleto} - ${cita.paciente?.nombreCompleto}`,
+        start: startDate,
+        end: endDate,
+        estado: cita.estado_cita,
+        detalle: cita.motivo_cita,
+        area: cita.profesional?.area?.Nombre,
+        paciente: cita.paciente, 
+      };
+    });
+    setCitas(eventos);
+  }, [DURACION_MS]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/cita/listar')
+    cargarCitas();
+    fetch("http://localhost:5000/api/prof_salud/listar")
       .then((res) => res.json())
-      .then((data) => {
-        const eventos = data.map((cita) => {
-          const duracion = cita.duracion || 90; // Usa la duración de la cita, si no hay, pone 90 minutos
-          const startDate = new Date(`${cita.fecha_cita}T${cita.hora_cita}`);
-          const endDate = new Date(startDate.getTime() + duracion * 60000);
+      .then(setProfesionales)
+      .catch((error) => console.error("Error al obtener profesionales:", error));
+  }, [cargarCitas]);
 
-          return {
-            id: cita.Idcita,
-            title: `${cita.profesional?.nombreCompleto} - ${cita.paciente?.nombreCompleto}`,
-            start: startDate,
-            end: endDate,
-            estado: cita.estado_cita,
-            detalle: cita.motivo_cita,
-            area: cita.profesional?.area?.Nombre,
-          };
-        });
-        setCitas(eventos);
-      });
-
-    // Obtener lista de profesionales
-    fetch('http://localhost:5000/api/prof_salud/listar')
-      .then((res) => res.json())
-      .then((data) => {
-        setProfesionales(data);
-      })
-      .catch((error) => {
-        console.error('Error al obtener profesionales:', error);
-      });
-  }, []);
-
-  const cargarHorasOcupadas = async (Idprof, fecha_cita) => {
-    if (!Idprof || !fecha_cita) return;
-    try {
-      const res = await fetch(`http://localhost:5000/api/cita/horas-ocupadas?Idprof=${Idprof}&fecha_cita=${fecha_cita}`);
-      const data = await res.json();
-      setHorasOcupadas(data.horas || []);
-    } catch (error) {
-      console.error('Error al cargar horas ocupadas:', error);
-    }
-  };
-
-  const eventStyleGetter = (event) => {
-    let className = '';
-    switch (event.estado) {
-      case 'Programada':
-        className = 'evento-programada';
-        break;
-      case 'Finalizada':
-        className = 'evento-finalizada';
-        break;
-      case 'Ausente':
-        className = 'evento-ausente';
-        break;
-      default:
-        className = 'evento-default';
-        break;
-    }
-    return { className };
-  };
-
-  const handleSelectEvent = (event) => {
-    setCitaSeleccionada(event);
-    setMostrarModal(true);
-  };
-
-  const cerrarModal = () => setMostrarModal(false);
-
-  const handleCrearCita = async (e) => {
+  const handleGuardarCita = async (e) => {
     e.preventDefault();
+    const url = modoEdicion
+      ? `http://localhost:5000/api/cita/editar/${citaSeleccionada.id}`
+      : "http://localhost:5000/api/cita/crear";
+    const method = modoEdicion ? "PUT" : "POST";
+
     try {
-      const respuesta = await fetch('http://localhost:5000/api/cita/crear', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formularioCita), 
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formularioCita),
       });
 
-      if (respuesta.ok) {
-        alert('Cita creada exitosamente');
+      if (res.ok) {
+        alert(`Cita ${modoEdicion ? "actualizada" : "creada"} correctamente`);
         setMostrarFormulario(false);
+        setModoEdicion(false);
         setFormularioCita({
-          fecha_cita: '',
-          hora_cita: '',
-          Ci_pac: '',
-          Idpac: '',
-          Idprof: '',
-          motivo_cita: '',
-          estado_cita: 'Programada',
-          duracion: 30,
+          fecha_cita: "",
+          hora_cita: "",
+          Ci_pac: "",
+          Idpac: "",
+          Idprof: "",
+          motivo_cita: "",
+          estado_cita: "Programada",
         });
-
-        // Refrescar citas
-        const dataActualizada = await fetch('http://localhost:5000/api/cita/listar').then((res) => res.json());
-        const eventos = dataActualizada.map((cita) => {
-          const duracion = cita.duracion || 90;
-          const startDate = new Date(`${cita.fecha_cita}T${cita.hora_cita}`);
-          const endDate = new Date(startDate.getTime() + duracion * 60000);
-          return {
-            id: cita.Idcita,
-            title: `${cita.profesional?.nombreCompleto} - ${cita.paciente?.nombreCompleto}`,
-            start: startDate,
-            end: endDate,
-            estado: cita.estado_cita,
-            detalle: cita.motivo_cita,
-            area: cita.profesional?.area?.Nombre,
-          };
-        });
-        setCitas(eventos);
+        cargarCitas();
       } else {
-        const error = await respuesta.json();
-        alert(error.mensaje || 'Error al crear la cita');
+        const error = await res.json();
+        alert(error.mensaje || "Error al guardar la cita");
       }
     } catch (error) {
-      console.error('Error al crear cita:', error);
-      alert('Error en la conexión');
+      console.error("Error:", error);
+      alert("Error de conexión");
     }
+  };
+
+  const eliminarCita = async (id) => {
+    if (!window.confirm("¿Deseas eliminar esta cita?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/cita/eliminar/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        alert("Cita eliminada correctamente");
+        setCitas((prev) => prev.filter((cita) => cita.id !== id));
+      } else {
+        alert("Error al eliminar la cita");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error al eliminar la cita");
+    }
+  };
+
+  const abrirModalEditar = (cita) => {
+    setFormularioCita({
+      fecha_cita: cita.start.toISOString().split("T")[0],
+      hora_cita: cita.start.toTimeString().slice(0, 5),
+      motivo_cita: cita.detalle,
+      estado_cita: cita.estado,
+      Idprof: profesionales.find((p) =>
+        cita.title.includes(p.Nombre_prof)
+      )?.Idprof || "",
+      Ci_pac: cita.paciente?.Ci_pac || "",
+      Idpac: cita.paciente?.Idpac || "",   
+    });
+    setModoEdicion(true);
+    setCitaSeleccionada(cita);
+    setMostrarFormulario(true);
   };
 
   const handleCiChange = (e) => {
     const Ci_pac = e.target.value;
-    setFormularioCita((prev) => ({
-      ...prev,
-      Ci_pac: Ci_pac,
-    }));
-
+    setFormularioCita((prev) => ({ ...prev, Ci_pac }));
     if (Ci_pac.length > 0) {
       fetch(`http://localhost:5000/api/paciente/buscar?ci=${Ci_pac}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data && data.Idpac) {
-            setFormularioCita((prev) => ({
-              ...prev,
-              Idpac: data.Idpac,
-            }));
+          if (data?.Idpac) {
+            setFormularioCita((prev) => ({ ...prev, Idpac: data.Idpac }));
           } else {
-            alert('Paciente no encontrado');
+            alert("Paciente no encontrado");
           }
         })
-        .catch((error) => {
-          console.error('Error al buscar paciente:', error);
-          alert('Error al buscar el paciente');
-        });
+        .catch(() => alert("Error al buscar el paciente"));
     }
   };
 
-  const generarHorasDisponibles = () => {
-    const horas = [];
-    for (let h = 8; h <= 17; h++) {
-      const hora = `${h.toString().padStart(2, '0')}:00`;
-      if (!horasOcupadas.includes(hora)) {
-        horas.push(hora);
-      }
-    }
-    return horas;
+  const eventStyleGetter = (event) => ({
+    style: {
+      backgroundColor: event.estado === "Programada" ? "green" : "red",
+      color: "white",
+    },
+  });
+
+  const abrirModal = (cita) => {
+    setCitaSeleccionada(cita);
+    setMostrarModal(true);
+  };
+
+  const cerrarModal = () => {
+    setCitaSeleccionada(null);
+    setMostrarModal(false);
   };
 
   return (
-    <div style={{ width: '80vw', height: '90vh', padding: '10px' }}>
-      <button onClick={() => setMostrarFormulario(true)} className="btn-agregar-cita">
-        Agregar Cita
+    <div style={{ width: "80vw", height: "90vh", padding: "10px" }}>
+      <button
+        onClick={() => {
+          setMostrarFormulario(true);
+          setModoEdicion(false);
+          setFormularioCita({
+            fecha_cita: "",
+            hora_cita: "",
+            Ci_pac: "",
+            Idpac: "",
+            Idprof: "",
+            motivo_cita: "",
+            estado_cita: "Programada",
+          });
+        }}
+        className="btn-agregar-cita"
+      >
+        Agendar Cita
       </button>
-
       <Calendar
         localizer={localizer}
         events={citas}
         defaultView="week"
-        views={['week']}
+        views={["week"]}
         step={60}
         timeslots={1}
-        min={new Date(2023, 0, 1, 8, 0)}
-        max={new Date(2023, 0, 1, 18, 0)}
-        style={{ width: '100%', height: '100%' }}
+        min={new Date(0, 0, 0, 8, 0)}
+        max={new Date(0, 0, 0, 18, 0)}
+        scrollToTime={new Date(0, 0, 0, 8, 0)}
+        style={{ width: "100%", height: "100%" }}
         culture="es"
         eventPropGetter={eventStyleGetter}
-        onSelectEvent={handleSelectEvent}
-        messages={{
-          today: 'Hoy',
-          previous: 'Atrás',
-          next: 'Siguiente',
-        }}
+        onSelectEvent={abrirModal}
+        messages={{ today: "Hoy", previous: "Atrás", next: "Siguiente" }}
+        allDaySlot={false}
       />
 
-      {/* Modal Detalles */}
       {mostrarModal && citaSeleccionada && (
         <div className="modal-overlay">
           <div className="modal-content">
             <button className="modal-cerrar" onClick={cerrarModal}>X</button>
             <h3>Detalles de la Cita</h3>
-            <p><strong>Profesional:</strong> {citaSeleccionada.title.split(' - ')[0]}</p>
+            <p><strong>Profesional:</strong> {citaSeleccionada.title.split(" - ")[0]}</p>
             <p><strong>Área:</strong> {citaSeleccionada.area}</p>
-            <p><strong>Paciente:</strong> {citaSeleccionada.title.split(' - ')[1]}</p>
+            <p><strong>Paciente:</strong> {citaSeleccionada.title.split(" - ")[1]}</p>
             <p><strong>Fecha:</strong> {citaSeleccionada.start.toLocaleDateString()}</p>
-            <p><strong>Hora:</strong> {citaSeleccionada.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+            <p><strong>Hora:</strong> {citaSeleccionada.start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
             <p><strong>Estado:</strong> {citaSeleccionada.estado}</p>
             <p><strong>Motivo:</strong> {citaSeleccionada.detalle}</p>
           </div>
         </div>
       )}
 
-      {/* Modal Crear */}
+      <h2>Lista de Citas</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Profesional</th>
+            <th>Paciente</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Estado</th>
+            <th>Motivo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {citasOrdenadas.map((cita) => (
+            <tr key={cita.id}>
+              <td>{cita.title.split(" - ")[0]}</td>
+              <td>{cita.title.split(" - ")[1]}</td>
+              <td>{cita.start.toLocaleDateString()}</td>
+              <td>{cita.start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</td>
+              <td>{cita.estado}</td>
+              <td>{cita.detalle}</td>
+              <td>
+                <button onClick={() => abrirModalEditar(cita)}>✏️</button>
+                <button onClick={() => eliminarCita(cita.id)}>🗑️</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
       {mostrarFormulario && (
         <div className="modal-overlay">
           <div className="modal-content">
             <button className="modal-cerrar" onClick={() => setMostrarFormulario(false)}>X</button>
-            <h3>Agregar Nueva Cita</h3>
-            <form onSubmit={handleCrearCita}>
-              <input
-                type="date"
-                value={formularioCita.fecha_cita}
-                onChange={(e) => {
-                  const nuevaFecha = e.target.value;
-                  setFormularioCita({ ...formularioCita, fecha_cita: nuevaFecha });
-                  cargarHorasOcupadas(formularioCita.Idprof, nuevaFecha);
-                }}
-                required
-              />
-              <select
-                value={formularioCita.hora_cita}
-                onChange={(e) => setFormularioCita({ ...formularioCita, hora_cita: e.target.value })}
-                required
-              >
-                <option value="">Seleccionar Hora</option>
-                {generarHorasDisponibles().map((hora) => (
-                  <option key={hora} value={hora}>{hora}</option>
-                ))}
-              </select>
-
-              <input
-                type="number"
-                min="10"
-                step="10"
-                placeholder="Duración (min)"
-                value={formularioCita.duracion}
-                onChange={(e) => setFormularioCita({ ...formularioCita, duracion: parseInt(e.target.value) })}
-                required
-              />
-
-              <input
-                type="text"
-                placeholder="CI del Paciente"
-                value={formularioCita.Ci_pac}
-                onChange={handleCiChange}
-                required
-              />
-
-              <select
-                value={formularioCita.Idprof}
-                onChange={(e) => {
-                  const nuevoIdprof = e.target.value;
-                  setFormularioCita({ ...formularioCita, Idprof: nuevoIdprof });
-                  cargarHorasOcupadas(nuevoIdprof, formularioCita.fecha_cita);
-                }}
-                required
-              >
+            <h3>{modoEdicion ? "Editar Cita" : "Agregar Nueva Cita"}</h3>
+            <form onSubmit={handleGuardarCita}>
+              <select value={formularioCita.Idprof} onChange={(e) => setFormularioCita({ ...formularioCita, Idprof: e.target.value })} required>
                 <option value="">Seleccionar Profesional</option>
                 {profesionales.map((prof) => (
                   <option key={prof.Idprof} value={prof.Idprof}>
@@ -296,24 +270,16 @@ const CalendarioCitas = () => {
                   </option>
                 ))}
               </select>
-
-              <input
-                type="text"
-                placeholder="Motivo"
-                value={formularioCita.motivo_cita}
-                onChange={(e) => setFormularioCita({ ...formularioCita, motivo_cita: e.target.value })}
-                required
-              />
-              <select
-                value={formularioCita.estado_cita}
-                onChange={(e) => setFormularioCita({ ...formularioCita, estado_cita: e.target.value })}
-              >
+              <input type="date" value={formularioCita.fecha_cita} onChange={(e) => setFormularioCita({ ...formularioCita, fecha_cita: e.target.value })} required />
+              <input type="time" value={formularioCita.hora_cita} onChange={(e) => setFormularioCita({ ...formularioCita, hora_cita: e.target.value })} required />
+              <input type="text" placeholder="CI del Paciente" value={formularioCita.Ci_pac} onChange={handleCiChange} required={!modoEdicion} />
+              <input type="text" placeholder="Motivo" value={formularioCita.motivo_cita} onChange={(e) => setFormularioCita({ ...formularioCita, motivo_cita: e.target.value })} required />
+              <select value={formularioCita.estado_cita} onChange={(e) => setFormularioCita({ ...formularioCita, estado_cita: e.target.value })}>
                 <option value="Programada">Programada</option>
                 <option value="Finalizada">Finalizada</option>
                 <option value="Ausente">Ausente</option>
               </select>
-
-              <button type="submit">Guardar</button>
+              <button type="submit">{modoEdicion ? "Actualizar" : "Guardar"}</button>
             </form>
           </div>
         </div>

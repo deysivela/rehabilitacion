@@ -10,39 +10,34 @@
     transition: width 0.3s ease-in-out;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     overflow: hidden;
-}
-
-.sidebar.closed {
+    z-index: 1000;
+  }
+  
+  .sidebar.closed {
     width: 70px;
-}
-
-/* Encabezado del sidebar */
-.sidebar-header {
+  }
+  
+  /* Encabezado del sidebar */
+  .sidebar-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 15px;
     background-color: rgba(255, 255, 255, 0.699);
-   /* background-color: #34495e;*/
     font-size: 1.2rem;
     font-weight: bold;
-}
-
-/* Logo */
-.sidebar-logo {
-    max-width: 150px;
+  }
+  
+  /* Logo */
+  .sidebar-logo {
+    max-width: 85%;
     height: auto;
-    transition: max-width 0.3s ease-in-out;
-}
-
-.sidebar.closed .sidebar-logo {
-    max-width: 50px;
-}
-
-/* Botón de colapso */
-.toggle-btn {
+    transition: opacity 0.3s ease;
+  }
+  
+  /* Botón de colapso */
+  .toggle-btn {
     background: #34495e;
     border: none;
     border-radius: 50%;
@@ -54,73 +49,130 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease-in-out;
-}
-
-.toggle-btn:hover {
+    transition: transform 0.3s ease;
+  }
+  
+  .toggle-btn:hover {
     transform: rotate(180deg);
-}
-
-/* Menú del sidebar */
-.sidebar-menu {
+  }
+  
+  /* Menú principal */
+  .sidebar-menu {
     list-style: none;
-    padding: 0;
+    padding: 20px 0;
     margin: 0;
     flex-grow: 1;
-}
-
-.sidebar-menu li {
-    margin: 8px 0;
-}
-
-.sidebar-menu li a {
-    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .sidebar-menu li {
+    margin: 2px 0;
+  }
+  
+  /* Estilos para todos los links */
+  .sidebar-menu li a {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
     color: white;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .sidebar-menu li a:hover {
+    background-color: #34495e;
+  }
+  
+  /* Iconos */
+  .sidebar-menu li a svg {
+    min-width: 20px;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+  
+  /* Estructura de submenús */
+  .submenu-toggle {
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  
+  .submenu-main-link {
+    flex: 1;
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 10px 15px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease-in-out;
-}
-
-.sidebar-menu li a:hover {
+    padding: 12px 15px;
+    text-decoration: none;
+    color: white;
+  }
+  
+  .submenu-arrow {
+    padding: 12px 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+  }
+  
+  .submenu-arrow:hover {
     background-color: #34495e;
-}
-
-/* Estilo para el último elemento (Salir) */
-.sidebar-menu li.logout {
-    margin-top: auto;
-}
-
-.sidebar-menu li.logout a {
-    color: #e74c3c;
-}
-
-.sidebar-menu li.logout a:hover {
-    background-color: #c0392b;
-}
-
-/* Estado colapsado */
-.sidebar.closed .sidebar-menu li a {
+  }
+  
+  /* Submenús */
+  .submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .submenu li a {
+    padding: 10px 15px 10px 45px;
+    font-size: 0.95rem;
+  }
+  
+  .submenu-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .submenu-icon-placeholder {
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* Cuando el sidebar está cerrado */
+  .sidebar.closed .sidebar-menu li a,
+  .sidebar.closed .submenu-main-link {
     justify-content: center;
-}
-
-.sidebar.closed .sidebar-menu li a span {
+    padding: 12px 0;
+  }
+  
+  .sidebar.closed .sidebar-menu li a span,
+  .sidebar.closed .submenu-main-link span,
+  .sidebar.closed .submenu-arrow {
     display: none;
-}
-
-/* Íconos */
-.sidebar-menu li a svg {
-    font-size: 1.2rem;
-}
-
-/* Ocultar texto en el encabezado al colapsar */
-.sidebar.closed .sidebar-header h2 {
-    display: none;
-}
-/* Ajustes dinámicos del contenido */
-body.sidebar-expanded .main-content {
+  }
+  
+  /* Último ítem (Salir) */
+  .sidebar-menu li.logout {
+    margin-top: auto;
+  }
+  
+  .sidebar-menu li.logout a {
+    color: #e74c3c;
+  }
+  
+  .sidebar-menu li.logout a:hover {
+    background-color: #c0392b;
+    color: white;
+  }
+  
+  /* Ajustes dinámicos del contenido */
+  body.sidebar-expanded .main-content {
     margin-left: 250px;
     transition: margin-left 0.3s ease;
   }
@@ -129,4 +181,3 @@ body.sidebar-expanded .main-content {
     margin-left: 70px;
     transition: margin-left 0.3s ease;
   }
-  

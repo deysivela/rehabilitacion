@@ -5,7 +5,6 @@ import Pacientes from './paginas/pacientes/Pacientes';
 import RegistrarPaciente from './paginas/pacientes/RegistrarPaciente';
 import EditarPaciente from './paginas/pacientes/EditarPacientes';
 import Inicio from './paginas/Inicios';
-import Profesionales from './paginas/Profesionales';
 import Citas from './paginas/citas/CalendarioCitas';
 import Salir from './paginas/Salir';
 import Login from './paginas/Login';
@@ -13,6 +12,7 @@ import Administrador from './paginas/administrador/Administrador';
 import Usuario from './paginas/administrador/Usuario'; 
 import Area from './paginas/administrador/Area'; 
 import Profesional from './paginas/administrador/Profesional'; 
+import Sesion from './paginas/citas/Sesion';
 
 // Componente para proteger rutas privadas
 const PrivateRoute = ({ children }) => {
@@ -42,11 +42,11 @@ const App = () => {
                     <Route path="/pacientes/registrar" element={<RegistrarPaciente />} />
                     <Route path="/pacientes/editar/:id" element={<EditarPaciente />} />
                     <Route path="/administrador" element={<Administrador/>} />
-                    <Route path="/profesionales" element={<Profesionales />} />
                     <Route path="/usuario" element={<Usuario />} />
                     <Route path="/areas" element={<Area />} />
                     <Route path="/profesional" element={<Profesional />} />
                     <Route path="/citas" element={<Citas />} />
+                    <Route path="/sesion" element={<Sesion />} />
                     <Route path="/salir" element={<Salir />} />
                   </Routes>                                                                     
                 </div>
