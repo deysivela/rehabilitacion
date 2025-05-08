@@ -29,7 +29,6 @@
   padding-top: 0px !important;
 }
 
-/* General table styling */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -61,7 +60,7 @@ tbody tr:hover {
 
 /* Optional: styling for the table container to add spacing */
 .table-container {
-  max-height: 400px; /* Adjust the height as needed */
+  max-height: 400px; 
   overflow-y: auto;
 }
 

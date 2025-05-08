@@ -36,7 +36,6 @@ const CitaMedica = sequelize.define("CitaMedica", {
   timestamps: false
 });
 
-// Asociaciones (defínelas en un archivo aparte o dentro de un setup central)
 CitaMedica.associate = function(models) {
   CitaMedica.belongsTo(models.Paciente, {
     foreignKey: 'Idpac',

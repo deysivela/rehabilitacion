@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useCallback } from "react"; 
+import React, { useEffect, useState, useCallback } from "react";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { es } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./CalendarioCitas.css";
+import { useNavigate } from "react-router-dom";
 
 const locales = { es };
 
@@ -17,6 +18,8 @@ const localizer = dateFnsLocalizer({
 
 const CalendarioCitas = () => {
   const DURACION_MS = 60 * 60000;
+  const navigate = useNavigate();
+
   const [citas, setCitas] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -41,17 +44,27 @@ const CalendarioCitas = () => {
     const eventos = data.map((cita) => {
       const startDate = new Date(`${cita.fecha_cita}T${cita.hora_cita}`);
       const endDate = new Date(startDate.getTime() + DURACION_MS);
+    
+      // Determinar si la cita ya pasó y no fue finalizada
+      const ahora = new Date();
+      let estado = cita.estado_cita;
+    
+      if (endDate < ahora && estado !== "Finalizada") {
+        estado = "Ausente";
+      }
+    
       return {
         id: cita.Idcita,
         title: `${cita.profesional?.nombreCompleto} - ${cita.paciente?.nombreCompleto}`,
         start: startDate,
         end: endDate,
-        estado: cita.estado_cita,
+        estado: estado,
         detalle: cita.motivo_cita,
         area: cita.profesional?.area?.Nombre,
-        paciente: cita.paciente, 
+        paciente: cita.paciente,
       };
     });
+    
     setCitas(eventos);
   }, [DURACION_MS]);
 
@@ -103,7 +116,6 @@ const CalendarioCitas = () => {
 
   const eliminarCita = async (id) => {
     if (!window.confirm("¿Deseas eliminar esta cita?")) return;
-
     try {
       const res = await fetch(`http://localhost:5000/api/cita/eliminar/${id}`, {
         method: "DELETE",
@@ -130,7 +142,7 @@ const CalendarioCitas = () => {
         cita.title.includes(p.Nombre_prof)
       )?.Idprof || "",
       Ci_pac: cita.paciente?.Ci_pac || "",
-      Idpac: cita.paciente?.Idpac || "",   
+      Idpac: cita.paciente?.Idpac || "",
     });
     setModoEdicion(true);
     setCitaSeleccionada(cita);
@@ -154,12 +166,15 @@ const CalendarioCitas = () => {
     }
   };
 
-  const eventStyleGetter = (event) => ({
-    style: {
-      backgroundColor: event.estado === "Programada" ? "green" : "red",
-      color: "white",
-    },
-  });
+  const eventStyleGetter = (event) => {
+    let className = "evento-default";
+    if (event.estado === "Programada") className = "evento-programada";
+    else if (event.estado === "Finalizada") className = "evento-finalizada";
+    else if (event.estado === "Ausente") className = "evento-ausente";
+  
+    return { className };
+  };
+  
 
   const abrirModal = (cita) => {
     setCitaSeleccionada(cita);
@@ -169,6 +184,10 @@ const CalendarioCitas = () => {
   const cerrarModal = () => {
     setCitaSeleccionada(null);
     setMostrarModal(false);
+  };
+
+  const redirigirASesion = (idCita) => {
+    navigate("/sesion", { state: { Idcita: idCita } });
   };
 
   return (
@@ -191,6 +210,7 @@ const CalendarioCitas = () => {
       >
         Agendar Cita
       </button>
+
       <Calendar
         localizer={localizer}
         events={citas}
@@ -221,6 +241,12 @@ const CalendarioCitas = () => {
             <p><strong>Hora:</strong> {citaSeleccionada.start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
             <p><strong>Estado:</strong> {citaSeleccionada.estado}</p>
             <p><strong>Motivo:</strong> {citaSeleccionada.detalle}</p>
+            <button
+              onClick={() => redirigirASesion(citaSeleccionada.id)}
+              className="btn-registrar-sesion"
+            >
+              Registrar Sesión
+            </button>
           </div>
         </div>
       )}
@@ -250,6 +276,7 @@ const CalendarioCitas = () => {
               <td>
                 <button onClick={() => abrirModalEditar(cita)}>✏️</button>
                 <button onClick={() => eliminarCita(cita.id)}>🗑️</button>
+                <button onClick={() => redirigirASesion(cita.id)}>➕ </button>
               </td>
             </tr>
           ))}

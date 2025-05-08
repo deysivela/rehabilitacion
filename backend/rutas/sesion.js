@@ -3,7 +3,6 @@ const router = express.Router();
 const { Sesion, CitaMedica, Tratamiento, Paciente, ProfSalud } = require('../modelos');
 const { Op } = require('sequelize');
 
-// Middleware para validar datos de sesión (actualizado)
 const validarSesion = (req, res, next) => {
   const { Hora_ini, Hora_fin, Tipo, Idtrat } = req.body;
   
@@ -67,21 +66,14 @@ router.get('/listar', async (req, res) => {
   }
 });
 
-
-
-
-// Crear nueva sesión (actualizado)
-router.post('/crear', validarSesion, async (req, res) => {
-  const { Idcita, Hora_ini, Hora_fin, Tipo, Notas, Novedades, Idtrat } = req.body;
-
+// Crear nueva sesión 
+router.post("/crear", async (req, res) => {
   try {
-    // Verificar que el tratamiento exista
-    const tratamiento = await Tratamiento.findByPk(Idtrat);
-    if (!tratamiento) {
-      return res.status(404).json({ mensaje: 'El tratamiento no existe' });
-    }
+    const { Idcita, Hora_ini, Hora_fin, Tipo, Notas, Novedades, Idtrat, Idtec } = req.body;
 
-    // Crear la sesión
+    if (!Idtec) {
+      return res.status(400).json({ mensaje: "Idtec es obligatorio" });
+    }
     const nuevaSesion = await Sesion.create({
       Idcita,
       Hora_ini,
@@ -89,18 +81,17 @@ router.post('/crear', validarSesion, async (req, res) => {
       Tipo,
       Notas,
       Novedades,
-      Idtrat
+      Idtrat,
+      Idtec,
     });
 
     res.status(201).json(nuevaSesion);
   } catch (error) {
-    console.error('Error al crear sesión:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Error al crear la sesión' 
-    });
+    console.error("Error al crear sesión:", error);
+    res.status(500).json({ mensaje: "Error al crear sesión", error });
   }
 });
+
 
 // Actualizar sesión (actualizado)
 router.put('/editar/:id', validarSesion, async (req, res) => {
