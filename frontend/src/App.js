@@ -13,6 +13,9 @@ import Usuario from './paginas/administrador/Usuario';
 import Area from './paginas/administrador/Area'; 
 import Profesional from './paginas/administrador/Profesional'; 
 import Sesion from './paginas/citas/Sesion';
+import Diagnostico from './paginas/pacientes/Diagnostico';
+import Tratamiento from './paginas/pacientes/Tratamiento';
+import Tecnica from './paginas/profesional/Tecnicas';
 
 // Componente para proteger rutas privadas
 const PrivateRoute = ({ children }) => {
@@ -36,17 +39,20 @@ const App = () => {
                 <Sidebar />
                 <div className="main-content">
                   <Routes>
-                    
                     <Route path="/" element={<Inicio />} />
                     <Route path="/pacientes" element={<Pacientes />} />
                     <Route path="/pacientes/registrar" element={<RegistrarPaciente />} />
                     <Route path="/pacientes/editar/:id" element={<EditarPaciente />} />
-                    <Route path="/administrador" element={<Administrador/>} />
+                    <Route path="/administrador" element={<Administrador />} />
                     <Route path="/usuario" element={<Usuario />} />
                     <Route path="/areas" element={<Area />} />
                     <Route path="/profesional" element={<Profesional />} />
                     <Route path="/citas" element={<Citas />} />
                     <Route path="/sesion" element={<Sesion />} />
+                    <Route path="/diagnosticos" element={<Diagnostico />} />
+                    <Route path="/tratamientos" element={<Tratamiento />} />
+                    <Route path="/tecnicas" element={<Tecnica />} />
+
                     <Route path="/salir" element={<Salir />} />
                   </Routes>                                                                     
                 </div>
@@ -60,11 +66,3 @@ const App = () => {
 };
 
 export default App;
-
-
-
-
-
-
-
-

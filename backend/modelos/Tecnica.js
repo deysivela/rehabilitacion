@@ -17,7 +17,7 @@ const Tecnica = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'area', // nombre de la tabla referenciada
+        model: 'area',
         key: 'Idarea',
       },
     },

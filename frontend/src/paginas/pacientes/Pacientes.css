@@ -1,80 +1,385 @@
-/* Contenedor principal */
+/* Estilos generales */
 .pacientes-container {
   padding: 20px;
-  font-family: Arial, sans-serif;
-  background-color: #f4f6f8;
-  min-height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Título principal */
-.pacientes-container h1 {
-  color: #141411;
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
-  font-size: 2rem;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
-/* Botón para agregar paciente */
+h1 {
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+/* Botones y acciones */
 .btn-agregar {
   background-color: #3498db;
   color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s;
 }
 
 .btn-agregar:hover {
   background-color: #2980b9;
-  transform: translateY(-2px);
 }
 
-/* Tabla de pacientes */
+.btn-action {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s;
+}
+
+.btn-detalle {
+  background-color: #3498db;
+  color: white;
+  margin-right: 5px;
+}
+
+.btn-editar {
+  background-color: #f39c12;
+  color: white;
+  margin-right: 5px;
+}
+
+.btn-eliminar {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn-detalle:hover,
+.btn-editar:hover, 
+.btn-eliminar:hover {
+  opacity: 0.8;
+}
+
+/* Filtros */
+.filtros-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filtro-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f5f7fa;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.filtro-group input, 
+.filtro-group select {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-width: 200px;
+}
+
+.filtro-group input[type="number"] {
+  width: 80px;
+  margin: 0 5px;
+}
+
+.btn-limpiar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #7f8c8d;
+  margin-left: 5px;
+}
+
+.btn-limpiar:hover {
+  color: #e74c3c;
+}
+
+/* Tabla */
+.table-responsive {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
 .pacientes-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
-  overflow: hidden;
 }
 
-.pacientes-table th,
+.pacientes-table th, 
 .pacientes-table td {
-  padding: 10px;
+  padding: 12px 15px;
   text-align: left;
+  border-bottom: 1px solid #ecf0f1;
 }
 
 .pacientes-table th {
-  background-color: #2c3e50;
+  background-color: #3498db;
   color: white;
-  font-size: 1rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
-.pacientes-table td {
-  border-bottom: 1px solid #ddd;
+.pacientes-table th svg {
+  margin-right: 5px;
 }
 
-.pacientes-table tr:last-child td {
-  border-bottom: none;
+.pacientes-table tr:hover {
+  background-color: #f8f9fa;
 }
 
-.pacientes-table tr:hover td {
-  background-color: #f0f4f8;
+.acciones {
+  display: flex;
+  gap: 5px;
 }
 
-.pacientes-table button {
-  background-color: #ebdd26;
+/* Badges */
+.badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.badge-discapacidad {
+  background-color: #e74c3c;
   color: white;
+}
+
+.badge-nodiscapacidad {
+  background-color: #2ecc71;
+  color: white;
+}
+
+/* Estados */
+.cargando, .no-results {
+  padding: 20px;
+  text-align: center;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+/* Modal de detalles */
+.modal-detalle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-contenido {
+  background-color: white;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.btn-cerrar {
+  background: none;
   border: none;
-  margin: 0 1px;
-  padding: 5px 10px;
-  border-radius: 3px;
+  font-size: 1.5rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  color: #7f8c8d;
 }
 
-.pacientes-table button:hover {
-  background-color: #c0392b;
+.btn-cerrar:hover {
+  color: #e74c3c;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.detalle-row {
+  display: flex;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.detalle-col {
+  flex: 1;
+  padding: 0 10px;
+  min-width: 250px;
+}
+
+.detalle-col h3 {
+  margin-top: 0;
+  color: #3498db;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.detalle-col h4 {
+  margin-top: 15px;
+  color: #3498db;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 3px;
+}
+
+.modal-body p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  text-align: right;
+}
+
+/* Sección de discapacidad */
+.discapacidad-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #ddd;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .filtros-container {
+    flex-direction: column;
+  }
+  
+  .filtro-group {
+    width: 100%;
+  }
+  
+  .filtro-group input,
+  .filtro-group select {
+    width: 100%;
+  }
+  
+  .pacientes-table {
+    display: block;
+  }
+  
+  .pacientes-table th, 
+  .pacientes-table td {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+  
+  .modal-contenido {
+    width: 90%;
+  }
+  
+  .detalle-col {
+    flex: 100%;
+    margin-bottom: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pacientes-table th, 
+  .pacientes-table td {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+  
+  .btn-action {
+    padding: 4px 6px;
+    font-size: 0.8rem;
+  }
+  
+  .modal-contenido {
+    width: 95%;
+  }
+  
+  .modal-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .detalle-col h3 {
+    font-size: 1rem;
+  }
+}
+/* Estilos para el botón de diagnóstico */
+.btn-diagnostico {
+  background-color: #2ecc71;
+  color: white;
+  margin-right: 5px;
+}
+
+.btn-diagnostico:hover {
+  opacity: 0.8;
+}
+
+/* Ajustes para los botones de acción */
+.acciones {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* Asegurar que los botones no se deformen */
+.btn-action {
+  min-width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive para botones */
+@media (max-width: 768px) {
+  .acciones {
+    justify-content: center;
+  }
+  
+  .btn-action {
+    padding: 4px 6px;
+    font-size: 0.8rem;
+  }
 }

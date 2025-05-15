@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const { sequelize } = require('./modelos'); 
-
 // Rutas
 const pacienteRutas = require('./rutas/paciente');
 const usuarioRutas = require('./rutas/usuario');
@@ -15,6 +14,7 @@ const sesionRutas = require('./rutas/sesion');
 const tratamientoRutas = require('./rutas/tratamiento');
 const authRutas = require('./rutas/auth');
 const tecnicaRutas = require('./rutas/tecnica');
+const diagnosticoRutas = require('./rutas/diagnostico');
 
 
 
@@ -41,6 +41,7 @@ app.use('/api/tratamiento', tratamientoRutas);
 app.use('/api/area', areaRutas);
 app.use('/api/estadisticas', estadisticasRutas);
 app.use('/api/tecnica', tecnicaRutas);
+app.use('/api/diagnostico', diagnosticoRutas);
 
 // Conexión a la base de datos
 sequelize.authenticate()

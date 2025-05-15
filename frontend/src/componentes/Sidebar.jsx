@@ -18,6 +18,8 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isCitasOpen, setIsCitasOpen] = useState(false);
+  const [isProfesionalesOpen, setIsProfesionalesOpen] = useState(false);
+  const [isPacientesOpen, setIsPacientesOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -36,10 +38,7 @@ const Sidebar = () => {
             src="/logo.png"
             alt="Logo"
             className="sidebar-logo"
-            style={{
-              width: "300px",
-              transition: "opacity 0.3s ease",
-            }}
+            style={{ width: "300px", transition: "opacity 0.3s ease" }}
           />
         )}
         <button className="toggle-btn" onClick={toggleSidebar}>
@@ -73,55 +72,67 @@ const Sidebar = () => {
               </span>
             )}
           </div>
-
           {isAdminOpen && isOpen && (
             <ul className="submenu">
-              <li>
-                <Link to="/profesional">
-                  <span className="submenu-item">
-                    <span className="submenu-icon-placeholder"></span>
-                    Gestionar Profesionales
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/usuario">
-                  <span className="submenu-item">
-                    <span className="submenu-icon-placeholder"></span>
-                    Gestionar Usuarios
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/areas">
-                  <span className="submenu-item">
-                    <span className="submenu-icon-placeholder"></span>
-                    Gestionar Áreas
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/reportes">
-                  <span className="submenu-item">
-                    <span className="submenu-icon-placeholder"></span>
-                    Generar Reportes
-                  </span>
-                </Link>
-              </li>
+              <li><Link to="/profesional"><span className="submenu-item">Gestionar Profesionales</span></Link></li>
+              <li><Link to="/usuario"><span className="submenu-item">Gestionar Usuarios</span></Link></li>
+              <li><Link to="/areas"><span className="submenu-item">Gestionar Áreas</span></Link></li>
+              <li><Link to="/reportes"><span className="submenu-item">Generar Reportes</span></Link></li>
             </ul>
           )}
         </li>
 
+        {/* PACIENTES */}
         <li>
-          <Link to="/pacientes">
-            <FaUser /> {isOpen && "Pacientes"}
-          </Link>
+          <div className="submenu-toggle">
+            <Link to="/pacientes" className="submenu-main-link">
+              <FaUser />
+              {isOpen && <span>Pacientes</span>}
+            </Link>
+            {isOpen && (
+              <span
+                className="submenu-arrow"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsPacientesOpen(!isPacientesOpen);
+                }}
+              >
+                {isPacientesOpen ? <FaChevronUp /> : <FaChevronDown />}
+              </span>
+            )}
+          </div>
+          {isPacientesOpen && isOpen && (
+            <ul className="submenu">
+              <li><Link to="/diagnosticos"><span className="submenu-item">Diagnósticos</span></Link></li>
+              <li><Link to="/tratamientos"><span className="submenu-item">Tratamientos</span></Link></li>
+            </ul>
+          )}
         </li>
 
+        {/* PROFESIONALES DE SALUD */}
         <li>
-          <Link to="/profesionales">
-            <FaUserMd /> {isOpen && "Profesionales de Salud"}
-          </Link>
+          <div className="submenu-toggle">
+            <Link to="/profesionales" className="submenu-main-link">
+              <FaUserMd />
+              {isOpen && <span>Profesional de Salud</span>}
+            </Link>
+            {isOpen && (
+              <span
+                className="submenu-arrow"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsProfesionalesOpen(!isProfesionalesOpen);
+                }}
+              >
+                {isProfesionalesOpen ? <FaChevronUp /> : <FaChevronDown />}
+              </span>
+            )}
+          </div>
+          {isProfesionalesOpen && isOpen && (
+            <ul className="submenu">
+              <li><Link to="/tecnicas"><span className="submenu-item">Técnicas</span></Link></li>
+            </ul>
+          )}
         </li>
 
         {/* CITAS */}
@@ -143,17 +154,9 @@ const Sidebar = () => {
               </span>
             )}
           </div>
-
           {isCitasOpen && isOpen && (
             <ul className="submenu">
-              <li>
-                <Link to="/sesion">
-                  <span className="submenu-item">
-                    <span className="submenu-icon-placeholder"></span>
-                    Sesiones
-                  </span>
-                </Link>
-              </li>
+              <li><Link to="/sesion"><span className="submenu-item">Sesiones</span></Link></li>
             </ul>
           )}
         </li>

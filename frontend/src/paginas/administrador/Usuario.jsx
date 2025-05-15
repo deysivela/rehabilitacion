@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Usuario.css';
-import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import { FaEdit, FaEye } from 'react-icons/fa'; // Eliminamos FaTrash
 
 const Usuario = () => {
   const [lista, setLista] = useState([]);
@@ -68,7 +68,6 @@ const Usuario = () => {
     return `${Nombre_prof} ${Appaterno_prof}${Apmaterno_prof ? ' ' + Apmaterno_prof : ''}`;
   };
   
-
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
     setForm(f => ({
@@ -93,13 +92,6 @@ const Usuario = () => {
     }
     setModalOpen(false);
     fetchUsuarios();
-  };
-
-  const handleDelete = async id => {
-    if (window.confirm('¿Eliminar este usuario?')) {
-      await axios.delete(`http://localhost:5000/api/usuario/eliminar/${id}`);
-      fetchUsuarios();
-    }
   };
 
   return (
@@ -136,10 +128,7 @@ const Usuario = () => {
                   className="icono icono-editar"
                   onClick={() => abrirModal(u)}
                 />
-                <FaTrash
-                  className="icono icono-eliminar"
-                  onClick={() => handleDelete(u.Iduser)}
-                />
+                {/* Se eliminó el icono de eliminar */}
               </td>
             </tr>
           ))}
@@ -242,24 +231,21 @@ const Usuario = () => {
 
       {/* Modal Detalle */}
       {detalleOpen && usuarioSeleccionado && (
-  <div className="modal">
-    <div className="modal-content">
-      <h3>Detalles del Usuario</h3>
-      <p><strong>Usuario:</strong> {usuarioSeleccionado.Usuario}</p>
-      <p><strong>Contraseña:</strong> 🔒 Encriptada</p>
-      <p><strong>Rol:</strong> {usuarioSeleccionado.Rol}</p>
-      <p><strong>Activo:</strong> {usuarioSeleccionado.Activo ? 'Sí' : 'No'}</p>
-      <p>
-        <strong>Profesional asociado:</strong>{' '}
-        {obtenerNombreProfesional(usuarioSeleccionado.Idprof)}
-    </p>
-
-
-      <button onClick={() => setDetalleOpen(false)} className="btn-cancel">Cerrar</button>
-    </div>
-  </div>
-)}
-
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Detalles del Usuario</h3>
+            <p><strong>Usuario:</strong> {usuarioSeleccionado.Usuario}</p>
+            <p><strong>Contraseña:</strong> 🔒 Encriptada</p>
+            <p><strong>Rol:</strong> {usuarioSeleccionado.Rol}</p>
+            <p><strong>Activo:</strong> {usuarioSeleccionado.Activo ? 'Sí' : 'No'}</p>
+            <p>
+              <strong>Profesional asociado:</strong>{' '}
+              {obtenerNombreProfesional(usuarioSeleccionado.Idprof)}
+            </p>
+            <button onClick={() => setDetalleOpen(false)} className="btn-cancel">Cerrar</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

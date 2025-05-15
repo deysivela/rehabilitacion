@@ -1,17 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../modelos'); // Importa los modelos
+const db = require('../modelos'); 
 const Tecnica = db.Tecnica;
 const Area = db.Area;
 
-// ✅ Obtener todas las técnicas con su área
 router.get('/listar', async (req, res) => {
   try {
     const tecnicas = await Tecnica.findAll({
       include: {
         model: Area,
         as: 'area',
-        attributes: ['Idarea', 'Nombre'] // Ajusta a los campos reales de tu tabla 'area'
+        attributes: ['Idarea', 'Nombre'] 
       },
     });
     res.json(tecnicas);
@@ -20,7 +19,7 @@ router.get('/listar', async (req, res) => {
   }
 });
 
-// ✅ Obtener una técnica por ID
+// Obtener una técnica por ID
 router.get('/:id', async (req, res) => {
   try {
     const tecnica = await Tecnica.findByPk(req.params.id, {
@@ -37,8 +36,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ✅ Crear una nueva técnica
-router.post('/', async (req, res) => {
+// Crear una nueva técnica
+router.post('/crear', async (req, res) => {
   try {
     const { Descripcion, Idarea } = req.body;
     const nuevaTecnica = await Tecnica.create({ Descripcion, Idarea });
@@ -48,8 +47,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✅ Actualizar una técnica
-router.put('/:id', async (req, res) => {
+// Actualizar una técnica
+router.put('/editar/:id', async (req, res) => {
   try {
     const { Descripcion, Idarea } = req.body;
     const tecnica = await Tecnica.findByPk(req.params.id);
@@ -60,19 +59,6 @@ router.put('/:id', async (req, res) => {
     await tecnica.save();
 
     res.json(tecnica);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ✅ Eliminar una técnica
-router.delete('/:id', async (req, res) => {
-  try {
-    const tecnica = await Tecnica.findByPk(req.params.id);
-    if (!tecnica) return res.status(404).json({ mensaje: 'Técnica no encontrada' });
-
-    await tecnica.destroy();
-    res.json({ mensaje: 'Técnica eliminada correctamente' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

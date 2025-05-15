@@ -1,4 +1,4 @@
-const Sequelize = require('sequelize');
+//const Sequelize = require('sequelize');
 const sequelize = require('../conexion/db');
 
 const db = {};
@@ -13,8 +13,13 @@ db.Sesion = require('./Sesion');
 db.Tratamiento = require('./Tratamiento');
 db.Tecnica = require('./Tecnica');
 db.Area = require('./Area');
+db.Diagnostico = require('./Diagnostico'); 
 
 // Asociaciones
+
+// Diagnóstico pertenece a un paciente y a un profesional
+db.Diagnostico.belongsTo(db.Paciente, { foreignKey: 'Idpac', as: 'paciente' });
+db.Diagnostico.belongsTo(db.ProfSalud, { foreignKey: 'idprof', as: 'profesional' });
 
 // CitaMedica pertenece a un Paciente y un Profesional de salud
 db.CitaMedica.belongsTo(db.Paciente, { foreignKey: 'Idpac', as: 'paciente' });

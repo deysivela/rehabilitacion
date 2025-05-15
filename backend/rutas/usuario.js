@@ -68,17 +68,6 @@ router.put('/actualizar/:id', async (req, res) => {
   }
 });
 
-// Eliminar usuario
-router.delete('/eliminar/:id', async (req, res) => {
-  try {
-    await Usuario.destroy({ where: { Iduser: req.params.id } });
-    res.json({ message: 'Usuario eliminado' });
-  } catch (err) {
-    console.error('Error al eliminar usuario:', err);
-    res.status(500).json({ error: 'Error al eliminar usuario' });
-  }
-});
-
 // Ver un usuario por ID (incluye contraseña encriptada)
 router.get('/ver/:id', async (req, res) => {
   try {
