@@ -22,7 +22,7 @@ const Tratamiento = sequelize.define(
       allowNull: true,
     },
     Estado: {
-      type: DataTypes.ENUM('En curso', 'Concluido'),
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     Obs: {

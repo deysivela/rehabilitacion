@@ -3,6 +3,7 @@ import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { es } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { FaEdit, FaTrash, FaPlusCircle } from "react-icons/fa";
 import "./CalendarioCitas.css";
 import { useNavigate } from "react-router-dom";
 
@@ -273,11 +274,31 @@ const CalendarioCitas = () => {
               <td>{cita.start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</td>
               <td>{cita.estado}</td>
               <td>{cita.detalle}</td>
-              <td>
-                <button onClick={() => abrirModalEditar(cita)}>✏️</button>
-                <button onClick={() => eliminarCita(cita.id)}>🗑️</button>
-                <button onClick={() => redirigirASesion(cita.id)}>➕ </button>
-              </td>
+              <td className="action-cell">
+                      <div className="action-buttons">
+                        <button
+                          className="action-btn view"
+                          title="Agregar sesion"
+                          onClick={() => redirigirASesion(cita.id)}
+                        >
+                          <FaPlusCircle />
+                        </button>
+                        <button
+                          className="action-btn edit"
+                          title="Editar cita"
+                          onClick={() =>() => abrirModalEditar(cita)}
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          className="action-btn delete"
+                          title="Eliminar cita"
+                          onClick={() =>eliminarCita(cita.id)}
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
             </tr>
           ))}
         </tbody>

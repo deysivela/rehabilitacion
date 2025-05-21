@@ -51,8 +51,6 @@ router.get('/listar', async (req, res) => {
       order: [['Hora_ini', 'DESC']]
     });
 
-    console.log('Sesiones desde la base de datos:', sesiones); // <-- AÑADE ESTO
-
     res.json({
       success: true,
       data: sesiones
@@ -69,7 +67,7 @@ router.get('/listar', async (req, res) => {
 // Crear nueva sesión 
 router.post("/crear", async (req, res) => {
   try {
-    const { Idcita, Hora_ini, Hora_fin, Tipo, Notas, Novedades, Idtrat, Idtec } = req.body;
+    const { Idcita, Hora_ini, Hora_fin, Tipo,Atencion, Notas, Novedades, Idtrat, Idtec } = req.body;
 
     if (!Idtec) {
       return res.status(400).json({ mensaje: "Idtec es obligatorio" });
@@ -79,6 +77,7 @@ router.post("/crear", async (req, res) => {
       Hora_ini,
       Hora_fin,
       Tipo,
+      Atencion,
       Notas,
       Novedades,
       Idtrat,

@@ -6,9 +6,10 @@ import {
   FaUserMd,
   FaUserInjured,
   FaNotesMedical,
-  FaEye
+  FaEye,
 } from "react-icons/fa";
 import "./Diagnostico.css";
+import { useLocation } from "react-router-dom";
 
 const Diagnostico = () => {
   const [diagnosticos, setDiagnosticos] = useState([]);
@@ -67,6 +68,21 @@ const Diagnostico = () => {
     }
     setModalOpen(true);
   };
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const pacienteId = params.get("pacienteId");
+    const abrir = params.get("abrirModal");
+
+    if (pacienteId && abrir === "true") {
+      setForm((prevForm) => ({
+        ...prevForm,
+        Idpac: pacienteId,
+      }));
+      setModalOpen(true);
+    }
+  }, [location.search]);
 
   const abrirModalDetalle = (diagnostico) => {
     setDiagnosticoSeleccionado(diagnostico);
@@ -141,13 +157,14 @@ const Diagnostico = () => {
 
   return (
     <div className="diagnostico-container">
-      <h2>
-        <FaNotesMedical /> Gestión de Diagnósticos
-      </h2>
-      <button className="btn-nuevo" onClick={() => abrirModal()}>
-        Nuevo Diagnóstico
-      </button>
-
+      <div className="header-diagnostico">
+        <h2>
+          <FaNotesMedical /> Gestión de Diagnósticos
+        </h2>
+        <button className="btn-nuevo" onClick={() => abrirModal()}>
+          + Nuevo Diagnóstico
+        </button>
+      </div>
       <div className="controles-superiores">
         <div className="filtros">
           <div className="filtro-group">
@@ -174,7 +191,7 @@ const Diagnostico = () => {
               <option value="">Todos los profesionales</option>
               {profesionales.map((p) => (
                 <option key={p.Idprof} value={p.Idprof}>
-                  {p.Nombre_prof} ${p.Appaterno_prof}
+                  {p.Nombre_prof} {p.Appaterno_prof} {p.Apmaterno_prof}
                 </option>
               ))}
             </select>
@@ -190,8 +207,8 @@ const Diagnostico = () => {
             <table className="tabla-diagnosticos">
               <thead>
                 <tr>
-                  <th>Detalle</th>
                   <th>Paciente</th>
+                  <th>Detalle de Diagnostico</th>
                   <th>Profesional</th>
                   <th>Acciones</th>
                 </tr>
@@ -199,6 +216,7 @@ const Diagnostico = () => {
               <tbody>
                 {diagnosticosFiltrados.map((d) => (
                   <tr key={d.Iddiagnostico}>
+                    <td>{obtenerNombrePaciente(d.Idpac)}</td>
                     <td>
                       {d.Detalle_diag
                         ? `${d.Detalle_diag.substring(0, 50)}${
@@ -206,7 +224,6 @@ const Diagnostico = () => {
                           }`
                         : "-"}
                     </td>
-                    <td>{obtenerNombrePaciente(d.Idpac)}</td>
                     <td>{obtenerNombreProfesional(d.idprof)}</td>
                     <td className="acciones">
                       <button
@@ -275,7 +292,7 @@ const Diagnostico = () => {
                   <option value="">Seleccione un paciente</option>
                   {pacientes.map((p) => (
                     <option key={p.Idpac} value={p.Idpac}>
-                      {p.Nombre_pac} {p.Appaterno_pac}
+                      {p.Nombre_pac} {p.Appaterno_pac} {p.Apmaterno_pac}
                     </option>
                   ))}
                 </select>
@@ -320,26 +337,25 @@ const Diagnostico = () => {
         <div className="modal">
           <div className="modal-contenido">
             <h3>Detalles del Diagnóstico</h3>
-            
+
             <div className="detalles-container">
               <div className="detalle-item">
-                <label>ID Diagnóstico:</label>
-                <p>{diagnosticoSeleccionado.Iddiagnostico}</p>
+                <label>Detalle Completo de Diagnostico:</label>
+                <p className="detalle-texto">
+                  {diagnosticoSeleccionado.Detalle_diag || "No especificado"}
+                </p>
               </div>
-              
-              <div className="detalle-item">
-                <label>Detalle Completo:</label>
-                <p className="detalle-texto">{diagnosticoSeleccionado.Detalle_diag || "No especificado"}</p>
-              </div>
-              
+
               <div className="detalle-item">
                 <label>Paciente:</label>
                 <p>{obtenerNombrePaciente(diagnosticoSeleccionado.Idpac)}</p>
               </div>
-              
+
               <div className="detalle-item">
                 <label>Profesional:</label>
-                <p>{obtenerNombreProfesional(diagnosticoSeleccionado.idprof)}</p>
+                <p>
+                  {obtenerNombreProfesional(diagnosticoSeleccionado.idprof)}
+                </p>
               </div>
             </div>
 

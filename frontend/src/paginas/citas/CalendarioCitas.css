@@ -44,7 +44,7 @@ th, td {
 
 /* Table header */
 th {
-  background-color: #4CAF50;
+  background-color: #3498db;
   color: white;
 }
 
@@ -127,7 +127,7 @@ tbody tr:hover {
   border-radius: 5px;
 }
 .btn-agregar-cita {
-  background-color: #4CAF50;
+  background-color: #3498db;
   color: white;
   padding: 10px 20px;
   margin-bottom: 15px;

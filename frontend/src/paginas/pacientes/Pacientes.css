@@ -10,7 +10,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 15px;
 }
@@ -24,6 +23,7 @@ h1 {
 }
 
 /* Botones y acciones */
+
 .btn-agregar {
   background-color: #3498db;
   color: white;
@@ -49,36 +49,42 @@ h1 {
   align-items: center;
   justify-content: center;
   transition: opacity 0.3s;
+  flex-wrap: nowrap;
 }
 
 .btn-detalle {
-  background-color: #3498db;
-  color: white;
-  margin-right: 5px;
+  background-color: #3498db !important;
+  color: white !important;
+}
+
+.btn-diagnostico {
+  background-color: #2ecc71 !important;
+  color: white !important;
 }
 
 .btn-editar {
-  background-color: #f39c12;
-  color: white;
-  margin-right: 5px;
+  background-color: #e67e22 !important;
+  color: white !important;
 }
 
 .btn-eliminar {
-  background-color: #e74c3c;
-  color: white;
+  background-color: #e74c3c !important;
+  color: white !important;
 }
 
+
 .btn-detalle:hover,
-.btn-editar:hover, 
+.btn-editar:hover,
+.btn-diagnostico:hover,
 .btn-eliminar:hover {
   opacity: 0.8;
 }
+
 
 /* Filtros */
 .filtros-container {
   display: flex;
   gap: 15px;
-  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
@@ -97,7 +103,7 @@ h1 {
   padding: 6px 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  min-width: 200px;
+  min-width: 150px;
 }
 
 .filtro-group input[type="number"] {
@@ -132,7 +138,7 @@ h1 {
 
 .pacientes-table th, 
 .pacientes-table td {
-  padding: 12px 15px;
+  padding: 8px 10px;
   text-align: left;
   border-bottom: 1px solid #ecf0f1;
 }
@@ -239,7 +245,6 @@ h1 {
 
 .detalle-row {
   display: flex;
-  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
@@ -279,6 +284,34 @@ h1 {
   margin-top: 15px;
   padding-top: 15px;
   border-top: 1px dashed #ddd;
+}
+
+/* Ajustes para los botones de acción */
+.acciones {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* Asegurar que los botones no se deformen */
+.btn-action {
+  min-width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive para botones */
+@media (max-width: 768px) {
+  .acciones {
+    justify-content: center;
+  }
+  
+  .btn-action {
+    padding: 4px 6px;
+    font-size: 0.8rem;
+  }
 }
 
 /* Responsive */
@@ -343,43 +376,5 @@ h1 {
   
   .detalle-col h3 {
     font-size: 1rem;
-  }
-}
-/* Estilos para el botón de diagnóstico */
-.btn-diagnostico {
-  background-color: #2ecc71;
-  color: white;
-  margin-right: 5px;
-}
-
-.btn-diagnostico:hover {
-  opacity: 0.8;
-}
-
-/* Ajustes para los botones de acción */
-.acciones {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-
-/* Asegurar que los botones no se deformen */
-.btn-action {
-  min-width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Responsive para botones */
-@media (max-width: 768px) {
-  .acciones {
-    justify-content: center;
-  }
-  
-  .btn-action {
-    padding: 4px 6px;
-    font-size: 0.8rem;
   }
 }

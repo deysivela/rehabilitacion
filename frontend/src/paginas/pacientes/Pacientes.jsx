@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { 
   FaEdit, 
-  FaTrash, 
   FaPlus, 
   FaSearch, 
   FaUser, 
@@ -14,7 +13,7 @@ import {
   FaNotesMedical,
   FaWheelchair,
   FaTimes,
-  FaInfoCircle,
+  FaEye,
   FaPlusCircle
 } from "react-icons/fa";
 import "./Pacientes.css";
@@ -96,20 +95,7 @@ const Pacientes = () => {
     fetchData();
   }, []);
 
-  // Eliminar paciente con confirmación
-  const eliminarPaciente = async (id, nombre) => {
-    if (!window.confirm(`¿Está seguro de eliminar al paciente ${nombre}?`)) {
-      return;
-    }
-    
-    try {
-      await axios.delete(`http://localhost:5000/api/paciente/eliminar/${id}`);
-      setPacientes(pacientes.filter((paciente) => paciente.Idpac !== id));
-    } catch (error) {
-      console.error("Error al eliminar paciente:", error);
-      alert(`Error al eliminar: ${error.response?.data?.message || error.message}`);
-    }
-  };
+
 
   // Mostrar detalles del paciente en modal
   const mostrarDetallesPaciente = (paciente) => {
@@ -126,9 +112,8 @@ const Pacientes = () => {
 
   // Redirigir a registro de diagnóstico con ID de paciente
   const registrarDiagnostico = (idPaciente) => {
-   navigate(`/diagnosticos/?pacienteId=${idPaciente}`);
+   navigate(`/diagnosticos/?pacienteId=${idPaciente}&abrirModal=true`);
   };
-  //navigate("/diagnosticos", { state: { Idcita: idCita } });
 
   // Filtrar pacientes
   const pacientesFiltrados = pacientes.filter(paciente => {
@@ -230,7 +215,7 @@ const Pacientes = () => {
                 <th><FaCalendarAlt /> Edad</th>
                 <th><FaPhone /> Teléfono</th>
                 <th><FaNotesMedical /> Diagnóstico Inicial</th>
-                <th><FaWheelchair /> PcD</th>
+                <th> PcD</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -259,7 +244,7 @@ const Pacientes = () => {
                           title="Ver detalles"
                           onClick={() => mostrarDetallesPaciente(paciente)}
                         >
-                          <FaInfoCircle />
+                          <FaEye />
                         </button>
                         <button
                           className="btn-action btn-diagnostico"
@@ -275,13 +260,6 @@ const Pacientes = () => {
                         >
                           <FaEdit />
                         </Link>
-                        <button
-                          className="btn-action btn-eliminar"
-                          title="Eliminar"
-                          onClick={() => eliminarPaciente(paciente.Idpac, paciente.Nombre_pac)}
-                        >
-                          <FaTrash />
-                        </button>
                       </td>
                     </tr>
                   );
@@ -365,7 +343,6 @@ const Pacientes = () => {
                 className="btn-cerrar"
                 onClick={() => setMostrarModal(false)}
               >
-                Cerrar
               </button>
             </div>
           </div>

@@ -5,7 +5,7 @@
   
   .usuario-container h2 {
     text-align: center;
-    margin-bottom: 20px;
+    
   }
   
   .btn-registrar {
@@ -25,8 +25,7 @@
   
   .tabla-usuarios {
     width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
+    border-collapse: collapse;    
   }
   
   .tabla-usuarios th,
@@ -135,6 +134,23 @@
   .btn-cancel {
     margin-top: 10px;
     background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .btn-cancel:hover {
+    background-color: #5a6268;
+  }
+    button[type="submit"]:hover {
+    background-color: #218838;
+  }
+  
+  .btn-cancel {
+    margin-top: 10px;
+    background-color: #3380c4;
     color: white;
     border: none;
     padding: 10px;

@@ -19,6 +19,21 @@
     margin: 20px 0;
   }
   
+  .btn-eliminar{
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;  
+    padding: 5px;
+    border-radius: 15%;
+    width: 30px;      
+    height: 30px;    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+  }
+  
   .detalle-item {
     margin-bottom: 15px;
   }
@@ -36,7 +51,23 @@
     background-color: #f8f9fa;
     border-radius: 4px;
   }
+  .btn-nuevo {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
   
+  .btn-nuevo:hover {
+    background-color: #2980b9;
+  }
   .detalle-texto {
     white-space: pre-wrap;
     max-height: 300px;

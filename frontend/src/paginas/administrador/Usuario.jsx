@@ -222,7 +222,6 @@ const Usuario = () => {
                 className="btn-cancel"
                 onClick={() => setModalOpen(false)}
               >
-                Cerrar
               </button>
             </form>
           </div>

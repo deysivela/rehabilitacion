@@ -96,7 +96,7 @@ const Tecnica = () => {
     <div className="tecnica-container">
       <h2>Gestión de Técnicas</h2>
       
-      <div className="controles-superiores">
+      <div className="header-container">
         <button 
           className="btn-filtrar" 
           onClick={() => setMostrarFiltros(!mostrarFiltros)}
@@ -108,7 +108,7 @@ const Tecnica = () => {
           className="btn-nuevo"
           onClick={() => abrirModalEdicion()}
         >
-          Nueva Técnica
+          + Nueva Técnica
         </button>
       </div>
 

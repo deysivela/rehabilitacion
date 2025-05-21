@@ -19,6 +19,10 @@ const Sesion = sequelize.define('Sesion', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
+  Atencion: {
+    type: DataTypes.STRING(255),
+    allowNull: false
+  },
   Notas: {
     type: DataTypes.STRING(255),
     allowNull: true
