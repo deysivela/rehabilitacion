@@ -27,10 +27,22 @@ const Diagnostico = () => {
   const [filtroPaciente, setFiltroPaciente] = useState("");
   const [filtroProfesional, setFiltroProfesional] = useState("");
   const [cargando, setCargando] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const pacienteId = params.get("pacienteId");
+    const abrir = params.get("abrirModal");
+
+    if (pacienteId && abrir === "true") {
+      setForm((prev) => ({ ...prev, Idpac: pacienteId }));
+      setModalOpen(true);
+    }
+  }, [location.search]);
 
   const cargarDatos = async () => {
     try {
@@ -68,21 +80,6 @@ const Diagnostico = () => {
     }
     setModalOpen(true);
   };
-  const location = useLocation();
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const pacienteId = params.get("pacienteId");
-    const abrir = params.get("abrirModal");
-
-    if (pacienteId && abrir === "true") {
-      setForm((prevForm) => ({
-        ...prevForm,
-        Idpac: pacienteId,
-      }));
-      setModalOpen(true);
-    }
-  }, [location.search]);
 
   const abrirModalDetalle = (diagnostico) => {
     setDiagnosticoSeleccionado(diagnostico);
@@ -129,28 +126,34 @@ const Diagnostico = () => {
 
   const filtrarDiagnosticos = () => {
     return diagnosticos.filter((d) => {
-      const cumplePaciente = filtroPaciente
-        ? d.Idpac === parseInt(filtroPaciente, 10)
+      const paciente = pacientes.find((p) => p.Idpac === d.Idpac);
+      const textoPaciente = paciente
+        ? `${paciente.Nombre_pac} ${paciente.Appaterno_pac} ${paciente.CI_pac}`
+            .toLowerCase()
+        : "";
+
+      const coincidePaciente = filtroPaciente
+        ? textoPaciente.includes(filtroPaciente.toLowerCase())
         : true;
-      const cumpleProfesional = filtroProfesional
-        ? d.idprof === parseInt(filtroProfesional, 10)
+
+      const coincideProfesional = filtroProfesional
+        ? d.idprof === parseInt(filtroProfesional)
         : true;
-      return cumplePaciente && cumpleProfesional;
+
+      return coincidePaciente && coincideProfesional;
     });
   };
 
   const obtenerNombrePaciente = (id) => {
-    const paciente = pacientes.find((p) => p.Idpac === parseInt(id, 10));
-    return paciente
-      ? `${paciente.Nombre_pac} ${paciente.Appaterno_pac}`
-      : "Paciente no encontrado";
+    const p = pacientes.find((pac) => pac.Idpac === id);
+    return p ? `${p.Nombre_pac} ${p.Appaterno_pac} ${p.Apmaterno_pac}` : "No encontrado";
   };
 
   const obtenerNombreProfesional = (id) => {
-    const prof = profesionales.find((p) => p.Idprof === parseInt(id, 10));
-    return prof
-      ? `${prof.Nombre_prof} ${prof.Appaterno_prof}`
-      : "Profesional no encontrado";
+    const prof = profesionales.find(p => p.Idprof === id);
+    if (!prof) return '—';
+    const { Nombre_prof, Appaterno_prof, Apmaterno_prof } = prof;
+    return `${Nombre_prof} ${Appaterno_prof}${Apmaterno_prof ? ' ' + Apmaterno_prof : ''}`;
   };
 
   const diagnosticosFiltrados = filtrarDiagnosticos();
@@ -165,21 +168,17 @@ const Diagnostico = () => {
           + Nuevo Diagnóstico
         </button>
       </div>
+
       <div className="controles-superiores">
         <div className="filtros">
           <div className="filtro-group">
             <FaUserInjured />
-            <select
+            <input
+              type="text"
+              placeholder="Buscar por nombre o CI"
               value={filtroPaciente}
               onChange={(e) => setFiltroPaciente(e.target.value)}
-            >
-              <option value="">Todos los pacientes</option>
-              {pacientes.map((p) => (
-                <option key={p.Idpac} value={p.Idpac}>
-                  {p.Nombre_pac} {p.Appaterno_pac}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div className="filtro-group">
@@ -208,7 +207,7 @@ const Diagnostico = () => {
               <thead>
                 <tr>
                   <th>Paciente</th>
-                  <th>Detalle de Diagnostico</th>
+                  <th>Detalle de Diagnóstico</th>
                   <th>Profesional</th>
                   <th>Acciones</th>
                 </tr>
@@ -219,31 +218,31 @@ const Diagnostico = () => {
                     <td>{obtenerNombrePaciente(d.Idpac)}</td>
                     <td>
                       {d.Detalle_diag
-                        ? `${d.Detalle_diag.substring(0, 50)}${
-                            d.Detalle_diag.length > 50 ? "..." : ""
-                          }`
+                        ? d.Detalle_diag.length > 50
+                          ? `${d.Detalle_diag.slice(0, 50)}...`
+                          : d.Detalle_diag
                         : "-"}
                     </td>
                     <td>{obtenerNombreProfesional(d.idprof)}</td>
                     <td className="acciones">
                       <button
                         className="btn-ver"
-                        onClick={() => abrirModalDetalle(d)}
                         title="Ver detalles"
+                        onClick={() => abrirModalDetalle(d)}
                       >
                         <FaEye />
                       </button>
                       <button
                         className="btn-editar"
-                        onClick={() => abrirModal(d)}
                         title="Editar"
+                        onClick={() => abrirModal(d)}
                       >
                         <FaEdit />
                       </button>
                       <button
                         className="btn-eliminar"
-                        onClick={() => eliminarDiagnostico(d.Iddiagnostico)}
                         title="Eliminar"
+                        onClick={() => eliminarDiagnostico(d.Iddiagnostico)}
                       >
                         <FaTrash />
                       </button>
@@ -255,9 +254,7 @@ const Diagnostico = () => {
           ) : (
             <div className="sin-resultados">
               No se encontraron diagnósticos{" "}
-              {filtroPaciente || filtroProfesional
-                ? "con los filtros aplicados"
-                : ""}
+              {filtroPaciente || filtroProfesional ? "con los filtros aplicados" : ""}
             </div>
           )}
         </div>
@@ -266,9 +263,7 @@ const Diagnostico = () => {
       {modalOpen && (
         <div className="modal">
           <div className="modal-contenido">
-            <h3>
-              {form.Iddiagnostico ? "Editar Diagnóstico" : "Nuevo Diagnóstico"}
-            </h3>
+            <h3>{form.Iddiagnostico ? "Editar Diagnóstico" : "Nuevo Diagnóstico"}</h3>
 
             <form onSubmit={handleSubmit}>
               <div className="form-group">
@@ -332,33 +327,26 @@ const Diagnostico = () => {
         </div>
       )}
 
-      {/* Modal de Detalles */}
       {detalleModalOpen && diagnosticoSeleccionado && (
         <div className="modal">
           <div className="modal-contenido">
             <h3>Detalles del Diagnóstico</h3>
-
             <div className="detalles-container">
               <div className="detalle-item">
-                <label>Detalle Completo de Diagnostico:</label>
+                <label>Detalle completo:</label>
                 <p className="detalle-texto">
                   {diagnosticoSeleccionado.Detalle_diag || "No especificado"}
                 </p>
               </div>
-
               <div className="detalle-item">
                 <label>Paciente:</label>
                 <p>{obtenerNombrePaciente(diagnosticoSeleccionado.Idpac)}</p>
               </div>
-
               <div className="detalle-item">
                 <label>Profesional:</label>
-                <p>
-                  {obtenerNombreProfesional(diagnosticoSeleccionado.idprof)}
-                </p>
+                <p>{obtenerNombreProfesional(diagnosticoSeleccionado.idprof)}</p>
               </div>
             </div>
-
             <button
               className="btn-cerrar-detalle"
               onClick={() => setDetalleModalOpen(false)}

@@ -9,6 +9,10 @@ const Tratamiento = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
+    diagnostico: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     Fecha_ini: {
       type: DataTypes.DATEONLY,
       allowNull: false,
@@ -27,6 +31,14 @@ const Tratamiento = sequelize.define(
     },
     Obs: {
       type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    Razon: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    Idprof: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
   },

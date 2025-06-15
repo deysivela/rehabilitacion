@@ -14,21 +14,18 @@ const sesionRutas = require('./rutas/sesion');
 const tratamientoRutas = require('./rutas/tratamiento');
 const authRutas = require('./rutas/auth');
 const tecnicaRutas = require('./rutas/tecnica');
-const diagnosticoRutas = require('./rutas/diagnostico');
-
-
-
+const sesion_tecnicasRutas=require('./rutas/sesion_tecnica');
+const actividadRutas=require('./rutas/actividad');
+const indicadoresRutas= require('./rutas/indicadores');
 const app = express();
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 // Configuración de CORS
 app.use(cors({
-  origin: 'http://localhost:3000',
+ origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id', 'x-user-rol']
 }));
-
 // Rutas principales
 app.use('/api/auth', authRutas);
 app.use('/api/usuario', usuarioRutas);
@@ -41,7 +38,9 @@ app.use('/api/tratamiento', tratamientoRutas);
 app.use('/api/area', areaRutas);
 app.use('/api/estadisticas', estadisticasRutas);
 app.use('/api/tecnica', tecnicaRutas);
-app.use('/api/diagnostico', diagnosticoRutas);
+app.use('/api/sesion_tecnica',sesion_tecnicasRutas);
+app.use('/api/actividad',actividadRutas);
+app.use('/api/indicadores',indicadoresRutas);
 
 // Conexión a la base de datos
 sequelize.authenticate()

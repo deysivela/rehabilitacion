@@ -1,0 +1,145 @@
+/* Estilos generales */
+.historial-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    line-height: 1.6;
+  }
+  
+  /* Títulos */
+  .historial-title {
+    color: #2c3e50;
+    text-align: center;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .section-title {
+    color: #2980b9;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+  }
+  
+  /* Secciones de información */
+  .patient-info-section,
+  .disability-info-section {
+    margin-bottom: 30px;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  /* Tarjetas de tratamiento */
+  .treatment-card {
+    margin-bottom: 20px;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .treatment-title {
+    color: #2c3e50;
+    margin-top: 0;
+  }
+  
+  /* Sesiones */
+  .sessions-container {
+    margin-top: 10px;
+  }
+  
+  .sessions-title {
+    color: #2c3e50;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+  
+  .sessions-list {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  
+  .session-item {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    border-left: 3px solid #3498db;
+  }
+  
+  /* Botón PDF */
+  .pdf-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    display: block;
+    margin: 0 auto;
+    margin-top: 20px;
+    transition: background-color 0.3s;
+  }
+  
+  .pdf-button:hover:not(:disabled) {
+    background-color: #2980b9;
+  }
+  
+  .pdf-button:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+  }
+  
+  /* Estados de carga y error */
+  .loading {
+    text-align: center;
+    padding: 20px;
+    font-size: 18px;
+    color: #7f8c8d;
+  }
+  
+  .error-container {
+    text-align: center;
+    padding: 20px;
+    background-color: #fdecea;
+    border-radius: 5px;
+    margin: 20px;
+  }
+  
+  .error-message {
+    color: #c0392b;
+    font-size: 16px;
+  }
+  
+  .retry-button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .retry-button:hover {
+    background-color: #c0392b;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .historial-container {
+      padding: 15px;
+    }
+    
+    .patient-info-section,
+    .disability-info-section,
+    .treatment-card {
+      padding: 10px;
+    }
+  }

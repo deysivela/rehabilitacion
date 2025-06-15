@@ -1,5 +1,6 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaEdit,
   FaPlus,
@@ -7,7 +8,6 @@ import {
   FaCalendarAlt,
   FaSearch,
   FaTimes,
-  FaCalendarTimes,
 } from "react-icons/fa";
 import "./Tratamiento.css";
 
@@ -16,11 +16,14 @@ const Tratamiento = () => {
   const [pacientes, setPacientes] = useState([]);
   const [form, setForm] = useState({
     Idtrat: null,
-    Fecha_ini: "",
+    Fecha_ini: new Date().toISOString().split("T")[0],
     Fecha_fin: "",
     Idpac: "",
+    Idprof: "",
     Estado: "En tratamiento",
     Obs: "",
+    Razon: "",
+    diagnostico: "",
   });
   const [modalOpen, setModalOpen] = useState(false);
   const [detalleModalOpen, setDetalleModalOpen] = useState(false);
@@ -29,47 +32,76 @@ const Tratamiento = () => {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
-  const [cargandoSesiones, setCargandoSesiones] = useState(false);
+  const [profesionales, setProfesionales] = useState([]);
 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const usuario = JSON.parse(localStorage.getItem("usuario"));
+  const idprof = usuario?.idprof;
+
+  // Nuevo método para recibir el ID del paciente
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const pacienteId = params.get("pacienteId");
+    const abrir = params.get("abrirModal");
+    console.log(pacienteId);
+    if (pacienteId && abrir === "true") {
+      // Solo actualizamos el Idpac si ya tenemos los pacientes cargados
+      if (pacientes.length > 0) {
+        const pacienteExiste = pacientes.some(
+          (p) => String(p.Idpac) === String(pacienteId)
+        );
+        if (pacienteExiste) {
+          setForm((prev) => ({
+            ...prev,
+            Idpac: pacienteId,
+            Fecha_ini: new Date().toISOString().split("T")[0],
+            Idprof: idprof,
+          }));
+          setModalOpen(true);
+        } else {
+          setError(`No se encontró el paciente con ID ${pacienteId}`);
+        }
+      }
+    }
+  }, [location.search, pacientes, idprof]);
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        setCargando(true);
+        setError(null);
+        const [tratsRes, pacsRes, profesionalesRes] = await Promise.all([
+          axios.get("http://localhost:5000/api/tratamiento/listar"),
+          axios.get("http://localhost:5000/api/paciente/listar"),
+          axios.get("http://localhost:5000/api/prof_salud/listar"),
+        ]);
+
+        setTratamientos(
+          tratsRes.data.sort(
+            (a, b) => new Date(b.Fecha_ini) - new Date(a.Fecha_ini)
+          )
+        );
+        setPacientes(pacsRes.data);
+        setProfesionales(profesionalesRes.data);
+        setCargando(false);
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+        setError("Error al cargar los datos. Por favor, intente nuevamente.");
+        setCargando(false);
+      }
+    };
+
     cargarDatos();
   }, []);
-
-  const cargarDatos = async () => {
-    try {
-      setCargando(true);
-      setError(null);
-
-      const [tratsRes, pacsRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/tratamiento/listar"),
-        axios.get("http://localhost:5000/api/paciente/listar"),
-      ]);
-
-      const tratamientosOrdenados = tratsRes.data.sort(
-        (a, b) => new Date(b.Fecha_ini) - new Date(a.Fecha_ini)
-      );
-
-      setTratamientos(tratamientosOrdenados);
-      setPacientes(pacsRes.data);
-      setCargando(false);
-    } catch (error) {
-      console.error("Error cargando datos:", error);
-      setError("Error al cargar los datos. Por favor, intente nuevamente.");
-      setCargando(false);
-    }
-  };
 
   const abrirModal = (tratamiento = null) => {
     if (tratamiento) {
       setForm({
-        Idtrat: tratamiento.Idtrat,
-        Fecha_ini: tratamiento.Fecha_ini.split("T")[0],
-        Fecha_fin: tratamiento.Fecha_fin
-          ? tratamiento.Fecha_fin.split("T")[0]
-          : "",
-        Idpac: tratamiento.Idpac || "",
-        Estado: tratamiento.Estado || "En tratamiento",
-        Obs: tratamiento.Obs || "",
+        ...tratamiento,
+        Idprof: tratamiento.Idprof || idprof || "",
+        diagnostico: tratamiento.diagnostico || "",
       });
     } else {
       setForm({
@@ -77,61 +109,40 @@ const Tratamiento = () => {
         Fecha_ini: new Date().toISOString().split("T")[0],
         Fecha_fin: "",
         Idpac: "",
+        Idprof: idprof,
         Estado: "En tratamiento",
         Obs: "",
+        Razon: "",
+        diagnostico: "",
       });
     }
     setModalOpen(true);
   };
 
-  const abrirModalDetalle = async (tratamiento) => {
-    try {
-      setCargandoSesiones(true);
-      setError(null);
+  const cerrarModal = () => {
+    setModalOpen(false);
+    navigate("/tratamientos", { replace: true });
+    cargarTratamientos();
+  };
 
-      console.log(
-        `Buscando sesiones para tratamiento ID: ${tratamiento.Idtrat}`
-      );
-      const response = await axios.get(
-        `http://localhost:5000/api/sesion/por-tratamiento/${tratamiento.Idtrat}`
-      );
-
-      console.log("Respuesta de sesiones:", response.data);
-
-      if (response.data.success) {
-        setTratamientoSeleccionado({
-          ...tratamiento,
-          sesiones: response.data.data || [],
-        });
-      } else {
-        throw new Error(
-          response.data.message || "Formato de respuesta inesperado"
-        );
-      }
-
-      setDetalleModalOpen(true);
-    } catch (error) {
-      console.error("Error al cargar sesiones:", {
-        message: error.message,
-        response: error.response?.data,
-      });
-
-      setError("Error al cargar las sesiones del tratamiento");
-      setTratamientoSeleccionado({
-        ...tratamiento,
-        sesiones: [],
-      });
-      setDetalleModalOpen(true);
-    } finally {
-      setCargandoSesiones(false);
-    }
+  const abrirModalDetalle = (tratamiento) => {
+    setTratamientoSeleccionado(tratamiento);
+    setDetalleModalOpen(true);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
-
+      // Actualizar la lista de tratamientos sin recargar la página
+      const cargarTratamientos = async () => {
+        const res = await axios.get(
+          "http://localhost:5000/api/tratamiento/listar"
+        );
+        setTratamientos(
+          res.data.sort((a, b) => new Date(b.Fecha_ini) - new Date(a.Fecha_ini))
+        );
+      };
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -139,6 +150,7 @@ const Tratamiento = () => {
         ...form,
         Fecha_fin: form.Fecha_fin || null,
         Idpac: form.Idpac || null,
+        diagnostico: form.diagnostico || null,
       };
 
       if (form.Idtrat) {
@@ -152,8 +164,8 @@ const Tratamiento = () => {
           payload
         );
       }
-      setModalOpen(false);
-      cargarDatos();
+      cerrarModal();
+   
     } catch (error) {
       console.error("Error guardando tratamiento:", error);
       setError("Error al guardar el tratamiento");
@@ -184,10 +196,13 @@ const Tratamiento = () => {
     });
   };
 
-  const formatearHora = (hora) => {
-    if (!hora) return "";
-    const [h, m] = hora.split(":");
-    return `${h}:${m}`;
+  const obtenerNombreProfesional = (id) => {
+    const prof = profesionales.find((p) => p.Idprof === id);
+    if (!prof) return "—";
+    const { Nombre_prof, Appaterno_prof, Apmaterno_prof } = prof;
+    return `${Nombre_prof} ${Appaterno_prof}${
+      Apmaterno_prof ? " " + Apmaterno_prof : ""
+    }`;
   };
 
   const filtrarTratamientos = () => {
@@ -319,22 +334,15 @@ const Tratamiento = () => {
                         {t.Estado}
                       </span>
                     </td>
+
                     <td>{t.Obs || "-"}</td>
                     <td className="acciones">
                       <button
                         className="btn-detalle"
                         onClick={() => abrirModalDetalle(t)}
                         title="Ver detalles"
-                        disabled={cargandoSesiones}
                       >
-                        {cargandoSesiones &&
-                        t.Idtrat === tratamientoSeleccionado?.Idtrat ? (
-                          "Cargando..."
-                        ) : (
-                          <>
-                            <FaEye />
-                          </>
-                        )}
+                        <FaEye />
                       </button>
 
                       <button
@@ -360,114 +368,167 @@ const Tratamiento = () => {
         </div>
       )}
 
-{modalOpen && (
-  <div className="modal">
-    <div className="modal-contenido">
-      <span className="cerrar-modal" onClick={() => setModalOpen(false)}>
-        <FaTimes />
-      </span>
-      <h3>{form.Idtrat ? "Editar Tratamiento" : "Nuevo Tratamiento"}</h3>
+      {modalOpen && (
+        <div className="modal">
+          <div className="modal-contenido">
+            <span className="cerrar-modal" onClick={cerrarModal}>
+              <FaTimes />
+            </span>
+            <h3>{form.Idtrat ? "Editar Tratamiento" : "Nuevo Tratamiento"}</h3>
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label>Paciente:</label>
+                  <select
+                    name="Idpac"
+                    value={form.Idpac}
+                    onChange={handleChange}
+                    className="form-control"
+                    required
+                  >
+                    <option value="">Seleccione un paciente</option>
+                    {pacientes.map((p) => (
+                      <option
+                        key={p.Idpac}
+                        value={p.Idpac}
+                        selected={String(p.Idpac) === String(form.Idpac)}
+                      >
+                        {p.Nombre_pac} {p.Appaterno_pac} {p.Apmaterno_pac} - CI:{" "}
+                        {p.Ci_pac}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-      {/* Contenedor scrollable */}
-      <div className="modal-body">
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Paciente:</label>
-            <select
-              name="Idpac"
-              value={form.Idpac}
-              onChange={handleChange}
-              className="form-control"
-            >
-              <option value="">Sin paciente asignado</option>
-              {pacientes.map((p) => (
-                <option key={p.Idpac} value={p.Idpac}>
-                  {p.Nombre_pac} {p.Appaterno_pac} {p.Apmaterno_pac} - CI: {p.Ci_pac}
-                </option>
-              ))}
-            </select>
+                <div className="form-group">
+                  <label>Diagnóstico:</label>
+                  <textarea
+                    name="diagnostico"
+                    value={form.diagnostico}
+                    onChange={handleChange}
+                    rows="3"
+                    className="form-control"
+                    placeholder="Ingrese el diagnóstico del paciente (opcional)"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Profesional:</label>
+                  <select
+                    name="Idprof"
+                    value={form.Idprof}
+                    onChange={handleChange}
+                    required
+                    disabled
+                  >
+                    {profesionales
+                      .filter((p) => String(p.Idprof) === String(form.Idprof))
+                      .map((p) => (
+                        <option key={p.Idprof} value={p.Idprof}>
+                          {p.Nombre_prof} {p.Appaterno_prof} {p.Apmaterno_prof}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Fecha Inicio:</label>
+                  <input
+                    type="date"
+                    name="Fecha_ini"
+                    value={form.Fecha_ini}
+                    onChange={handleChange}
+                    required
+                    className="form-control"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Fecha Fin:</label>
+                  <input
+                    type="date"
+                    name="Fecha_fin"
+                    value={form.Fecha_fin}
+                    onChange={handleChange}
+                    className="form-control"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Estado:</label>
+                  <select
+                    name="Estado"
+                    value={form.Estado}
+                    onChange={handleChange}
+                    required
+                    className="form-control"
+                  >
+                    <option value="En tratamiento">En tratamiento</option>
+                    <option value="Alta temporal">Alta temporal</option>
+                    <option value="Alta definitiva">Alta definitiva</option>
+                    <option value="Abandono">Abandono</option>
+                  </select>
+                </div>
+                {form.Estado === "Abandono" && (
+                  <div className="form-group">
+                    <label>Razón del abandono:</label>
+                    <select
+                      name="Razon"
+                      value={form.Razon}
+                      onChange={handleChange}
+                      required
+                      className="form-control"
+                    >
+                      <option value="">Seleccione una razón</option>
+                      <option value="Familiar">Familiar</option>
+                      <option value="Vivienda">Vivienda</option>
+                      <option value="Violencia">Violencia</option>
+                      <option value="Otro">Otro</option>
+                    </select>
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label>Observaciones:</label>
+                  <textarea
+                    name="Obs"
+                    value={form.Obs}
+                    onChange={handleChange}
+                    rows="3"
+                    className="form-control"
+                  />
+                </div>
+
+                <div className="botones-modal">
+                  <button type="submit" className="btn-guardar">
+                    {form.Idtrat ? "Actualizar" : "Guardar"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-cancelar"
+                    onClick={cerrarModal}
+                    
+                  >
+                    
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-
-          <div className="form-group">
-            <label>Fecha Inicio:</label>
-            <input
-              type="date"
-              name="Fecha_ini"
-              value={form.Fecha_ini}
-              onChange={handleChange}
-              required
-              className="form-control"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Fecha Fin:</label>
-            <input
-              type="date"
-              name="Fecha_fin"
-              value={form.Fecha_fin}
-              onChange={handleChange}
-              className="form-control"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Estado:</label>
-            <select
-              name="Estado"
-              value={form.Estado}
-              onChange={handleChange}
-              required
-              className="form-control"
-            >
-              <option value="En tratamiento">En tratamiento</option>
-              <option value="Alta temporal">Alta temporal</option>
-              <option value="Alta definitiva">Alta definitiva</option>
-              <option value="Abandono">Abandono</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Observaciones:</label>
-            <textarea
-              name="Obs"
-              value={form.Obs}
-              onChange={handleChange}
-              rows="3"
-              className="form-control"
-            />
-          </div>
-
-          <div className="botones-modal">
-            <button type="submit" className="btn-guardar">
-              {form.Idtrat ? "Actualizar" : "Guardar"}
-            </button>
-            <button
-              type="button"
-              className="btn-cancelar"
-              onClick={() => setModalOpen(false)}
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-)}
-
+        </div>
+      )}
 
       {detalleModalOpen && tratamientoSeleccionado && (
         <div className="modal">
-          <div className="modal-contenido modal-detalle">
-                <button
-                className="cerrar-modal"
-                onClick={() => setDetalleModalOpen(false)}
-              >
-                <FaTimes />
-              </button>
+          <div className="modal-contenido modal-detalles">
+            <button
+              className="cerrar-modal"
+              onClick={() => setDetalleModalOpen(false)}
+            >
+              <FaTimes />
+            </button>
             <div className="detalles-grid">
-              {/* Sección 1: Información Básica */}
               <div className="seccion-detalle">
                 <h4 className="seccion-titulo">Información del Paciente</h4>
                 <div className="detalle-fila">
@@ -479,6 +540,12 @@ const Tratamiento = () => {
                   </span>
                 </div>
                 <div className="detalle-fila">
+                  <span className="detalle-etiqueta">Profesional:</span>
+                  <span className="detalle-valor">
+                    {obtenerNombreProfesional(tratamientoSeleccionado.Idprof)}
+                  </span>
+                </div>
+                <div className="detalle-fila">
                   <span className="detalle-etiqueta">CI:</span>
                   <span className="detalle-valor">
                     {obtenerCIPaciente(tratamientoSeleccionado.Idpac)}
@@ -486,7 +553,6 @@ const Tratamiento = () => {
                 </div>
               </div>
 
-              {/* Sección 2: Detalles del Tratamiento */}
               <div className="seccion-detalle">
                 <h4 className="seccion-titulo">Detalles del Tratamiento</h4>
                 <div className="detalle-fila">
@@ -510,74 +576,29 @@ const Tratamiento = () => {
                   >
                     {tratamientoSeleccionado.Estado}
                   </span>
+                  {tratamientoSeleccionado.Estado === "Abandono" && (
+                    <p>
+                      <strong>Razón del abandono:</strong>{" "}
+                      {tratamientoSeleccionado.Razon || "No especificada"}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {/* Sección 3: Observaciones */}
+              <div className="seccion-detalle seccion-completa">
+                <h4 className="seccion-titulo">Diagnóstico</h4>
+                <div className="detalle-texto">
+                  {tratamientoSeleccionado.diagnostico ||
+                    "No hay diagnóstico registrado"}
+                </div>
+              </div>
+
               <div className="seccion-detalle seccion-completa">
                 <h4 className="seccion-titulo">Observaciones</h4>
                 <div className="detalle-texto">
                   {tratamientoSeleccionado.Obs ||
                     "No hay observaciones registradas"}
                 </div>
-              </div>
-
-              {/* Sección 4: Sesiones */}
-              <div className="seccion-detalle seccion-completa">
-                <div className="sesiones-header">
-                  <h4 className="seccion-titulo">Sesiones realizadas ({tratamientoSeleccionado.sesiones?.length || 0})</h4>
-                </div>
-
-                {cargandoSesiones ? (
-                  <div className="cargando-sesiones">
-                    <div className="spinner"></div>
-                    <span>Cargando sesiones...</span>
-                  </div>
-                ) : tratamientoSeleccionado.sesiones?.length > 0 ? (
-                  <div className="tabla-sesiones-container">
-                    <table className="tabla-sesiones">
-                      <thead>
-                        <tr>
-                          <th>#</th>
-                          <th>Fecha</th>
-                          <th>Hora</th>
-                          <th>Tipo</th>
-                          <th>Profesional</th>
-                          <th>Observaciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {tratamientoSeleccionado.sesiones.map(
-                          (sesion, index) => (
-                            <tr key={sesion.Idses || index}>
-                              <td>{index + 1}</td>
-                              <td>
-                                {new Date(
-                                  sesion.cita?.fecha_cita
-                                ).toLocaleDateString()}
-                              </td>
-                              <td>{formatearHora(sesion.Hora_ini)}</td>
-                              <td>{sesion.Tipo || "-"}</td>
-                              <td>
-                                {sesion.cita?.profesional
-                                  ? `${sesion.cita.profesional.Nombre_prof} ${sesion.cita.profesional.Appaterno_prof}`
-                                  : "No asignado"}
-                              </td>
-                              <td>{sesion.Notas || "-"}</td>
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="sin-sesiones">
-                    <FaCalendarTimes />
-                    <span>
-                      No hay sesiones registradas para este tratamiento
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';  
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { FaEye, FaEyeSlash, FaUserAlt } from 'react-icons/fa';  // Usando FaUserAlt
+import { FaEye, FaEyeSlash, FaUserAlt } from 'react-icons/fa';
 import './Login.css';
 
 const Login = () => {
@@ -11,6 +11,22 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Redirige si ya hay sesión activa (token válido en localStorage)
+  useEffect(() => {
+    const storedUser = localStorage.getItem('usuario');
+
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (parsed?.token && location.pathname === "/login") {
+          navigate('/');
+        }
+      } catch (e) {
+      }
+    }
+  }, [navigate, location]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,11 +38,18 @@ const Login = () => {
         Usuario: username,
         Pass: password,
       });
+      const usuario = {
+        token: response.data.token,
+        rol: response.data.rol,
+        nombre: response.data.nombre,
+        id: response.data.id,
+        idprof: response.data.Idprof,
+      };
+      localStorage.setItem('usuario', JSON.stringify(usuario));
 
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('rol', response.data.rol);
       navigate('/');
     } catch (err) {
+      console.error("Error al iniciar sesión:", err);
       setError(err.response?.data?.message || 'Error al iniciar sesión');
     } finally {
       setLoading(false);
@@ -41,12 +64,14 @@ const Login = () => {
           <h2>¡Bienvenido al Sistema del Centro de Rehabilitación Llallagua!</h2>
           <p>Tu bienestar es nuestra prioridad.</p>
         </div>
+
         <form className="login-form-section" onSubmit={handleLogin}>
-          <div className="user-icon-container">  {/* Icono de usuario */}
+          <div className="user-icon-container">
             <FaUserAlt className="user-icon" />
           </div>
           <h3>Iniciar Sesión</h3>
           {error && <p className="error-message">{error}</p>}
+
           <div className="input-group">
             <input
               type="text"
@@ -56,6 +81,7 @@ const Login = () => {
               required
             />
           </div>
+
           <div className="input-group">
             <input
               type={showPass ? 'text' : 'password'}
@@ -68,6 +94,7 @@ const Login = () => {
               {showPass ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
+
           <button type="submit" className="login-btn" disabled={loading}>
             {loading ? 'Cargando...' : 'Ingresar'}
           </button>

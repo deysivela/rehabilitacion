@@ -6,7 +6,6 @@ import "./Sesion.css";
 
 const Sesion = () => {
   const location = useLocation();
-
   const [sesiones, setSesiones] = useState([]);
   const [tratamientos, setTratamientos] = useState([]);
   const [tratamientosFiltrados, setTratamientosFiltrados] = useState([]);
@@ -22,6 +21,10 @@ const Sesion = () => {
   const [fechaHasta, setFechaHasta] = useState("");
   const [modoEdicion, setModoEdicion] = useState(false);
   const [idSesionEditar, setIdSesionEditar] = useState(null);
+  const [areas, setAreas] = useState([]);
+  const [areaSeleccionada, setAreaSeleccionada] = useState("");
+  const [tecnicasFiltradas, setTecnicasFiltradas] = useState([]);
+  const [citaSeleccionadaInfo, setCitaSeleccionadaInfo] = useState(null);
 
   const idCitaDesdeCalendario = location.state?.Idcita;
 
@@ -30,11 +33,11 @@ const Sesion = () => {
     Hora_ini: "",
     Hora_fin: "",
     Tipo: "Nuevo",
-    Atencion: "",
+    Atencion: "Dentro de la institución",
     Notas: "",
     Novedades: "",
     Idtrat: "",
-    Idtec: "",
+    Idtec: [],
   });
 
   useEffect(() => {
@@ -43,9 +46,13 @@ const Sesion = () => {
         setCargando(true);
         const [resSesiones, resTratamientos, resCitas, resTecnicas] =
           await Promise.all([
-            axios.get("http://localhost:5000/api/sesion/listar"),
+            axios.get(
+              "http://localhost:5000/api/sesion/listar?include=tecnicas"
+            ),
             axios.get("http://localhost:5000/api/tratamiento/listar"),
-            axios.get("http://localhost:5000/api/cita/listar?estado=Confirmada"),
+            axios.get(
+              "http://localhost:5000/api/cita/listar?estado=Confirmada&include=paciente,profesional"
+            ),
             axios.get("http://localhost:5000/api/tecnica/listar"),
           ]);
 
@@ -65,21 +72,24 @@ const Sesion = () => {
     cargarDatos();
   }, []);
 
-  useEffect(() => {
-    if (formulario.Idcita) {
-      const citaSeleccionada = citas.find(
-        (cita) => cita.Idcita === parseInt(formulario.Idcita)
+useEffect(() => {
+  /* cuando viene directo de cita */
+  if (formulario.Idcita) {
+    const citaSeleccionada = citas.find(
+      (cita) => cita.Idcita === parseInt(formulario.Idcita)
+    );
+    if (citaSeleccionada) {
+      setCitaSeleccionadaInfo(citaSeleccionada);
+      const tratamientosDelPaciente = tratamientos.filter(
+        (trat) => trat.Idpac === citaSeleccionada.Idpac
       );
-      if (citaSeleccionada) {
-        const tratamientosDelPaciente = tratamientos.filter(
-          (trat) => trat.Idpac === citaSeleccionada.Idpac
-        );
-        setTratamientosFiltrados(tratamientosDelPaciente);
-      } else {
-        setTratamientosFiltrados([]);
-      }
+      setTratamientosFiltrados(tratamientosDelPaciente);
+    } else {
+      setTratamientosFiltrados([]);
+      setCitaSeleccionadaInfo(null);
     }
-  }, [formulario.Idcita, citas, tratamientos]);
+  }
+}, [formulario.Idcita, citas, tratamientos]);
 
   useEffect(() => {
     if (idCitaDesdeCalendario) {
@@ -87,17 +97,40 @@ const Sesion = () => {
       setMostrarModal(true);
     }
   }, [idCitaDesdeCalendario]);
+  
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/area/listar")
+      .then((res) => setAreas(res.data))
+      .catch((err) => console.error(err));
+
+    axios
+      .get("http://localhost:5000/api/tecnica/listar")
+      .then((res) => setTecnicas(res.data))
+      .catch((err) => console.error(err));
+  }, []);
+  useEffect(() => {
+    if (areaSeleccionada) {
+      const filtradas = tecnicas.filter(
+        (tec) => tec.Idarea === parseInt(areaSeleccionada)
+      );
+      setTecnicasFiltradas(filtradas);
+    } else {
+      setTecnicasFiltradas([]);
+    }
+  }, [areaSeleccionada, tecnicas]);
 
   const handleCitaChange = (e) => {
     const citaId = e.target.value;
     setFormulario((prev) => ({ ...prev, Idcita: citaId }));
 
-    const citaSeleccionada = citas.find(
-      (cita) => cita.Idcita === parseInt(citaId)
-    );
-    if (citaSeleccionada) {
+    const cita = citas.find((c) => c.Idcita === parseInt(citaId));
+    setCitaSeleccionadaInfo(cita); 
+
+    if (cita) {
       const tratamientosDelPaciente = tratamientos.filter(
-        (trat) => trat.Idpac === citaSeleccionada.Idpac
+        (trat) => trat.Idpac === cita.Idpac
       );
       setTratamientosFiltrados(tratamientosDelPaciente);
     } else {
@@ -110,43 +143,78 @@ const Sesion = () => {
     setFormulario((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleTecnicasChange = (e) => {
+    const { value, checked } = e.target;
+    setFormulario((prev) => {
+      if (checked) {
+        return { ...prev, Idtec: [...prev.Idtec, parseInt(value)] };
+      } else {
+        return {
+          ...prev,
+          Idtec: prev.Idtec.filter((id) => id !== parseInt(value)),
+        };
+      }
+    });
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setCargando(true);
 
-      if (!formulario.Idtec) {
-        throw new Error("Debe seleccionar una técnica.");
+      if (formulario.Idtec.length === 0) {
+        throw new Error("Debe seleccionar al menos una técnica.");
       }
 
       if (formulario.Hora_ini >= formulario.Hora_fin) {
-        throw new Error("La hora de fin debe ser posterior a la hora de inicio");
+        throw new Error(
+          "La hora de fin debe ser posterior a la hora de inicio"
+        );
       }
 
-      if (modoEdicion) {
-        // Lógica para editar
-        await axios.put(`http://localhost:5000/api/sesion/editar/${idSesionEditar}`, formulario);
-        const res = await axios.get("http://localhost:5000/api/sesion/listar");
-        setSesiones(Array.isArray(res.data.data) ? res.data.data : []);
-      } else {
-        // Lógica para crear
-        await axios.post("http://localhost:5000/api/sesion/crear", formulario);
-        const res = await axios.get("http://localhost:5000/api/sesion/listar");
-        setSesiones(Array.isArray(res.data.data) ? res.data.data : []);
+      // Preparar datos para enviar (incluyendo Idtec en el mismo objeto)
+      const datosParaEnviar = {
+        ...formulario,
+        Idtec: formulario.Idtec, 
+      };
 
+      if (modoEdicion) {
+        // Editar sesión
+        await axios.put(
+          `http://localhost:5000/api/sesion/editar/${idSesionEditar}`,
+          datosParaEnviar
+        );
+
+        // Actualizar técnicas
+        await axios.post(
+          `http://localhost:5000/api/sesion/editar/${idSesionEditar}/tecnicas`,
+          {
+            Idtec: formulario.Idtec, 
+          }
+        );
+      } else {
+        // Crear nueva sesión - Envía todo en un solo objeto
+        await axios.post(
+          "http://localhost:5000/api/sesion/crear",
+          datosParaEnviar
+        );
+
+        // Actualizar estado de la cita
         await axios.put(
           `http://localhost:5000/api/cita/editar/${formulario.Idcita}`,
           { estado_cita: "Finalizada" }
         );
-
-        setCitas((prev) =>
-          prev.map((cita) =>
-            cita.Idcita === parseInt(formulario.Idcita)
-              ? { ...cita, estado: "Finalizada" }
-              : cita
-          )
-        );
       }
+
+      // Recargar datos
+      const [resSesiones, resCitas] = await Promise.all([
+        axios.get("http://localhost:5000/api/sesion/listar?include=tecnicas"),
+        axios.get("http://localhost:5000/api/cita/listar?estado=Confirmada"),
+      ]);
+
+      setSesiones(
+        Array.isArray(resSesiones.data.data) ? resSesiones.data.data : []
+      );
+      setCitas(resCitas.data);
 
       resetFormulario();
       setMostrarModal(false);
@@ -166,11 +234,11 @@ const Sesion = () => {
       Hora_ini: "",
       Hora_fin: "",
       Tipo: "Nuevo",
-      Atencion: "",
+      Atencion: "Dentro de la institución",
       Notas: "",
       Novedades: "",
       Idtrat: "",
-      Idtec: "",
+      Idtec: [],
     });
   };
 
@@ -199,8 +267,10 @@ const Sesion = () => {
       Notas: sesion.Notas || "",
       Novedades: sesion.Novedades || "",
       Idtrat: sesion.Idtrat,
-      Idtec: sesion.Idtec,
+      Idtec: sesion.tecnicas ? sesion.tecnicas.map((t) => t.Idtec) : [],
     });
+    const cita = citas.find((c) => c.Idcita === sesion.Idcita);
+  setCitaSeleccionadaInfo(cita);
     setMostrarModal(true);
   };
 
@@ -216,13 +286,31 @@ const Sesion = () => {
       ? `${p.Nombre_pac} ${p.Appaterno_pac} ${p.Apmaterno_pac}`.trim()
       : "Sin paciente";
   };
-
   const obtenerCIpaciente = (sesion) => sesion.tratamiento?.paciente?.CI || "";
 
   const obtenerNombreProfesional = (sesion) => {
     const prof = sesion.cita?.profesional;
     return prof
-      ? prof.nombreCompleto || `${prof.Nombre_prof} ${prof.Appaterno_prof}`
+      ? prof.nombreCompleto ||
+          `${prof.Nombre_prof} ${prof.Appaterno_prof} ${prof.Apmaterno_prof}`
+      : "Sin profesional";
+  };
+
+  const obtenerNombreCompletoPaciente = (cita) => {
+    const p = cita.paciente;
+    return p
+      ? p.nombreCompleto ||
+          `${p.Nombre_pac ?? ""} ${p.Appaterno_pac ?? ""} ${
+            p.Apmaterno_pac ?? ""
+          }`.trim()
+      : "Sin paciente";
+  };
+
+  const obtenerNombreCompletoProfesional = (cita) => {
+    const prof = cita.profesional;
+    return prof
+      ? prof.nombreCompleto ||
+          `${prof.Nombre_prof} ${prof.Appaterno_prof} ${prof.Apmaterno_prof}`
       : "Sin profesional";
   };
 
@@ -232,9 +320,12 @@ const Sesion = () => {
     return tratamiento?.Obs || "Tratamiento sin observación";
   };
 
-  const obtenerNombreTecnica = (sesion) => {
-    const tecnica = tecnicas.find((t) => t.Idtec === sesion.Idtec);
-    return tecnica ? tecnica.Descripcion : "Técnica no especificada";
+  const obtenerNombresTecnicas = (sesion) => {
+    if (!sesion || !sesion.tecnicas || sesion.tecnicas.length === 0) {
+      return "No asignadas";
+    }
+
+    return sesion.tecnicas.map((t) => t.Descripcion).join(", ");
   };
 
   const verDetalleSesion = (sesion) => {
@@ -242,30 +333,36 @@ const Sesion = () => {
     setMostrarModalDetalle(true);
   };
 
-  const sesionesFiltradas = sesiones.filter((sesion) => {
-    const nombreCompleto = obtenerNombrePaciente(sesion).toLowerCase();
-    const ci = obtenerCIpaciente(sesion).toLowerCase();
-    const filtroLower = filtro.toLowerCase();
-    const coincideTexto =
-      nombreCompleto.includes(filtroLower) || ci.includes(filtroLower);
+  const sesionesFiltradas = sesiones
+    .filter((sesion) => {
+      const nombreCompleto = obtenerNombrePaciente(sesion).toLowerCase();
+      const ci = obtenerCIpaciente(sesion).toLowerCase();
+      const filtroLower = filtro.toLowerCase();
+      const coincideTexto =
+        nombreCompleto.includes(filtroLower) || ci.includes(filtroLower);
 
-    const fechaSesion = new Date(sesion.cita?.fecha_cita);
-    const desde = fechaDesde ? new Date(fechaDesde) : null;
-    const hasta = fechaHasta ? new Date(fechaHasta) : null;
+      const fechaSesion = new Date(sesion.cita?.fecha_cita);
+      const desde = fechaDesde ? new Date(fechaDesde) : null;
+      const hasta = fechaHasta ? new Date(fechaHasta) : null;
 
-    const coincideFecha =
-      (!desde || fechaSesion >= desde) && (!hasta || fechaSesion <= hasta);
+      const coincideFecha =
+        (!desde || fechaSesion >= desde) && (!hasta || fechaSesion <= hasta);
 
-    return coincideTexto && coincideFecha;
-  });
+      return coincideTexto && coincideFecha;
+    })
+    .sort((a, b) => {
+      const fechaA = new Date(a.cita?.fecha_cita);
+      const fechaB = new Date(b.cita?.fecha_cita);
+      return fechaB - fechaA;
+    });
 
   return (
     <div className="sesion-container">
       {error && <div className="error-message">{error}</div>}
       <div className="header-container">
         <h1>Gestión de Sesiones Médicas</h1>
-        <button 
-          className="btn-registrar" 
+        <button
+          className="btn-registrar"
           onClick={() => {
             setModoEdicion(false);
             resetFormulario();
@@ -275,12 +372,35 @@ const Sesion = () => {
           <FaPlus /> Nueva Sesión
         </button>
       </div>
-
+      {/* modal para registrar sesion y tambien editar */}
       {mostrarModal && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h2>{modoEdicion ? "Editar Sesión" : "Registrar Nueva Sesión"}</h2>
             <form onSubmit={handleSubmit}>
+              {citaSeleccionadaInfo && (
+                <div className="info-cita-container">
+                  <div className="info-row">
+                    <span className="info-label">Paciente:</span>
+                    <span className="info-value">
+                      {obtenerNombreCompletoPaciente(citaSeleccionadaInfo)}
+                    </span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Profesional:</span>
+                    <span className="info-value">
+                      {obtenerNombreCompletoProfesional(citaSeleccionadaInfo)}
+                    </span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Motivo:</span>
+                    <span className="info-value">
+                      {citaSeleccionadaInfo.motivo_cita || "No especificado"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="form-row">
                 <div className="form-group">
                   <label>Cita:</label>
@@ -321,23 +441,6 @@ const Sesion = () => {
                     )}
                   </select>
                 </div>
-
-                <div className="form-group">
-                  <label>Técnica:</label>
-                  <select
-                    name="Idtec"
-                    value={formulario.Idtec}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Seleccione una técnica...</option>
-                    {tecnicas.map((tec) => (
-                      <option key={tec.Idtec} value={tec.Idtec}>
-                        {tec.Descripcion}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
 
               <div className="form-row">
@@ -376,13 +479,58 @@ const Sesion = () => {
               </div>
 
               <div className="form-group">
+                <label htmlFor="area">Tecnicas por Área:</label>
+                <select
+                  id="area"
+                  className="form-control"
+                  value={areaSeleccionada}
+                  onChange={(e) => setAreaSeleccionada(e.target.value)}
+                >
+                  <option value="">-- Selecciona un área --</option>
+                  {areas.map((area) => (
+                    <option key={area.Idarea} value={area.Idarea}>
+                      {area.Nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Técnicas:</label>
+                <div className="tecnicas-container">
+                  {tecnicasFiltradas.map((tec) => (
+                    <div key={tec.Idtec} className="tecnica-checkbox">
+                      <input
+                        type="checkbox"
+                        id={`tecnica-${tec.Idtec}`}
+                        value={tec.Idtec}
+                        checked={formulario.Idtec.includes(tec.Idtec)}
+                        onChange={handleTecnicasChange}
+                      />
+                      <label htmlFor={`tecnica-${tec.Idtec}`}>
+                        {tec.Descripcion}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="form-group">
                 <label>Atención:</label>
-                <input
-                  type="text"
+                <select
                   name="Atencion"
                   value={formulario.Atencion}
                   onChange={handleInputChange}
-                />
+                  className="form-control"
+                >
+                  <option value="Dentro de la institución">
+                    Dentro de la institución
+                  </option>
+                  <option value="Fuera de la institución">
+                    Fuera de la institución (atención domiciliaria y/o
+                    comunitaria)
+                  </option>
+                </select>
               </div>
 
               <div className="form-group">
@@ -410,7 +558,11 @@ const Sesion = () => {
                   className="btn-submit"
                   disabled={cargando}
                 >
-                  {cargando ? "Guardando..." : modoEdicion ? "Actualizar Sesión" : "Guardar Sesión"}
+                  {cargando
+                    ? "Guardando..."
+                    : modoEdicion
+                    ? "Actualizar Sesión"
+                    : "Guardar Sesión"}
                 </button>
                 <button
                   type="button"
@@ -429,12 +581,10 @@ const Sesion = () => {
         </div>
       )}
 
-      {/* Modal de Detalle */}
       {mostrarModalDetalle && sesionSeleccionada && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h2>Detalle de Sesión</h2>
-
             <div className="detalle-sesion">
               <div className="detalle-row">
                 <span className="detalle-label">Paciente:</span>
@@ -477,7 +627,7 @@ const Sesion = () => {
               <div className="detalle-row">
                 <span className="detalle-label">Técnicas Aplicadas:</span>
                 <span className="detalle-value">
-                  {obtenerNombreTecnica(sesionSeleccionada)}
+                  {obtenerNombresTecnicas(sesionSeleccionada)}
                 </span>
               </div>
 
@@ -509,16 +659,6 @@ const Sesion = () => {
             </div>
 
             <div className="modal-buttons">
-              <button
-                type="button"
-                className="btn-edit"
-                onClick={() => {
-                  editarSesion(sesionSeleccionada);
-                  setMostrarModalDetalle(false);
-                }}
-              >
-               Editar
-              </button>
               <button
                 type="button"
                 className="btn-cancel"
@@ -563,14 +703,14 @@ const Sesion = () => {
         {cargando ? (
           <p>Cargando sesiones...</p>
         ) : (
-          <div className="table-responsive">
+          <div className="sessions-table">
             <table>
               <thead>
                 <tr>
                   <th>Paciente</th>
                   <th>Fecha</th>
                   <th>Hora</th>
-                  <th>Técnica</th>
+                  <th>Técnicas</th>
                   <th>Estado</th>
                   <th>Notas</th>
                   <th>Acciones</th>
@@ -587,7 +727,7 @@ const Sesion = () => {
                       {formatearHora(sesion.Hora_ini)} -{" "}
                       {formatearHora(sesion.Hora_fin)}
                     </td>
-                    <td>{obtenerNombreTecnica(sesion)}</td>
+                    <td>{obtenerNombresTecnicas(sesion)}</td>
                     <td>{sesion.Tipo}</td>
                     <td>{sesion.Notas}</td>
 

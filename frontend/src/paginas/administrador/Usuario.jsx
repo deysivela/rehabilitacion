@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Usuario.css';
-import { FaEdit, FaEye } from 'react-icons/fa'; // Eliminamos FaTrash
+import { FaEdit, FaEye } from 'react-icons/fa'; 
 
 const Usuario = () => {
   const [lista, setLista] = useState([]);
@@ -128,7 +128,6 @@ const Usuario = () => {
                   className="icono icono-editar"
                   onClick={() => abrirModal(u)}
                 />
-                {/* Se eliminó el icono de eliminar */}
               </td>
             </tr>
           ))}
@@ -176,7 +175,7 @@ const Usuario = () => {
                   onChange={handleChange}
                   disabled={soloVista}
                 >
-                  <option value="Admin">Admin</option>
+                  <option value="Admin">Administrador</option>
                   <option value="Medico">Médico</option>
                   <option value="Auxiliar">Auxiliar</option>
                   <option value="Otro">Otro</option>
@@ -221,7 +220,7 @@ const Usuario = () => {
                 type="button"
                 className="btn-cancel"
                 onClick={() => setModalOpen(false)}
-              >
+              >Cancelar 
               </button>
             </form>
           </div>

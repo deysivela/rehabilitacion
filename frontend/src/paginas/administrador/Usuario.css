@@ -30,14 +30,21 @@
   
   .tabla-usuarios th,
   .tabla-usuarios td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #e0f2fe;
+    color: black;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    text-align: left;
   }
   
   .tabla-usuarios th {
-    background-color: #f4f4f4;
-    font-weight: bold;
+    background-color: #3498db;
+    color: #f0f2f3;
+    font-weight: 600;
+    border-bottom: 2px solid #bae6fd;
   }
   
   .acciones .icono {

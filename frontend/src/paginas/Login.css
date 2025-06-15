@@ -127,3 +127,76 @@
 .user-icon:hover {
   color: #2c3e50; 
 }
+@media (max-width: 768px) {
+  .login-box {
+    flex-direction: column;
+    width: 90%;
+    min-height: auto;
+  }
+
+  .login-logo-section {
+    padding: 30px 20px;
+  }
+
+  .logo-img {
+    width: 150px;
+  }
+
+  .login-logo-section h2 {
+    font-size: 22px;
+  }
+
+  .login-logo-section p {
+    font-size: 16px;
+  }
+
+  .login-form-section {
+    padding: 30px 20px;
+  }
+
+  .login-form-section h3 {
+    font-size: 22px;
+  }
+
+  .user-icon {
+    font-size: 48px;
+  }
+
+  .input-group input {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .login-btn {
+    font-size: 15px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-logo-section h2 {
+    font-size: 18px;
+  }
+
+  .login-logo-section p {
+    font-size: 14px;
+  }
+
+  .login-form-section h3 {
+    font-size: 20px;
+  }
+
+  .user-icon {
+    font-size: 40px;
+  }
+
+  .input-group input {
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .login-btn {
+    font-size: 14px;
+    padding: 10px;
+  }
+}

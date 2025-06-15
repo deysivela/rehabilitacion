@@ -7,6 +7,7 @@ const Usuario = require('../modelos/usuario');
 router.get('/listar', async (req, res) => {
   try {
     const usuarios = await Usuario.findAll();
+    /* SELECT * FROM usuarios; */
     res.json(usuarios);
   } catch (err) {
     console.error('Error al listar usuarios:', err);
@@ -16,30 +17,27 @@ router.get('/listar', async (req, res) => {
 
 // Ruta para crear un nuevo usuario
 router.post('/crear', async (req, res) => {
-  const { Usuario: username, Pass: password, Rol, Activo, Idprof } = req.body;  // 👈 Incluido Idprof
+  const { Usuario: username, Pass: password, Rol, Activo, Idprof } = req.body; 
 
   try {
-    // Validar datos básicos
+    // Validacion de campos
     if (!username || !password || !Rol) {
       return res.status(400).json({ message: 'Faltan campos obligatorios' });
     }
-
-    // Verificar si el usuario ya existe
+    // Consulta segura: Sequelize genera una sentencia SQL con parámetros
     const usuarioExistente = await Usuario.findOne({ where: { Usuario: username } });
+    /* Esta instrucción se traduce internamente SELECT * FROM usuarios WHERE Usuario = ?; */
     if (usuarioExistente) {
       return res.status(400).json({ message: 'El usuario ya existe' });
     }
-
     // Hashear la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Crear el nuevo usuario
     const nuevoUsuario = await Usuario.create({
       Usuario: username,
       Pass: hashedPassword,
       Rol,
       Activo: Activo ?? true,
-      Idprof: Idprof || null  // 👈 Incluido en la creación
+      Idprof: Idprof || null  
     });
 
     res.status(201).json({ message: 'Usuario creado exitosamente', usuario: nuevoUsuario });

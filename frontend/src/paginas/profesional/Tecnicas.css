@@ -1,18 +1,24 @@
-.diagnostico-container {
+.tecnica-container {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
 }
-
-/* Nuevo header con flexbox para título y botón */
-.header-diagnostico {
+.tabla-tecnicas th {
+  background-color: #3498db;
+  color: white;
+  font-weight: 500;
+  white-space: nowrap;
+  font-weight: bold; 
+}
+/* Header con título y botón al mismo nivel */
+.header-tecnica {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  
+  margin-bottom: 20px;
 }
 
-.header-diagnostico h2 {
+.header-tecnica h2 {
   margin: 0;
   font-size: 24px;
   display: flex;
@@ -20,7 +26,7 @@
   gap: 8px;
 }
 
-/* Botón nuevo diagnóstico */
+/* Botón nuevo técnica */
 .btn-nuevo {
   background-color: #3498db;
   color: white;
@@ -33,46 +39,21 @@
   gap: 8px;
 }
 
-/* Controles superiores */
-.controles-superiores {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-/* Botones generales */
-.btn-filtrar, .btn-limpiar {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-filtrar {
-  background-color: #2196F3;
-  color: white;
-}
-
-.btn-limpiar {
-  background-color: #f44336;
-  color: white;
-  margin-left: 10px;
-}
-
-/* Filtros */
+/* Contenedor de filtros siempre visible */
 .filtros {
   background-color: #f5f5f5;
-  padding: 15px;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-start;
 }
 
 .filtros label {
   display: flex;
   align-items: center;
   gap: 10px;
+  font-weight: 500;
 }
 
 .filtros select {
@@ -81,22 +62,30 @@
   border: 1px solid #ddd;
 }
 
-/* Tabla */
+.btn-limpiar {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Tabla de técnicas */
 .tabla-tecnicas {
   width: 100%;
   border-collapse: collapse;
 }
 
-.tabla-tecnicas th, .tabla-tecnicas td {
+.tabla-tecnicas td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #ddd;
 }
 
-.tabla-tecnicas th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-}
 
 .tabla-tecnicas tr:hover {
   background-color: #f5f5f5;
@@ -154,7 +143,8 @@
   font-weight: bold;
 }
 
-.form-group textarea, .form-group select {
+.form-group textarea,
+.form-group select {
   width: 100%;
   padding: 8px;
   border: 1px solid #ddd;

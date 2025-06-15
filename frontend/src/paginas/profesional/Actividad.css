@@ -1,0 +1,92 @@
+.actividad-container {
+    font-family: sans-serif;
+    margin: auto;
+  }
+  
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .btn-agregar {
+    margin-bottom: 10px;
+    padding: 8px 16px;
+    background-color: #005cbf;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .tabla-scroll {
+    overflow-x: auto;
+  }
+  
+  .tabla-actividades {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .tabla-actividades th,
+  .tabla-actividades td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .tabla-actividades th {
+    background-color: #3498db;
+    color: white;
+    font-weight: 500;
+    white-space: nowrap;
+    font-weight: bold;
+  }
+  
+  .tabla-actividades button {
+    margin: 0 4px;
+    cursor: pointer;
+  }
+  
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+  }
+  
+  .modal-contenido {
+    background: #fff;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+  }
+  
+  .modal-contenido form input,
+  .modal-contenido form textarea {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+  }
+  
+  .acciones .icono {
+    margin: 0 5px;
+    cursor: pointer;
+    font-size: 18px;
+  }
+  
+  .acciones .ojo { color: #007bff; }
+  .acciones .editar { color: #ffc107; }
+  .acciones .eliminar { color: #dc3545; }
+  

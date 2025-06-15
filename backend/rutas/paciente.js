@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { Paciente, Discapacidad } = require('../modelos'); // Asegúrate de que esta ruta es la correcta
+const { Paciente, Discapacidad } = require('../modelos');
 const ValidarPac = require('../validacion/ValidarPac');
 
 // Crear paciente
 router.post('/registrar', ValidarPac, async (req, res) => {
   try {
-    // Crear el paciente con el Iddisc si fue registrado
     const paciente = await Paciente.create({
       Nombre_pac: req.body.Nombre_pac,
       Appaterno_pac: req.body.Appaterno_pac,
@@ -17,9 +16,9 @@ router.post('/registrar', ValidarPac, async (req, res) => {
       Telefono_pac: req.body.Telefono_pac,
       Direccion_pac: req.body.Direccion_pac,
       Seguro: req.body.Seguro,
-      Tienediscapacidad:req.body.Tienediscapacidad,
+      Tienediscapacidad: req.body.Tienediscapacidad,
       Diagnostico: req.body.Diagnostico,
-      Iddisc: req.body.Iddisc  // puede ser null si no hubo discapacidad
+      Iddisc: req.body.Iddisc
     });
     res.status(201).json({ paciente });
   } catch (error) {
@@ -27,16 +26,17 @@ router.post('/registrar', ValidarPac, async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
-// Ruta para buscar paciente por CI
+
+// Buscar paciente por CI
 router.get('/buscar', async (req, res) => {
-  const { ci } = req.query; // 👈 corregido aquí
+  const { ci } = req.query;
 
   if (!ci) {
     return res.status(400).json({ mensaje: 'CI requerido' });
   }
 
   try {
-    const paciente = await Paciente.findOne({ where: { Ci_pac: ci } }); // 👈 y aquí
+    const paciente = await Paciente.findOne({ where: { Ci_pac: ci } }); 
     if (paciente) {
       return res.json({ Idpac: paciente.Idpac });
     } else {
@@ -48,7 +48,7 @@ router.get('/buscar', async (req, res) => {
   }
 });
 
-// Listar todos los pacientes con su discapacidad (si tiene)
+// Listar todos los pacientes
 router.get('/listar', async (req, res) => {
   try {
     const pacientes = await Paciente.findAll({
@@ -59,12 +59,10 @@ router.get('/listar', async (req, res) => {
       }
     });
 
-      // Modificar la columna 'Tienediscapacidad' antes de devolverla
-      const pacientesModificados = pacientes.map(paciente => {
-        // Cambiar 'true' o 'false' a 'sí' o 'no'
-        paciente.Tienediscapacidad = paciente.Tienediscapacidad ? 'Sí' : 'No';
-        return paciente;
-      });
+    const pacientesModificados = pacientes.map(paciente => {
+      paciente.Tienediscapacidad = paciente.Tienediscapacidad ? 'Sí' : 'No';
+      return paciente;
+    });
 
     res.json(pacientesModificados);
   } catch (error) {
@@ -73,61 +71,67 @@ router.get('/listar', async (req, res) => {
   }
 });
 
-
-// Obtener paciente por ID
+// Obtener paciente por ID (this is the route you're trying to access)
 router.get('/:id', async (req, res) => {
-  const { id } = req.params;
   try {
+    const { id } = req.params;
+
+    if (!id || isNaN(id)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'ID de paciente inválido' 
+      });
+    }
+
     const paciente = await Paciente.findOne({
       where: { Idpac: id },
       include: {
         model: Discapacidad,
-        as: 'detalleDiscapacidad'
+        as: 'detalleDiscapacidad',
+        required: false
       }
     });
 
     if (!paciente) {
-      return res.status(404).json({ message: 'Paciente no encontrado' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Paciente no encontrado' 
+      });
     }
 
-    res.json(paciente);
-  } catch (error) {
-    console.error('Error al obtener el paciente:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Eliminar paciente
-router.delete('/eliminar/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const paciente = await Paciente.findByPk(id);
-    if (!paciente) {
-      return res.status(404).json({ message: 'Paciente no encontrado' });
-    }
-
-    const idDiscapacidad = paciente.Iddisc;
-
-    // Primero eliminamos al paciente
-    await paciente.destroy();
-
-    // Luego verificamos si hay más pacientes con esa misma discapacidad
-    if (idDiscapacidad) {
-      const otrosPacientes = await Paciente.count({ where: { Iddisc: idDiscapacidad } });
-      if (otrosPacientes === 0) {
-        await Discapacidad.destroy({ where: { Iddisc: idDiscapacidad } });
+    const response = {
+      success: true,
+      data: {
+        ...paciente.get({ plain: true }),
+        discapacidades: paciente.detalleDiscapacidad 
+          ? [paciente.detalleDiscapacidad]
+          : []
       }
-    }
-
-    return res.status(200).json({ message: 'Paciente eliminado correctamente. Discapacidad eliminada si no fue referenciada por otro paciente.' });
+    };
+    res.json(response);
   } catch (error) {
-    console.error('Error al eliminar paciente:', error);
-    res.status(500).json({ message: 'Error al eliminar paciente' });
+    console.error('Error al obtener paciente:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Error al obtener paciente',
+      error: error.message 
+    });
   }
 });
 
+// Diagnósticos del paciente
+router.get('/paciente/:idpac', async (req, res) => {
+  const { idpac } = req.params;
+  try {
+    const [rows] = await db.query('SELECT * FROM diagnostico WHERE idpac = ?', [idpac]);
+    res.json(rows);
+  } catch (error) {
+    console.error("Error al obtener diagnósticos del paciente:", error);
+    res.status(500).send("Error interno del servidor");
+  }
+});
 
-// Editar paciente y su discapacidad
+// Editar paciente
 router.put('/editar/:id', async (req, res) => {
   try {
     const id = req.params.id;
@@ -142,13 +146,11 @@ router.put('/editar/:id', async (req, res) => {
       Direccion_pac,
       Seguro,
       Diagnostico,
-      Tienediscapacidad,  // Valor que indica si tiene discapacidad (true/false)
+      Tienediscapacidad,
       Tipo_disc,
       Grado_disc,
       Obs
     } = req.body;
-
-    console.log("Datos recibidos:", req.body); // Verifica los datos que llegan del frontend
 
     const paciente = await Paciente.findByPk(id, {
       include: { model: Discapacidad, as: 'detalleDiscapacidad' }
@@ -158,11 +160,8 @@ router.put('/editar/:id', async (req, res) => {
       return res.status(404).json({ error: 'Paciente no encontrado' });
     }
 
-    // Convierte Tienediscapacidad en booleano (true/false)
     const tieneDisc = Tienediscapacidad === "true" || Tienediscapacidad === true;
-    console.log("Valor de Tienediscapacidad:", tieneDisc); // Verifica el valor de Tienediscapacidad
-
-    // Actualizar datos del paciente (sin cambiar el campo Discapacidad aún)
+  
     await paciente.update({
       Nombre_pac,
       Appaterno_pac,
@@ -176,7 +175,6 @@ router.put('/editar/:id', async (req, res) => {
       Diagnostico
     });
 
-    // Si tiene discapacidad
     if (tieneDisc) {
       if (paciente.Iddisc) {
         const discapacidadExistente = await Discapacidad.findByPk(paciente.Iddisc);
@@ -185,10 +183,8 @@ router.put('/editar/:id', async (req, res) => {
         } else {
           return res.status(404).json({ error: 'Discapacidad no encontrada para actualizar' });
         }
-        console.log("Actualizando Discapacidad a 1");
         await paciente.update({ Tienediscapacidad: 1 });
       } else {
-        console.log("Creando nueva discapacidad y asociando...");
         const nuevaDiscapacidad = await Discapacidad.create({ Tipo_disc, Grado_disc, Obs });
         await paciente.update({ Iddisc: nuevaDiscapacidad.Iddisc, Tienediscapacidad: 1 });
       }
@@ -199,20 +195,16 @@ router.put('/editar/:id', async (req, res) => {
       await paciente.update({ Tienediscapacidad: 0 });
     }
     
-    
-
-    // Obtener el paciente actualizado con la discapacidad asociada
     const pacienteActualizado = await Paciente.findByPk(id, {
       include: { model: Discapacidad, as: 'detalleDiscapacidad' }
     });
 
     res.json(pacienteActualizado);
-
   } catch (error) {
     console.error("Error al actualizar paciente:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-
+// Only one export at the end
 module.exports = router;

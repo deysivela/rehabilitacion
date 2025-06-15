@@ -39,14 +39,6 @@ const Sesion = sequelize.define('Sesion', {
       key: 'Idcita'
     }
   },
-  Idtec: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'tecnicas', 
-      key: 'Idtec'
-    }
-  },
   Idtrat: {
     type: DataTypes.INTEGER,
     allowNull: false,
