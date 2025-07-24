@@ -1,6 +1,6 @@
 const ExcelJS = require('exceljs');
 const axios = require('axios');
-const db = require('../modelos'); // Asegúrate de tener la conexión a la base de datos
+const db = require('../modelos');
 
 async function generarExcelReporte(datos, config) {
   const { areaSeleccionada, profesionalSeleccionado, fechaReporte, tipoReporte } = config;
@@ -33,6 +33,11 @@ async function generarExcelReporte(datos, config) {
     font: { bold: true }
   };
 
+  const estiloMensajeSinDatos = {
+    font: { bold: true, color: { argb: 'FFFF0000' } },
+    alignment: { horizontal: 'center' }
+  };
+
   // Obtener las áreas desde la API
   let areas = [];
   try {
@@ -45,29 +50,31 @@ async function generarExcelReporte(datos, config) {
     console.error('Error al obtener áreas:', error);
   }
 
-  // Si es reporte por profesional, obtener su área
-  let areaProfesional = null;
+  // Si es reporte por profesional, usar su área
   if (tipoReporte === 'por-profesional' && profesionalSeleccionado) {
     try {
-      const profesional = await db.ProfSalud.findByPk(profesionalSeleccionado, {
-        include: {
-          model: db.Area,
-          as: 'area'
+      const profesional = await db.ProfSalud.findByPk(
+        typeof profesionalSeleccionado === 'object' ? profesionalSeleccionado.Idprof : profesionalSeleccionado, 
+        {
+          include: {
+            model: db.Area,
+            as: 'area'
+          }
         }
-      });
+      );
+      
       if (profesional && profesional.area) {
-        areaProfesional = {
+        areas = [{
           Idarea: profesional.area.Idarea,
           Nombre: profesional.area.Nombre.toUpperCase()
-        };
-        areas = [areaProfesional]; // Mostrar solo el área del profesional
+        }];
       }
     } catch (error) {
       console.error('Error al obtener área del profesional:', error);
     }
   } else if (tipoReporte === 'por-area' && areaSeleccionada) {
     // Filtrar solo el área seleccionada
-    const area = areas.find(a => a.Idarea == areaSeleccionada);
+    const area = areas.find(a => a.Nombre === areaSeleccionada.toUpperCase());
     if (area) {
       areas = [area];
     }
@@ -105,17 +112,12 @@ async function generarExcelReporte(datos, config) {
   let tituloReporte = 'NÚMERO DE ATENCIONES EN GENERAL';
   
   if (tipoReporte === 'por-area' && areaSeleccionada) {
-    const area = areas.find(a => a.Idarea == areaSeleccionada);
-    tituloReporte += ` - ÁREA: ${area?.Nombre || areaSeleccionada}`;
+    tituloReporte += ` - ÁREA: ${areaSeleccionada.toUpperCase()}`;
   } else if (tipoReporte === 'por-profesional' && profesionalSeleccionado) {
-    try {
-      const profesional = await db.ProfSalud.findByPk(profesionalSeleccionado);
-      if (profesional) {
-        tituloReporte += ` - PROFESIONAL: ${profesional.Nombre_prof} ${profesional.Appaterno_prof}`;
-      }
-    } catch (error) {
-      console.error('Error al obtener nombre del profesional:', error);
-    }
+    const nombreProf = typeof profesionalSeleccionado === 'object' 
+      ? `${profesionalSeleccionado.Nombre_prof} ${profesionalSeleccionado.Appaterno_prof}`
+      : 'Profesional';
+    tituloReporte += ` - PROFESIONAL: ${nombreProf}`;
   }
   
   hoja.getCell('B9').value = tituloReporte;
@@ -185,102 +187,102 @@ async function generarExcelReporte(datos, config) {
   hoja.getCell('X11').value = 'TOTAL';
   hoja.getCell('X11').style = estiloEncabezado;
 
+  // Verificar si hay datos para mostrar
+  if (datos.length === 0) {
+    hoja.mergeCells('B12:X12');
+    hoja.getCell('B12').value = 'NO SE ENCONTRARON DATOS PARA LOS CRITERIOS SELECCIONADOS';
+    hoja.getCell('B12').style = estiloMensajeSinDatos;
+    return libro;
+  }
+
   // 9. Escribir filas de consultas por cada área y tipo (N y R)
   let filaActual = 12;
   const indicePrincipal = 1;
   let subIndice = 1;
 
-  // Si es reporte por profesional, modificar el título de las filas
-  let nombreProfesional = '';
-  if (tipoReporte === 'por-profesional' && profesionalSeleccionado) {
-    try {
-      const profesional = await db.ProfSalud.findByPk(profesionalSeleccionado);
-      if (profesional) {
-        nombreProfesional = `${profesional.Nombre_prof} ${profesional.Appaterno_prof}`;
-      }
-    } catch (error) {
-      console.error('Error al obtener nombre del profesional:', error);
+  // Agrupar datos por área y profesional
+  const datosAgrupados = {};
+  datos.forEach(dato => {
+    const clave = `${dato.area}_${dato.profesional}`;
+    if (!datosAgrupados[clave]) {
+      datosAgrupados[clave] = {
+        area: dato.area,
+        profesional: dato.profesional,
+        nuevos: [],
+        repetidos: []
+      };
     }
-  }
-
-  for (const area of areas) {
-    const numeracion = `${indicePrincipal}.${subIndice}`;
-    let nombreFila = area.Nombre;
     
-    if (tipoReporte === 'por-profesional' && nombreProfesional) {
-      nombreFila = `${nombreProfesional} (${area.Nombre})`;
-    }
-
-    // Tipo 'N' - Nuevo
-    hoja.getCell(`B${filaActual}`).value = `${numeracion} ${nombreFila}`;
-    hoja.getCell(`B${filaActual}`).style = estiloCeldaRelleno;
-    hoja.getCell(`C${filaActual}`).value = 'N';
-    hoja.getCell(`C${filaActual}`).style = estiloCeldaRelleno;
-
-    // Filtrar datos NUEVOS según tipo de reporte
-    let datosN = [];
-    if (tipoReporte === 'por-profesional') {
-      datosN = datos.filter(d => {
-        const tipo = String(d.tipo_sesion).toUpperCase();
-        return (tipo === 'NUEVO' || tipo === 'N') && d.id_profesional == profesionalSeleccionado;
-      });
+    if (dato.tipo_sesion === 'Nuevo') {
+      datosAgrupados[clave].nuevos.push(dato);
     } else {
-      datosN = datos.filter(d => {
-        const tipo = String(d.tipo_sesion).toUpperCase();
-        return d.area.toUpperCase() === area.Nombre && (tipo === 'NUEVO' || tipo === 'N');
-      });
+      datosAgrupados[clave].repetidos.push(dato);
     }
+  });
 
-    rangosEdad.forEach(({ col, rango, sexo }) => {
-      const clave = `${rango}_${sexo}`;
-      const suma = datosN.reduce((acc, cur) => acc + (cur[clave] || 0), 0);
-      const cell = hoja.getCell(`${col}${filaActual}`);
-      cell.value = suma === 0 ? '' : suma;
-      cell.style = estiloCelda;
-    });
+  // Escribir datos en el Excel
+  for (const area of areas) {
+    for (const clave in datosAgrupados) {
+      const datosArea = datosAgrupados[clave];
+      
+      // Verificar si pertenece al área actual
+      if (datosArea.area.toUpperCase() !== area.Nombre.toUpperCase()) {
+        continue;
+      }
 
-    hoja.getCell(`X${filaActual}`).value = {
-      formula: `SUM(D${filaActual}:W${filaActual})`
-    };
-    hoja.getCell(`X${filaActual}`).style = estiloEncabezado;
+      const numeracion = `${indicePrincipal}.${subIndice}`;
+      let nombreFila = datosArea.area;
+      
+      // Si es reporte por profesional, mostrar nombre del profesional
+      if (tipoReporte === 'por-profesional') {
+        nombreFila = `${datosArea.profesional} (${datosArea.area})`;
+      }
 
-    filaActual++;
+      // Tipo 'N' - Nuevo
+      hoja.getCell(`B${filaActual}`).value = `${numeracion} ${nombreFila}`;
+      hoja.getCell(`B${filaActual}`).style = estiloCeldaRelleno;
+      hoja.getCell(`C${filaActual}`).value = 'N';
+      hoja.getCell(`C${filaActual}`).style = estiloCeldaRelleno;
 
-    // Tipo 'R' - Control/Repetido
-    hoja.getCell(`B${filaActual}`).value = `${numeracion} ${nombreFila}`;
-    hoja.getCell(`B${filaActual}`).style = estiloCeldaRelleno;
-    hoja.getCell(`C${filaActual}`).value = 'R';
-    hoja.getCell(`C${filaActual}`).style = estiloCeldaRelleno;
-
-    // Filtrar datos REPETIDOS según tipo de reporte
-    let datosR = [];
-    if (tipoReporte === 'por-profesional') {
-      datosR = datos.filter(d => {
-        const tipo = String(d.tipo_sesion).toUpperCase();
-        return (tipo === 'CONTROL' || tipo === 'R' || tipo === 'REPETIDO') && d.id_profesional == profesionalSeleccionado;
+      // Sumar datos NUEVOS
+      rangosEdad.forEach(({ col, rango, sexo }) => {
+        const clave = `${rango}_${sexo}`;
+        const suma = datosArea.nuevos.reduce((acc, cur) => acc + (cur[clave] || 0), 0);
+        const cell = hoja.getCell(`${col}${filaActual}`);
+        cell.value = suma === 0 ? '' : suma;
+        cell.style = estiloCelda;
       });
-    } else {
-      datosR = datos.filter(d => {
-        const tipo = String(d.tipo_sesion).toUpperCase();
-        return d.area.toUpperCase() === area.Nombre && (tipo === 'CONTROL' || tipo === 'R' || tipo === 'REPETIDO');
+
+      hoja.getCell(`X${filaActual}`).value = {
+        formula: `SUM(D${filaActual}:W${filaActual})`
+      };
+      hoja.getCell(`X${filaActual}`).style = estiloEncabezado;
+
+      filaActual++;
+
+      // Tipo 'R' - Control/Repetido
+      hoja.getCell(`B${filaActual}`).value = `${numeracion} ${nombreFila}`;
+      hoja.getCell(`B${filaActual}`).style = estiloCeldaRelleno;
+      hoja.getCell(`C${filaActual}`).value = 'R';
+      hoja.getCell(`C${filaActual}`).style = estiloCeldaRelleno;
+
+      // Sumar datos REPETIDOS
+      rangosEdad.forEach(({ col, rango, sexo }) => {
+        const clave = `${rango}_${sexo}`;
+        const suma = datosArea.repetidos.reduce((acc, cur) => acc + (cur[clave] || 0), 0);
+        const cell = hoja.getCell(`${col}${filaActual}`);
+        cell.value = suma === 0 ? '' : suma;
+        cell.style = estiloCelda;
       });
+
+      hoja.getCell(`X${filaActual}`).value = {
+        formula: `SUM(D${filaActual}:W${filaActual})`
+      };
+      hoja.getCell(`X${filaActual}`).style = estiloEncabezado;
+
+      filaActual++;
+      subIndice++;
     }
-
-    rangosEdad.forEach(({ col, rango, sexo }) => {
-      const clave = `${rango}_${sexo}`;
-      const suma = datosR.reduce((acc, cur) => acc + (cur[clave] || 0), 0);
-      const cell = hoja.getCell(`${col}${filaActual}`);
-      cell.value = suma === 0 ? '' : suma;
-      cell.style = estiloCelda;
-    });
-
-    hoja.getCell(`X${filaActual}`).value = {
-      formula: `SUM(D${filaActual}:W${filaActual})`
-    };
-    hoja.getCell(`X${filaActual}`).style = estiloEncabezado;
-
-    filaActual++;
-    subIndice++;
   }
 
   // 10. Total vertical: suma de cada columna (D a W)

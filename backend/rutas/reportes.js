@@ -4,42 +4,57 @@ const { generarExcelReporte } = require('../servicios/excel');
 const db = require('../modelos');
 const { Op } = require('sequelize');
 
+// Validación de parámetros
 const validarParametros = (req, res, next) => {
   const { fecha, tipoReporte } = req.body;
+  
   if (!fecha || !/^\d{4}-\d{2}$/.test(fecha)) {
     return res.status(400).json({ error: 'Formato de fecha inválido. Use YYYY-MM' });
   }
+  
   if (tipoReporte === 'por-profesional' && !req.body.profesional) {
     return res.status(400).json({ error: 'Se requiere seleccionar un profesional' });
   }
+  
+  if (tipoReporte === 'por-area' && !req.body.areaProfesional) {
+    return res.status(400).json({ error: 'Se requiere seleccionar un área' });
+  }
+  
   next();
 };
 
-// Calcular edad en años decimales
+// Función para calcular edad en años decimales
 function calcularEdad(fechaNacimientoStr) {
-  const nacimiento = new Date(fechaNacimientoStr);
-  const hoy = new Date();
-  let edad = hoy.getFullYear() - nacimiento.getFullYear();
-  const m = hoy.getMonth() - nacimiento.getMonth();
-  const d = hoy.getDate() - nacimiento.getDate();
-
-  // Ajuste de meses/días
-  if (m < 0 || (m === 0 && d < 0)) {
-    edad--;
+  if (!fechaNacimientoStr) return null;
+  
+  try {
+    const nacimiento = new Date(fechaNacimientoStr);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const m = hoy.getMonth() - nacimiento.getMonth();
+    
+    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+    
+    // Para grupos menores de 1 año
+    if (edad === 0) {
+      const meses = (hoy.getMonth() + 12 * hoy.getFullYear()) - 
+                   (nacimiento.getMonth() + 12 * nacimiento.getFullYear());
+      if (meses < 6) return 0.4;   // Menos de 6 meses
+      return 0.8;                  // Entre 6 meses y 1 año
+    }
+    
+    return edad;
+  } catch (e) {
+    console.error('Error calculando edad:', e);
+    return null;
   }
-
-  // Para grupos menores de 1 año, calcular en meses
-  if (edad === 0) {
-    const meses = (hoy.getMonth() + 12 * hoy.getFullYear()) - (nacimiento.getMonth() + 12 * nacimiento.getFullYear());
-    if (meses < 6) return 0.4;   // Menos de 6 meses, representa con 0.4
-    else return 0.8;            // Entre 6 meses y 1 año, representa con 0.8
-  }
-
-  return edad;
 }
 
+// Función para determinar grupo etario
 function obtenerGrupoEtario(edad) {
-  if (edad < 0) return null;
+  if (edad === null || edad === undefined) return null;
   if (edad < 0.5) return '<6 MESES';
   if (edad < 1) return '6 M A 1 AÑO';
   if (edad < 5) return '1 A 4 AÑOS';
@@ -52,32 +67,43 @@ function obtenerGrupoEtario(edad) {
   return '>60 AÑOS';
 }
 
+// Procesamiento de sesiones
 function procesarSesiones(sesiones, areaFiltro = null, profesionalFiltro = null) {
   const resultado = {};
 
+  // Si no hay sesiones, devolver array vacío
+  if (!sesiones || sesiones.length === 0) {
+    return [];
+  }
+
   sesiones.forEach(sesion => {
-    // Normalizar el nombre del área
-    const area = sesion.profesional?.area?.Nombre 
-      ? sesion.profesional.area.Nombre.trim().toUpperCase() 
-      : 'OTROS';
+    // Verificar que exista paciente y profesional
+    if (!sesion.paciente || !sesion.profesional) {
+      return;
+    }
+
+    const nombreProfesional = `${sesion.profesional.Nombre_prof} ${sesion.profesional.Appaterno_prof}`.trim();
+    const area = sesion.profesional?.area?.Nombre?.trim().toUpperCase() || 'OTROS';
     
-    // Verificar filtros
+    // Filtrar por área si es necesario
     if (areaFiltro && area !== areaFiltro.trim().toUpperCase()) {
-      return; // Saltar si no coincide con el área filtrada
+      return;
     }
     
-    if (profesionalFiltro && sesion.profesional?.Idprof !== profesionalFiltro) {
-      return; // Saltar si no coincide con el profesional filtrado
+    // Filtrar por profesional si es necesario
+    if (profesionalFiltro && sesion.profesional.Idprof != profesionalFiltro) {
+      return;
     }
 
     const tipoSesion = sesion.Tipo === 'Nuevo' ? 'Nuevo' : 'Repetido';
-    const clave = `${area}_${tipoSesion}`;
+    const clave = `${area}_${nombreProfesional}_${tipoSesion}`;
     
     if (!resultado[clave]) {
       resultado[clave] = {
         area,
+        profesional: nombreProfesional,
         tipo_sesion: tipoSesion,
-        id_profesional: sesion.profesional?.Idprof || null,
+        id_profesional: sesion.profesional.Idprof,
         '<6 MESES_M': 0,
         '<6 MESES_F': 0,
         '6 M A 1 AÑO_M': 0,
@@ -97,128 +123,116 @@ function procesarSesiones(sesiones, areaFiltro = null, profesionalFiltro = null)
         '50 A 59 AÑOS_M': 0,
         '50 A 59 AÑOS_F': 0,
         '>60 AÑOS_M': 0,
-        '>60 AÑOS_F': 0,
+        '>60 AÑOS_F': 0
       };
     }
 
-    // Calcular edad y grupo etario
-    const edad = calcularEdad(sesion.paciente.Fnaci_pac);
-    const grupo = obtenerGrupoEtario(edad);
-    const genero = sesion.paciente.Genero_pac === 'M' ? '_M' : '_F';
-    const campo = `${grupo}${genero}`;
-
-    if (resultado[clave][campo] !== undefined) {
-      resultado[clave][campo]++;
+    // Calcular edad solo si existe fecha de nacimiento
+    if (sesion.paciente.Fnaci_pac) {
+      const edad = calcularEdad(sesion.paciente.Fnaci_pac);
+      const grupo = obtenerGrupoEtario(edad);
+      const genero = sesion.paciente.Genero_pac === 'M' ? '_M' : '_F';
+      
+      if (grupo) {
+        const campo = `${grupo}${genero}`;
+        if (resultado[clave][campo] !== undefined) {
+          resultado[clave][campo]++;
+        }
+      }
     }
   });
 
   return Object.values(resultado);
 }
 
+// Ruta para generar reportes
 router.post('/generar', validarParametros, async (req, res) => {
   try {
     const { areaProfesional, profesional, fecha, tipoReporte } = req.body;
-    
-    console.log('Parámetros recibidos:', {
-      areaProfesional,
-      profesional,
-      fecha,
-      tipoReporte
-    });
 
-    // Obtener el área si se filtró por área (CORRECCIÓN IMPORTANTE)
-    let nombreAreaFiltro = null;
-    let idAreaFiltro = null;
-    
+    // Obtener información del profesional si es reporte por profesional
+    let profesionalInfo = null;
+    if (tipoReporte === 'por-profesional' && profesional) {
+      profesionalInfo = await db.ProfSalud.findByPk(profesional, {
+        include: {
+          model: db.Area,
+          as: 'area',
+          attributes: ['Nombre']
+        }
+      });
+      
+      if (!profesionalInfo) {
+        return res.status(400).json({ error: 'Profesional no encontrado' });
+      }
+    }
+
+    // Verificar si el área existe para reportes por área
+    let areaInfo = null;
     if (tipoReporte === 'por-area' && areaProfesional) {
-      // Buscar por NOMBRE del área en lugar de ID
-      const area = await db.Area.findOne({ 
+      areaInfo = await db.Area.findOne({
         where: { Nombre: areaProfesional }
       });
       
-      if (area) {
-        nombreAreaFiltro = area.Nombre;
-        idAreaFiltro = area.Idarea;
-        console.log('Área encontrada:', {
-          nombre: nombreAreaFiltro,
-          id: idAreaFiltro
-        });
-      } else {
-        console.log('Área no encontrada:', areaProfesional);
-        return res.status(400).json({ error: 'Área no encontrada' });
+      if (!areaInfo) {
+        return res.status(400).json({ error: 'El área especificada no existe' });
       }
     }
 
     const fechaInicio = `${fecha}-01`;
     const fechaFin = new Date(fecha.split('-')[0], parseInt(fecha.split('-')[1]), 0).toISOString().slice(0, 10);
 
-    // Configurar filtros para la consulta SQL (USAR ID DEL ÁREA)
+    // Configurar filtros para la consulta SQL
     const whereProf = {};
-    if (tipoReporte === 'por-area' && idAreaFiltro) {
-      whereProf.Idarea = idAreaFiltro; // Usar el ID numérico del área
+    if (tipoReporte === 'por-area' && areaInfo) {
+      whereProf.Idarea = areaInfo.Idarea;
     }
     if (tipoReporte === 'por-profesional' && profesional) {
       whereProf.Idprof = profesional;
     }
 
- const sesiones = await db.Sesion.findAll({
-  include: [
-    {
-      model: db.Paciente,
-      as: 'paciente',
-      attributes: ['Fnaci_pac', 'Genero_pac'],
-    },
-    {
-      model: db.ProfSalud,
-      as: 'profesional',
-      where: whereProf,
-      required: tipoReporte === 'por-area',
+    const sesiones = await db.Sesion.findAll({
       include: [
         {
-          model: db.Area,
-          as: 'area',
-          attributes: ['Nombre'],
+          model: db.Paciente,
+          as: 'paciente',
+          attributes: ['Fnaci_pac', 'Genero_pac'],
+        },
+        {
+          model: db.ProfSalud,
+          as: 'profesional',
+          where: whereProf,
+          required: tipoReporte === 'por-area' || tipoReporte === 'por-profesional',
+          include: [
+            {
+              model: db.Area,
+              as: 'area',
+              attributes: ['Nombre'],
+            }
+          ],
+          attributes: ['Idprof', 'Nombre_prof', 'Appaterno_prof']
         }
       ],
-      attributes: ['Idprof', 'Nombre_prof', 'Appaterno_prof']
-    }
-  ],
-  where: {
-    Fecha: {
-      [Op.between]: [fechaInicio, fechaFin]
-    },
-    Tipo: ['Nuevo', 'Repetido'] // Asegurar ambos tipos
-  },
-  attributes: ['Idsesion', 'Tipo']
-});
-
-    console.log(`Total sesiones encontradas: ${sesiones.length}`);
-    if (sesiones.length > 0) {
-      console.log('Ejemplo de sesión:', {
-        id: sesiones[0].Idsesion,
-        tipo: sesiones[0].Tipo,
-        area: sesiones[0].profesional?.area?.Nombre,
-        profesional: sesiones[0].profesional?.Nombre_prof
-      });
-    }
+      where: {
+        Fecha: {
+          [Op.between]: [fechaInicio, fechaFin]
+        },
+        Tipo: ['Nuevo', 'Repetido']
+      },
+      attributes: ['Idsesion', 'Tipo']
+    });
 
     // Procesar sesiones con los filtros adecuados
     const datosProcesados = procesarSesiones(
       sesiones, 
-      nombreAreaFiltro, // Pasar el nombre del área para el filtrado
+      tipoReporte === 'por-area' ? areaProfesional : null,
       tipoReporte === 'por-profesional' ? profesional : null
     );
-
-    console.log('Datos procesados:', datosProcesados.length);
-    if (datosProcesados.length > 0) {
-      console.log('Ejemplo de dato procesado:', datosProcesados[0]);
-    }
 
     // Generar el reporte Excel
     const libroExcel = await generarExcelReporte(datosProcesados, {
       tipoReporte,
-      areaSeleccionada: nombreAreaFiltro, // Pasar el nombre del área
-      profesionalSeleccionado: profesional,
+      areaSeleccionada: tipoReporte === 'por-area' ? areaProfesional : (profesionalInfo?.area?.Nombre || null),
+      profesionalSeleccionado: profesionalInfo || profesional,
       fechaReporte: fecha
     });
 
@@ -229,7 +243,7 @@ router.post('/generar', validarParametros, async (req, res) => {
 
   } catch (error) {
     console.error('Error al generar reporte:', error);
-    res.status(500).json({ error: 'Error al generar el reporte' });
+    res.status(500).json({ error: 'Error al generar el reporte', detalles: error.message });
   }
 });
 
