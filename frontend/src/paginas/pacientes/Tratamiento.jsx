@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  FaEdit,
-  FaPlus,
-  FaEye,
-  FaCalendarAlt,
-  FaSearch,
-  FaTimes,
-} from "react-icons/fa";
+import { FaEdit, FaPlus, FaEye, FaCalendarAlt, FaSearch, FaTimes } from "react-icons/fa";
 import "./Tratamiento.css";
 
 const Tratamiento = () => {
@@ -16,6 +9,7 @@ const Tratamiento = () => {
   const [pacientes, setPacientes] = useState([]);
   const [form, setForm] = useState({
     Idtrat: null,
+    nombre: "",
     Fecha_ini: new Date().toISOString().split("T")[0],
     Fecha_fin: "",
     Idpac: "",
@@ -33,20 +27,18 @@ const Tratamiento = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [profesionales, setProfesionales] = useState([]);
+  const [filtroProfesional, setFiltroProfesional] = useState("");
 
   const location = useLocation();
   const navigate = useNavigate();
-  const usuario = JSON.parse(localStorage.getItem("usuario"));
+  const usuario = JSON.parse(sessionStorage.getItem("usuario"));
   const idprof = usuario?.idprof;
 
-  // Nuevo método para recibir el ID del paciente
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const pacienteId = params.get("pacienteId");
     const abrir = params.get("abrirModal");
-    console.log(pacienteId);
     if (pacienteId && abrir === "true") {
-      // Solo actualizamos el Idpac si ya tenemos los pacientes cargados
       if (pacientes.length > 0) {
         const pacienteExiste = pacientes.some(
           (p) => String(p.Idpac) === String(pacienteId)
@@ -66,7 +58,6 @@ const Tratamiento = () => {
     }
   }, [location.search, pacientes, idprof]);
 
-  // Cargar datos iniciales
   useEffect(() => {
     const cargarDatos = async () => {
       try {
@@ -106,6 +97,7 @@ const Tratamiento = () => {
     } else {
       setForm({
         Idtrat: null,
+        nombre: "",
         Fecha_ini: new Date().toISOString().split("T")[0],
         Fecha_fin: "",
         Idpac: "",
@@ -130,19 +122,36 @@ const Tratamiento = () => {
     setDetalleModalOpen(true);
   };
 
+  const cargarTratamientos = async () => {
+    const res = await axios.get("http://localhost:5000/api/tratamiento/listar");
+    setTratamientos(res.data.sort((a, b) => new Date(b.Fecha_ini) - new Date(a.Fecha_ini)));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "Estado") {
+      let nuevaFechaFin = form.Fecha_fin;
+
+      if (value === "Alta temporal" || value === "Alta definitiva" || value === "Abandono") {
+        nuevaFechaFin = new Date().toISOString().split("T")[0];
+      } else {
+        nuevaFechaFin = "";
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+        Fecha_fin: nuevaFechaFin,
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
-      // Actualizar la lista de tratamientos sin recargar la página
-      const cargarTratamientos = async () => {
-        const res = await axios.get(
-          "http://localhost:5000/api/tratamiento/listar"
-        );
-        setTratamientos(
-          res.data.sort((a, b) => new Date(b.Fecha_ini) - new Date(a.Fecha_ini))
-        );
-      };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -154,30 +163,21 @@ const Tratamiento = () => {
       };
 
       if (form.Idtrat) {
-        await axios.put(
-          `http://localhost:5000/api/tratamiento/${form.Idtrat}`,
-          payload
-        );
+        await axios.put(`http://localhost:5000/api/tratamiento/${form.Idtrat}`, payload);
       } else {
-        await axios.post(
-          "http://localhost:5000/api/tratamiento/crear",
-          payload
-        );
+        await axios.post("http://localhost:5000/api/tratamiento/crear", payload);
       }
       cerrarModal();
-   
     } catch (error) {
       console.error("Error guardando tratamiento:", error);
       setError("Error al guardar el tratamiento");
     }
   };
 
-  const obtenerNombreCompletoPaciente = (id) => {
+  const obtenerNombrePaciente = (id) => {
     if (!id) return "Sin paciente asignado";
     const paciente = pacientes.find((p) => String(p.Idpac) === String(id));
-    return paciente
-      ? `${paciente.Nombre_pac} ${paciente.Appaterno_pac} ${paciente.Apmaterno_pac}`
-      : "Paciente no encontrado";
+    return paciente ? `${paciente.Nombre_pac} ${paciente.Appaterno_pac} ${paciente.Apmaterno_pac}` : "Paciente no encontrado";
   };
 
   const obtenerCIPaciente = (id) => {
@@ -189,20 +189,14 @@ const Tratamiento = () => {
   const formatearFecha = (fecha) => {
     if (!fecha) return "-";
     const date = new Date(fecha);
-    return date.toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
+    return date.toLocaleDateString("es-ES", { year: "numeric", month: "2-digit", day: "2-digit" });
   };
 
   const obtenerNombreProfesional = (id) => {
     const prof = profesionales.find((p) => p.Idprof === id);
     if (!prof) return "—";
     const { Nombre_prof, Appaterno_prof, Apmaterno_prof } = prof;
-    return `${Nombre_prof} ${Appaterno_prof}${
-      Apmaterno_prof ? " " + Apmaterno_prof : ""
-    }`;
+    return `${Nombre_prof} ${Appaterno_prof}${Apmaterno_prof ? " " + Apmaterno_prof : ""}`;
   };
 
   const filtrarTratamientos = () => {
@@ -211,25 +205,21 @@ const Tratamiento = () => {
     return tratamientos
       .filter((t) => {
         const cumpleEstado = filtroEstado ? t.Estado === filtroEstado : true;
+        const cumpleProfesional = filtroProfesional ? String(t.Idprof) === String(filtroProfesional) : true;
 
         let cumpleBusqueda = true;
         if (filtroBusqueda) {
-          const paciente = pacientes.find(
-            (p) => String(p.Idpac) === String(t.Idpac)
-          );
+          const paciente = pacientes.find((p) => String(p.Idpac) === String(t.Idpac));
           if (paciente) {
-            const nombreCompleto =
-              `${paciente.Nombre_pac} ${paciente.Appaterno_pac} ${paciente.Apmaterno_pac}`.toLowerCase();
+            const nombreCompleto = `${paciente.Nombre_pac} ${paciente.Appaterno_pac} ${paciente.Apmaterno_pac}`.toLowerCase();
             const ci = paciente.Ci_pac.toLowerCase();
-            cumpleBusqueda =
-              nombreCompleto.includes(busquedaLower) ||
-              ci.includes(busquedaLower);
+            cumpleBusqueda = nombreCompleto.includes(busquedaLower) || ci.includes(busquedaLower);
           } else {
             cumpleBusqueda = false;
           }
         }
 
-        return cumpleEstado && cumpleBusqueda;
+        return cumpleEstado && cumpleBusqueda && cumpleProfesional;
       })
       .sort((a, b) => new Date(b.Fecha_ini) - new Date(a.Fecha_ini));
   };
@@ -238,16 +228,11 @@ const Tratamiento = () => {
 
   const getEstadoClass = (estado) => {
     switch (estado) {
-      case "En tratamiento":
-        return "en-tratamiento";
-      case "Alta temporal":
-        return "alta-temporal";
-      case "Alta definitiva":
-        return "alta-definitiva";
-      case "Abandono":
-        return "abandono";
-      default:
-        return "";
+      case "En tratamiento": return "en-tratamiento";
+      case "Alta temporal": return "alta-temporal";
+      case "Alta definitiva": return "alta-definitiva";
+      case "Abandono": return "abandono";
+      default: return "";
     }
   };
 
@@ -302,6 +287,21 @@ const Tratamiento = () => {
               <option value="Abandono">Abandono</option>
             </select>
           </div>
+
+          <div className="filtro-group">
+            <select
+              value={filtroProfesional}
+              onChange={(e) => setFiltroProfesional(e.target.value)}
+              className="select-estado"
+            >
+              <option value="">Todos los profesionales</option>
+              {profesionales.map((prof) => (
+                <option key={prof.Idprof} value={prof.Idprof}>
+                  {prof.Nombre_prof} {prof.Appaterno_prof} {prof.Apmaterno_prof}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -314,6 +314,7 @@ const Tratamiento = () => {
               <thead>
                 <tr>
                   <th>Paciente</th>
+                  <th>Profesional</th>
                   <th>Fecha Inicio</th>
                   <th>Fecha Fin</th>
                   <th>Estado</th>
@@ -324,7 +325,8 @@ const Tratamiento = () => {
               <tbody>
                 {tratamientosFiltrados.map((t) => (
                   <tr key={t.Idtrat}>
-                    <td>{obtenerNombreCompletoPaciente(t.Idpac)}</td>
+                    <td>{obtenerNombrePaciente(t.Idpac)}</td>
+                    <td>{obtenerNombreProfesional(t.Idprof)}</td>
                     <td>{formatearFecha(t.Fecha_ini)}</td>
                     <td>{formatearFecha(t.Fecha_fin)}</td>
                     <td>
@@ -334,7 +336,6 @@ const Tratamiento = () => {
                         {t.Estado}
                       </span>
                     </td>
-
                     <td>{t.Obs || "-"}</td>
                     <td className="acciones">
                       <button
@@ -360,7 +361,7 @@ const Tratamiento = () => {
           ) : (
             <div className="sin-resultados">
               No se encontraron tratamientos{" "}
-              {filtroBusqueda || filtroEstado
+              {filtroBusqueda || filtroEstado || filtroProfesional
                 ? "con los filtros aplicados"
                 : ""}
             </div>
@@ -399,6 +400,17 @@ const Tratamiento = () => {
                     ))}
                   </select>
                 </div>
+                <div className="form-group">
+                  <label>Descripcion:</label>
+                  <textarea
+                    name="nombre"
+                    value={form.nombre}
+                    onChange={handleChange}
+                    rows="2"
+                    className="form-control"
+                    placeholder="Ingrese descripcion del tratamiento (nombre para identificar)"
+                  />
+                </div>
 
                 <div className="form-group">
                   <label>Diagnóstico:</label>
@@ -414,21 +426,12 @@ const Tratamiento = () => {
 
                 <div className="form-group">
                   <label>Profesional:</label>
-                  <select
-                    name="Idprof"
-                    value={form.Idprof}
-                    onChange={handleChange}
-                    required
-                    disabled
-                  >
-                    {profesionales
-                      .filter((p) => String(p.Idprof) === String(form.Idprof))
-                      .map((p) => (
-                        <option key={p.Idprof} value={p.Idprof}>
-                          {p.Nombre_prof} {p.Appaterno_prof} {p.Apmaterno_prof}
-                        </option>
-                      ))}
-                  </select>
+                  <input
+                    type="text"
+                    value={obtenerNombreProfesional(form.Idprof) || "Profesional no encontrado"}
+                    readOnly
+                    className="readonly-input"
+                  />
                 </div>
 
                 <div className="form-group">
@@ -507,9 +510,7 @@ const Tratamiento = () => {
                     type="button"
                     className="btn-cancelar"
                     onClick={cerrarModal}
-                    
                   >
-                    
                     Cancelar
                   </button>
                 </div>
@@ -534,7 +535,7 @@ const Tratamiento = () => {
                 <div className="detalle-fila">
                   <span className="detalle-etiqueta">Paciente:</span>
                   <span className="detalle-valor">
-                    {obtenerNombreCompletoPaciente(
+                    {obtenerNombrePaciente(
                       tratamientoSeleccionado.Idpac
                     )}
                   </span>
@@ -555,6 +556,13 @@ const Tratamiento = () => {
 
               <div className="seccion-detalle">
                 <h4 className="seccion-titulo">Detalles del Tratamiento</h4>
+                <div className="detalle-fila">
+                  <span className="detalle-etiqueta">Descripción Tratamiento:</span>
+                  <span className="detalle-valor">
+                    {tratamientoSeleccionado.nombre}
+                  </span>
+                </div>
+                
                 <div className="detalle-fila">
                   <span className="detalle-etiqueta">Fecha Inicio:</span>
                   <span className="detalle-valor">

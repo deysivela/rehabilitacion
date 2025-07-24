@@ -1,9 +1,7 @@
-/* ESTILOS GENERALES */
 .sesion-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   /* max-width: 1200px; */
   margin: 0 auto;
-/*   padding: 25px; */
   background-color: #f8fafc;
   color: #334155;
 }
@@ -44,6 +42,7 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
+
 
 /* CONTENEDOR DE SESIONES */
 .session-list {
@@ -101,7 +100,7 @@
 
 .sessions-table th,
 .sessions-table td {
-  padding: 12px 15px;
+  padding: 7px 15px;
   border-bottom: 1px solid #e0f2fe;
   color: black;
   white-space: nowrap;
@@ -122,7 +121,7 @@
 .main-content {
   transition: margin-left 0.3s ease;
   width: calc(100% - 250px);
-  overflow-x: auto;
+/*   overflow-x: auto; */
 }
 
 body.sidebar-collapsed .main-content {
@@ -147,18 +146,45 @@ body.sidebar-collapsed .main-content {
   flex: 1;
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
-/* TECNICAS */
+/* CONTENEDOR PRINCIPAL DE TECN*/
+.tecnicas-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+/* CADA FILA CHECKBOX + TEXTO */
 .tecnica-checkbox {
   display: flex;
-  align-items: center;
-  margin-bottom: 8px;
+  align-items: flex-start; 
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
+/* CHECKBOX */
 .tecnica-checkbox input[type="checkbox"] {
+  margin: 0;
   margin-right: 8px;
+  margin-top: 3px; 
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* TEXTO */
+.tecnica-checkbox label {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
 }
 
 /* CELDAS CON TEXTO TRUNCADO */
@@ -200,14 +226,40 @@ body.sidebar-collapsed .main-content {
 
 .action-btn.view {
   background-color: #3498db;
+  color: white;
 }
 
 .action-btn.edit {
   background-color: #f39c12;
+  color: white;
 }
 
 .action-btn.delete {
   background-color: #e74c3c;
+  color: white;
+}
+.detalle-sesion {
+  max-height: 70vh; 
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.detalle-row {
+  display: flex;
+  flex-wrap: wrap; /* Permite que el contenido se acomode en varias líneas */
+  margin-bottom: 8px;
+}
+
+.detalle-label {
+  font-weight: bold;
+  min-width: 150px;
+}
+
+.detalle-value {
+  flex: 1;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* MODAL */
@@ -260,6 +312,7 @@ body.sidebar-collapsed .main-content {
 .session-form select,
 .session-form textarea {
   width: 100%;
+  height: 30px;
   padding: 10px 12px;
   border: 1px solid #bae6fd;
   border-radius: 4px;
@@ -275,15 +328,9 @@ body.sidebar-collapsed .main-content {
   box-shadow: 0 0 0 2px rgba(56,189,248,0.2);
 }
 
-.session-form textarea {
-  min-height: 100px;
-  resize: vertical;
-}
-
 .form-row {
   display: flex;
   gap: 15px;
-  margin-bottom: 15px;
 }
 
 .form-row .form-group {

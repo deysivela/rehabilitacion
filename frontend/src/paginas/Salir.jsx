@@ -5,8 +5,8 @@ const Salir = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Limpiar el localStorage
-    localStorage.clear();
+    // Limpiar el sessionStorage
+    sessionStorage.clear();
 
     // Redirigir al login
     navigate('/login');

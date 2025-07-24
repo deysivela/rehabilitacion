@@ -27,7 +27,6 @@ const Pacientes = () => {
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [cargando, setCargando] = useState(true);
-  const [diagnosticos, setDiagnosticos] = useState([]);
   const [tratamientos, setTratamientos] = useState([]);
   const navigate = useNavigate();
 
@@ -114,35 +113,24 @@ const Pacientes = () => {
     });
     setMostrarModal(true);
   };
-  const obtenerDiagnosticosPorPaciente = async (idpac) => {
-    try {
-      const res = await axios.get(
-        `http://localhost:5000/api/diagnostico/paciente/${idpac}`
-      );
-      setDiagnosticos(res.data);
-    } catch (error) {
-      console.error("Error al obtener los diagnósticos", error);
-    }
-  };
   useEffect(() => {
     if (pacienteSeleccionado && pacienteSeleccionado.Idpac) {
-      obtenerDiagnosticosPorPaciente(pacienteSeleccionado.Idpac);
     }
   }, [pacienteSeleccionado]);
   const obtenerTratamientosPorPaciente = async (idpac) => {
     try {
-      const res = await axios.get('http://localhost:5000/api/tratamiento/listar');
-      const tratamientosFiltrados = res.data.filter(t => t.Idpac === idpac);
+      const res = await axios.get(
+        "http://localhost:5000/api/tratamiento/listar"
+      );
+      const tratamientosFiltrados = res.data.filter((t) => t.Idpac === idpac);
       setTratamientos(tratamientosFiltrados);
     } catch (error) {
       console.error("Error al obtener tratamientos", error);
     }
   };
-  
 
   useEffect(() => {
     if (pacienteSeleccionado && pacienteSeleccionado.Idpac) {
-      obtenerDiagnosticosPorPaciente(pacienteSeleccionado.Idpac);
       obtenerTratamientosPorPaciente(pacienteSeleccionado.Idpac);
     }
   }, [pacienteSeleccionado]);
@@ -150,8 +138,8 @@ const Pacientes = () => {
   // Redirigir a registro de tratamiento con ID de paciente
   const registrarTratamiento = (idPaciente) => {
     navigate({
-      pathname: '/tratamientos',
-      search: `?pacienteId=${idPaciente}&abrirModal=true`
+      pathname: "/tratamientos",
+      search: `?pacienteId=${idPaciente}&abrirModal=true`,
     });
   };
 
@@ -329,13 +317,15 @@ const Pacientes = () => {
                         >
                           <FaPlusCircle />
                         </button>
-                        <Link
-                          to={`/pacientes/editar/${paciente.Idpac}`}
+                        <button
                           className="btn-action btn-editar"
                           title="Editar"
+                          onClick={() =>
+                            navigate(`/pacientes/editar/${paciente.Idpac}`)
+                          }
                         >
                           <FaEdit />
-                        </Link>
+                        </button>
                       </td>
                     </tr>
                   );
@@ -422,28 +412,19 @@ const Pacientes = () => {
                     {pacienteSeleccionado.Diagnostico || "No especificado"}
                   </p>
                   <p>
-                    <strong>Diagnósticos Posteriores:</strong>
-                  </p>
-                  <ul>
-                    {diagnosticos.length > 0 ? (
-                      diagnosticos.map((diag, index) => (
-                        <li key={index}>{diag.Detalle_diag}</li>
-                      ))
-                    ) : (
-                      <li>No tiene diagnostico posteriores</li>
-                    )}
-                  </ul>
-                  <p>
                     <strong>Tratamientos:</strong>
                   </p>
                   <ul>
                     {tratamientos.length > 0 ? (
                       tratamientos.map((trat, index) => (
                         <li key={index}>
-                        <strong>Fecha Inicio:</strong> {new Date(trat.Fecha_ini).toLocaleDateString()}<br />
-                        <strong>Estado:</strong> {trat.Estado}<br />
-                        <strong>Observación:</strong> {trat.Obs}
-                      </li>
+                          <strong>Fecha Inicio:</strong>{" "}
+                          {new Date(trat.Fecha_ini).toLocaleDateString()}
+                          <br />
+                          <strong>Estado:</strong> {trat.Estado}
+                          <br />
+                          <strong>Observación:</strong> {trat.Obs}
+                        </li>
                       ))
                     ) : (
                       <li>No tiene tratamientos</li>

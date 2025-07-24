@@ -1,18 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { FaEdit, FaTrash, FaEye, FaPlus } from "react-icons/fa";
+import { NotificationContext } from "../../componentes/NotificationContext";
+import Swal from "sweetalert2";
 import "./Sesion.css";
 
 const Sesion = () => {
   const location = useLocation();
+  const { addNotification } = useContext(NotificationContext);
   const [sesiones, setSesiones] = useState([]);
   const [tratamientos, setTratamientos] = useState([]);
-  const [tratamientosFiltrados, setTratamientosFiltrados] = useState([]);
-  const [citas, setCitas] = useState([]);
+  const [pacientes, setPacientes] = useState([]);
+  const [profesionales, setProfesionales] = useState([]);
   const [tecnicas, setTecnicas] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalDetalle, setMostrarModalDetalle] = useState(false);
   const [sesionSeleccionada, setSesionSeleccionada] = useState(null);
@@ -24,12 +26,22 @@ const Sesion = () => {
   const [areas, setAreas] = useState([]);
   const [areaSeleccionada, setAreaSeleccionada] = useState("");
   const [tecnicasFiltradas, setTecnicasFiltradas] = useState([]);
-  const [citaSeleccionadaInfo, setCitaSeleccionadaInfo] = useState(null);
+  const [tratamientosFiltrados, setTratamientosFiltrados] = useState([]);
 
-  const idCitaDesdeCalendario = location.state?.Idcita;
+  // fecha y hora actual
+  const obtenerFechaHoraActual = () => {
+    const actual = new Date();
+    const fecha = actual.toISOString().split("T")[0];
+    const horas = String(actual.getHours()).padStart(2, "0");
+    const minutos = String(actual.getMinutes()).padStart(2, "0");
+    return { fecha, hora: `${horas}:${minutos}` };
+  };
 
+  // Estado inicial del formulario
   const [formulario, setFormulario] = useState({
-    Idcita: "",
+    Idpac: "",
+    Idprof: "",
+    Fecha: "",
     Hora_ini: "",
     Hora_fin: "",
     Tipo: "Nuevo",
@@ -40,76 +52,148 @@ const Sesion = () => {
     Idtec: [],
   });
 
+  // Resetear formulario con valores por defecto
+  const resetFormulario = () => {
+    const usuario = JSON.parse(sessionStorage.getItem("usuario"));
+    const { fecha, hora } = obtenerFechaHoraActual();
+
+    setFormulario({
+      Idpac: "",
+      Idprof: usuario?.idprof || "",
+      Fecha: fecha,
+      Hora_ini: hora,
+      Hora_fin: "",
+      Tipo: "Nuevo",
+      Atencion: "Dentro de la institución",
+      Notas: "",
+      Novedades: "",
+      Idtrat: "",
+      Idtec: [],
+    });
+  };
+
+  // Cargar datos iniciales
   useEffect(() => {
     const cargarDatos = async () => {
       try {
         setCargando(true);
-        const [resSesiones, resTratamientos, resCitas, resTecnicas] =
-          await Promise.all([
-            axios.get(
-              "http://localhost:5000/api/sesion/listar?include=tecnicas"
-            ),
-            axios.get("http://localhost:5000/api/tratamiento/listar"),
-            axios.get(
-              "http://localhost:5000/api/cita/listar?estado=Confirmada&include=paciente,profesional"
-            ),
-            axios.get("http://localhost:5000/api/tecnica/listar"),
-          ]);
+        const usuario = JSON.parse(sessionStorage.getItem("usuario"));
+        const { fecha, hora } = obtenerFechaHoraActual();
+
+        const [
+          resSesiones,
+          resTratamientos,
+          resPacientes,
+          resProfesionales,
+          resTecnicas,
+        ] = await Promise.all([
+          axios.get(
+            "http://localhost:5000/api/sesion/listar?include=tecnicas,tratamiento.paciente,prof_salud"
+          ),
+          axios.get("http://localhost:5000/api/tratamiento/listar"),
+          axios.get("http://localhost:5000/api/paciente/listar"),
+          axios.get("http://localhost:5000/api/prof_salud/listar"),
+          axios.get("http://localhost:5000/api/tecnica/listar"),
+        ]);
 
         setSesiones(
           Array.isArray(resSesiones.data.data) ? resSesiones.data.data : []
         );
         setTratamientos(resTratamientos.data);
-        setCitas(resCitas.data);
+        setPacientes(resPacientes.data);
+        setProfesionales(resProfesionales.data);
         setTecnicas(resTecnicas.data);
+
+        // Establecer valores por defecto
+        setFormulario((prev) => ({
+          ...prev,
+          Idprof: usuario?.idprof || "",
+          Fecha: fecha,
+          Hora_ini: hora,
+        }));
+
+        // Sobreescribir con datos de navegación si existen
+        if (location.state) {
+          const { Idpac, Idprof, Fecha, Hora_ini } = location.state;
+          setFormulario((prev) => ({
+            ...prev,
+            Idpac: Idpac || "",
+            Idprof: Idprof || usuario?.idprof || prev.Idprof,
+            Fecha: Fecha || fecha,
+            Hora_ini: Hora_ini || hora,
+          }));
+
+          if (Idpac) {
+            setMostrarModal(true);
+            addNotification("info", "Complete los datos de la sesión");
+          }
+        }
+
+        addNotification("success", "Datos cargados correctamente");
       } catch (err) {
-        setError(err.response?.data?.mensaje || "Error al cargar datos");
+        addNotification(
+          "error",
+          err.response?.data?.mensaje || "Error al cargar datos"
+        );
       } finally {
         setCargando(false);
       }
     };
 
     cargarDatos();
-  }, []);
+  }, [addNotification, location.state]);
 
-useEffect(() => {
-  /* cuando viene directo de cita */
-  if (formulario.Idcita) {
-    const citaSeleccionada = citas.find(
-      (cita) => cita.Idcita === parseInt(formulario.Idcita)
+  useEffect(() => {
+    const profesional = profesionales.find(
+      (prof) => prof.Idprof === formulario.Idprof
     );
-    if (citaSeleccionada) {
-      setCitaSeleccionadaInfo(citaSeleccionada);
-      const tratamientosDelPaciente = tratamientos.filter(
-        (trat) => trat.Idpac === citaSeleccionada.Idpac
+    if (profesional) {
+      setAreaSeleccionada(profesional.Idarea);
+    } else {
+      setAreaSeleccionada("");
+    }
+  }, [formulario.Idprof, profesionales]);
+  const obtenerNombreArea = (idArea) => {
+    const area = areas.find((a) => a.Idarea === parseInt(idArea));
+    return area ? area.Nombre : "";
+  };
+
+  // Cargar áreas y técnicas
+  useEffect(() => {
+    const cargarAreasYTecnicas = async () => {
+      try {
+        const [resAreas, resTecnicas] = await Promise.all([
+          axios.get("http://localhost:5000/api/area/listar"),
+          axios.get("http://localhost:5000/api/tecnica/listar"),
+        ]);
+
+        setAreas(resAreas.data);
+        setTecnicas(resTecnicas.data);
+      } catch (err) {
+        addNotification("error", "Error al cargar áreas o técnicas");
+      }
+    };
+
+    cargarAreasYTecnicas();
+  }, [addNotification]);
+
+  // Filtrar tratamientos según paciente seleccionado
+  useEffect(() => {
+    if (formulario.Idpac) {
+      const filtrados = tratamientos.filter(
+        (trat) => trat.Idpac === parseInt(formulario.Idpac)
       );
-      setTratamientosFiltrados(tratamientosDelPaciente);
+      setTratamientosFiltrados(filtrados);
+      if (!filtrados.some((t) => t.Idtrat === parseInt(formulario.Idtrat))) {
+        setFormulario((prev) => ({ ...prev, Idtrat: "" }));
+      }
     } else {
       setTratamientosFiltrados([]);
-      setCitaSeleccionadaInfo(null);
+      setFormulario((prev) => ({ ...prev, Idtrat: "" }));
     }
-  }
-}, [formulario.Idcita, citas, tratamientos]);
+  }, [formulario.Idpac, formulario.Idtrat, tratamientos]);
 
-  useEffect(() => {
-    if (idCitaDesdeCalendario) {
-      setFormulario((prev) => ({ ...prev, Idcita: idCitaDesdeCalendario }));
-      setMostrarModal(true);
-    }
-  }, [idCitaDesdeCalendario]);
-  
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/area/listar")
-      .then((res) => setAreas(res.data))
-      .catch((err) => console.error(err));
-
-    axios
-      .get("http://localhost:5000/api/tecnica/listar")
-      .then((res) => setTecnicas(res.data))
-      .catch((err) => console.error(err));
-  }, []);
+  // Filtrar técnicas según área seleccionada
   useEffect(() => {
     if (areaSeleccionada) {
       const filtradas = tecnicas.filter(
@@ -121,28 +205,13 @@ useEffect(() => {
     }
   }, [areaSeleccionada, tecnicas]);
 
-  const handleCitaChange = (e) => {
-    const citaId = e.target.value;
-    setFormulario((prev) => ({ ...prev, Idcita: citaId }));
-
-    const cita = citas.find((c) => c.Idcita === parseInt(citaId));
-    setCitaSeleccionadaInfo(cita); 
-
-    if (cita) {
-      const tratamientosDelPaciente = tratamientos.filter(
-        (trat) => trat.Idpac === cita.Idpac
-      );
-      setTratamientosFiltrados(tratamientosDelPaciente);
-    } else {
-      setTratamientosFiltrados([]);
-    }
-  };
-
+  // Manejar cambios en inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormulario((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Manejar cambios en técnicas
   const handleTecnicasChange = (e) => {
     const { value, checked } = e.target;
     setFormulario((prev) => {
@@ -156,71 +225,74 @@ useEffect(() => {
       }
     });
   };
+
+  // Validar formulario antes de enviar
+  const validarFormulario = () => {
+    if (formulario.Idtec.length === 0) {
+      addNotification("warning", "Debe seleccionar al menos una técnica");
+      return false;
+    }
+
+    if (formulario.Hora_ini >= formulario.Hora_fin) {
+      addNotification(
+        "warning",
+        "La hora de fin debe ser posterior a la de inicio"
+      );
+      return false;
+    }
+
+    return true;
+  };
+
+  // Enviar formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validarFormulario()) return;
+
     try {
       setCargando(true);
 
-      if (formulario.Idtec.length === 0) {
-        throw new Error("Debe seleccionar al menos una técnica.");
-      }
-
-      if (formulario.Hora_ini >= formulario.Hora_fin) {
-        throw new Error(
-          "La hora de fin debe ser posterior a la hora de inicio"
-        );
-      }
-
-      // Preparar datos para enviar (incluyendo Idtec en el mismo objeto)
       const datosParaEnviar = {
         ...formulario,
-        Idtec: formulario.Idtec, 
+        Idtec: formulario.Idtec,
       };
 
       if (modoEdicion) {
-        // Editar sesión
         await axios.put(
           `http://localhost:5000/api/sesion/editar/${idSesionEditar}`,
           datosParaEnviar
         );
 
-        // Actualizar técnicas
         await axios.post(
           `http://localhost:5000/api/sesion/editar/${idSesionEditar}/tecnicas`,
-          {
-            Idtec: formulario.Idtec, 
-          }
+          { Idtec: formulario.Idtec }
         );
+
+        addNotification("success", "Sesión actualizada correctamente");
       } else {
-        // Crear nueva sesión - Envía todo en un solo objeto
         await axios.post(
           "http://localhost:5000/api/sesion/crear",
           datosParaEnviar
         );
-
-        // Actualizar estado de la cita
-        await axios.put(
-          `http://localhost:5000/api/cita/editar/${formulario.Idcita}`,
-          { estado_cita: "Finalizada" }
-        );
+        addNotification("success", "Sesión creada correctamente");
       }
 
       // Recargar datos
-      const [resSesiones, resCitas] = await Promise.all([
-        axios.get("http://localhost:5000/api/sesion/listar?include=tecnicas"),
-        axios.get("http://localhost:5000/api/cita/listar?estado=Confirmada"),
-      ]);
-
+      const resSesiones = await axios.get(
+        "http://localhost:5000/api/sesion/listar?include=tecnicas,tratamiento.paciente,profesional"
+      );
       setSesiones(
         Array.isArray(resSesiones.data.data) ? resSesiones.data.data : []
       );
-      setCitas(resCitas.data);
 
       resetFormulario();
       setMostrarModal(false);
-      setError(null);
     } catch (err) {
-      setError(err.response?.data?.mensaje || err.message);
+      addNotification(
+        "error",
+        err.response?.data?.mensaje || "Error al procesar la solicitud"
+      );
     } finally {
       setCargando(false);
       setModoEdicion(false);
@@ -228,38 +300,44 @@ useEffect(() => {
     }
   };
 
-  const resetFormulario = () => {
-    setFormulario({
-      Idcita: "",
-      Hora_ini: "",
-      Hora_fin: "",
-      Tipo: "Nuevo",
-      Atencion: "Dentro de la institución",
-      Notas: "",
-      Novedades: "",
-      Idtrat: "",
-      Idtec: [],
-    });
-  };
-
+  // Eliminar sesión
   const eliminarSesion = async (id) => {
-    if (!window.confirm("¿Está seguro de eliminar esta sesión?")) return;
+    const result = await Swal.fire({
+      title: "¿Está seguro de eliminar esta sesión?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       setCargando(true);
       await axios.delete(`http://localhost:5000/api/sesion/eliminar/${id}`);
       setSesiones((prev) => prev.filter((s) => s.Idsesion !== id));
+      addNotification("success", "Sesión eliminada correctamente");
     } catch (err) {
-      setError(err.response?.data?.mensaje || "Error al eliminar sesión");
+      addNotification(
+        "error",
+        err.response?.data?.mensaje || "Error al eliminar sesión"
+      );
     } finally {
       setCargando(false);
     }
   };
 
+  // Editar sesión
   const editarSesion = (sesion) => {
     setModoEdicion(true);
     setIdSesionEditar(sesion.Idsesion);
     setFormulario({
-      Idcita: sesion.Idcita,
+      Idpac: sesion.Idpac,
+      Idprof: sesion.Idprof,
+      Fecha: sesion.Fecha,
       Hora_ini: sesion.Hora_ini,
       Hora_fin: sesion.Hora_fin,
       Tipo: sesion.Tipo,
@@ -269,79 +347,59 @@ useEffect(() => {
       Idtrat: sesion.Idtrat,
       Idtec: sesion.tecnicas ? sesion.tecnicas.map((t) => t.Idtec) : [],
     });
-    const cita = citas.find((c) => c.Idcita === sesion.Idcita);
-  setCitaSeleccionadaInfo(cita);
     setMostrarModal(true);
+    addNotification("info", "Modo edición activado");
   };
 
+  // Formatear hora para visualización
   const formatearHora = (hora) => {
     if (!hora) return "";
     const [h, m] = hora.split(":");
     return `${h}:${m}`;
   };
 
-  const obtenerNombrePaciente = (sesion) => {
-    const p = sesion.tratamiento?.paciente;
-    return p
-      ? `${p.Nombre_pac} ${p.Appaterno_pac} ${p.Apmaterno_pac}`.trim()
-      : "Sin paciente";
-  };
-  const obtenerCIpaciente = (sesion) => sesion.tratamiento?.paciente?.CI || "";
-
-  const obtenerNombreProfesional = (sesion) => {
-    const prof = sesion.cita?.profesional;
-    return prof
-      ? prof.nombreCompleto ||
-          `${prof.Nombre_prof} ${prof.Appaterno_prof} ${prof.Apmaterno_prof}`
-      : "Sin profesional";
+  // Obtener nombre completo del paciente
+  const obtenerNombrePaciente = (id) => {
+    if (!id) return "Sin paciente asignado";
+    const paciente = pacientes.find((p) => String(p.Idpac) === String(id));
+    return paciente
+      ? `${paciente.Nombre_pac} ${paciente.Appaterno_pac} ${paciente.Apmaterno_pac}`
+      : "Paciente no encontrado";
   };
 
-  const obtenerNombreCompletoPaciente = (cita) => {
-    const p = cita.paciente;
-    return p
-      ? p.nombreCompleto ||
-          `${p.Nombre_pac ?? ""} ${p.Appaterno_pac ?? ""} ${
-            p.Apmaterno_pac ?? ""
-          }`.trim()
-      : "Sin paciente";
+  // Obtener nombre completo del profesional
+  const obtenerNombreProfesional = (id) => {
+    const prof = profesionales.find((p) => p.Idprof === id);
+    if (!prof) return "—";
+    const { Nombre_prof, Appaterno_prof, Apmaterno_prof } = prof;
+    return `${Nombre_prof} ${Appaterno_prof}${
+      Apmaterno_prof ? " " + Apmaterno_prof : ""
+    }`;
   };
 
-  const obtenerNombreCompletoProfesional = (cita) => {
-    const prof = cita.profesional;
-    return prof
-      ? prof.nombreCompleto ||
-          `${prof.Nombre_prof} ${prof.Appaterno_prof} ${prof.Apmaterno_prof}`
-      : "Sin profesional";
-  };
-
-  const obtenerObservacionTratamiento = (sesion) => {
-    if (!sesion?.Idtrat) return "Sin tratamiento asociado";
-    const tratamiento = tratamientos.find((t) => t.Idtrat === sesion.Idtrat);
-    return tratamiento?.Obs || "Tratamiento sin observación";
-  };
-
+  // Obtener nombres de técnicas aplicadas
   const obtenerNombresTecnicas = (sesion) => {
     if (!sesion || !sesion.tecnicas || sesion.tecnicas.length === 0) {
       return "No asignadas";
     }
-
     return sesion.tecnicas.map((t) => t.Descripcion).join(", ");
   };
 
+  // Ver detalle de sesión
   const verDetalleSesion = (sesion) => {
     setSesionSeleccionada(sesion);
     setMostrarModalDetalle(true);
+    addNotification("info", "Viendo detalles de la sesión");
   };
 
+  // Filtrar sesiones según criterios de búsqueda
   const sesionesFiltradas = sesiones
     .filter((sesion) => {
-      const nombreCompleto = obtenerNombrePaciente(sesion).toLowerCase();
-      const ci = obtenerCIpaciente(sesion).toLowerCase();
+      const nombreCompleto = obtenerNombrePaciente(sesion.Idpac).toLowerCase();
       const filtroLower = filtro.toLowerCase();
-      const coincideTexto =
-        nombreCompleto.includes(filtroLower) || ci.includes(filtroLower);
+      const coincideTexto = nombreCompleto.includes(filtroLower);
 
-      const fechaSesion = new Date(sesion.cita?.fecha_cita);
+      const fechaSesion = new Date(sesion.Fecha);
       const desde = fechaDesde ? new Date(fechaDesde) : null;
       const hasta = fechaHasta ? new Date(fechaHasta) : null;
 
@@ -351,14 +409,13 @@ useEffect(() => {
       return coincideTexto && coincideFecha;
     })
     .sort((a, b) => {
-      const fechaA = new Date(a.cita?.fecha_cita);
-      const fechaB = new Date(b.cita?.fecha_cita);
+      const fechaA = new Date(a.Fecha);
+      const fechaB = new Date(b.Fecha);
       return fechaB - fechaA;
     });
 
   return (
     <div className="sesion-container">
-      {error && <div className="error-message">{error}</div>}
       <div className="header-container">
         <h1>Gestión de Sesiones Médicas</h1>
         <button
@@ -367,58 +424,59 @@ useEffect(() => {
             setModoEdicion(false);
             resetFormulario();
             setMostrarModal(true);
+            addNotification("info", "Creando nueva sesión");
           }}
         >
           <FaPlus /> Nueva Sesión
         </button>
       </div>
-      {/* modal para registrar sesion y tambien editar */}
+
       {mostrarModal && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h2>{modoEdicion ? "Editar Sesión" : "Registrar Nueva Sesión"}</h2>
             <form onSubmit={handleSubmit}>
-              {citaSeleccionadaInfo && (
-                <div className="info-cita-container">
-                  <div className="info-row">
-                    <span className="info-label">Paciente:</span>
-                    <span className="info-value">
-                      {obtenerNombreCompletoPaciente(citaSeleccionadaInfo)}
-                    </span>
-                  </div>
-                  <div className="info-row">
-                    <span className="info-label">Profesional:</span>
-                    <span className="info-value">
-                      {obtenerNombreCompletoProfesional(citaSeleccionadaInfo)}
-                    </span>
-                  </div>
-                  <div className="info-row">
-                    <span className="info-label">Motivo:</span>
-                    <span className="info-value">
-                      {citaSeleccionadaInfo.motivo_cita || "No especificado"}
-                    </span>
-                  </div>
-                </div>
-              )}
-
               <div className="form-row">
                 <div className="form-group">
-                  <label>Cita:</label>
+                  <label>Paciente:</label>
                   <select
-                    name="Idcita"
-                    value={formulario.Idcita}
-                    onChange={handleCitaChange}
+                    name="Idpac"
+                    value={formulario.Idpac}
+                    onChange={handleInputChange}
                     required
-                    disabled={modoEdicion}
                   >
-                    <option value="">Seleccione una cita...</option>
-                    {citas.map((cita) => (
-                      <option key={cita.Idcita} value={cita.Idcita}>
-                        {new Date(cita.fecha_cita).toLocaleDateString()}{" "}
-                        {formatearHora(cita.hora_cita)}
+                    <option value="">Seleccione un paciente...</option>
+                    {pacientes.map((paciente) => (
+                      <option key={paciente.Idpac} value={paciente.Idpac}>
+                        {`${paciente.Nombre_pac} ${paciente.Appaterno_pac} ${paciente.Apmaterno_pac}`}
                       </option>
                     ))}
                   </select>
+                </div>
+                <div className="form-group">
+                  <label>Profesional:</label>
+                  <input
+                    type="text"
+                    value={
+                      obtenerNombreProfesional(formulario.Idprof) ||
+                      "Profesional no encontrado"
+                    }
+                    readOnly
+                    className="readonly-input"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Fecha:</label>
+                  <input
+                    type="date"
+                    name="Fecha"
+                    value={formulario.Fecha}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
 
                 <div className="form-group">
@@ -430,15 +488,11 @@ useEffect(() => {
                     required
                   >
                     <option value="">Seleccione un tratamiento...</option>
-                    {tratamientosFiltrados.length > 0 ? (
-                      tratamientosFiltrados.map((trat) => (
-                        <option key={trat.Idtrat} value={trat.Idtrat}>
-                          {trat.Obs}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">No hay tratamientos disponibles.</option>
-                    )}
+                    {tratamientosFiltrados.map((trat) => (
+                      <option key={trat.Idtrat} value={trat.Idtrat}>
+                        {trat.nombre}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -477,44 +531,6 @@ useEffect(() => {
                   </select>
                 </div>
               </div>
-
-              <div className="form-group">
-                <label htmlFor="area">Tecnicas por Área:</label>
-                <select
-                  id="area"
-                  className="form-control"
-                  value={areaSeleccionada}
-                  onChange={(e) => setAreaSeleccionada(e.target.value)}
-                >
-                  <option value="">-- Selecciona un área --</option>
-                  {areas.map((area) => (
-                    <option key={area.Idarea} value={area.Idarea}>
-                      {area.Nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Técnicas:</label>
-                <div className="tecnicas-container">
-                  {tecnicasFiltradas.map((tec) => (
-                    <div key={tec.Idtec} className="tecnica-checkbox">
-                      <input
-                        type="checkbox"
-                        id={`tecnica-${tec.Idtec}`}
-                        value={tec.Idtec}
-                        checked={formulario.Idtec.includes(tec.Idtec)}
-                        onChange={handleTecnicasChange}
-                      />
-                      <label htmlFor={`tecnica-${tec.Idtec}`}>
-                        {tec.Descripcion}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <div className="form-group">
                 <label>Atención:</label>
                 <select
@@ -532,6 +548,40 @@ useEffect(() => {
                   </option>
                 </select>
               </div>
+              <div className="form-group">
+                <label>
+                  {areaSeleccionada
+                    ? `Técnicas aplicadas en el área ${obtenerNombreArea(
+                        areaSeleccionada
+                      )}`
+                    : "Seleccione un profesional para ver las técnicas aplicadas"}
+                </label>
+
+                <div className="tecnicas-container">
+                  {tecnicasFiltradas.length > 0 ? (
+                    tecnicasFiltradas.map((tec) => (
+                      <div key={tec.Idtec} className="tecnica-checkbox">
+                        <input
+                          type="checkbox"
+                          id={`tecnica-${tec.Idtec}`}
+                          value={tec.Idtec}
+                          checked={formulario.Idtec.includes(tec.Idtec)}
+                          onChange={handleTecnicasChange}
+                        />
+                        <label htmlFor={`tecnica-${tec.Idtec}`}>
+                          {tec.Descripcion}
+                        </label>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="no-tecnicas-message">
+                      {areaSeleccionada
+                        ? "No hay técnicas disponibles para esta área"
+                        : "Seleccione un área para ver las técnicas disponibles"}
+                    </p>
+                  )}
+                </div>
+              </div>
 
               <div className="form-group">
                 <label>Notas:</label>
@@ -539,7 +589,7 @@ useEffect(() => {
                   name="Notas"
                   value={formulario.Notas}
                   onChange={handleInputChange}
-                  rows="3"
+                  rows="2"
                 />
               </div>
               <div className="form-group">
@@ -548,7 +598,7 @@ useEffect(() => {
                   name="Novedades"
                   value={formulario.Novedades}
                   onChange={handleInputChange}
-                  rows="3"
+                  rows="2"
                 />
               </div>
 
@@ -589,16 +639,14 @@ useEffect(() => {
               <div className="detalle-row">
                 <span className="detalle-label">Paciente:</span>
                 <span className="detalle-value">
-                  {obtenerNombrePaciente(sesionSeleccionada)}
+                  {obtenerNombrePaciente(sesionSeleccionada.Idpac)}
                 </span>
               </div>
 
               <div className="detalle-row">
                 <span className="detalle-label">Fecha Sesión: </span>
                 <span className="detalle-value">
-                  {new Date(
-                    sesionSeleccionada.cita?.fecha_cita
-                  ).toLocaleDateString()}
+                  {sesionSeleccionada.Fecha}
                 </span>
               </div>
 
@@ -613,14 +661,15 @@ useEffect(() => {
               <div className="detalle-row">
                 <span className="detalle-label">Profesional:</span>
                 <span className="detalle-value">
-                  {obtenerNombreProfesional(sesionSeleccionada)}
+                  {obtenerNombreProfesional(sesionSeleccionada.Idprof)}
                 </span>
               </div>
 
               <div className="detalle-row">
                 <span className="detalle-label">Tratamiento:</span>
                 <span className="detalle-value">
-                  {obtenerObservacionTratamiento(sesionSeleccionada)}
+                  {sesionSeleccionada.tratamiento?.nombre ||
+                    "No tiene tratamiento"}
                 </span>
               </div>
 
@@ -677,7 +726,7 @@ useEffect(() => {
             <label>Buscar :</label>
             <input
               type="text"
-              placeholder="Nombre paciente o Ci..."
+              placeholder="Nombre del paciente"
               value={filtro}
               onChange={(e) => setFiltro(e.target.value)}
             />
@@ -719,9 +768,11 @@ useEffect(() => {
               <tbody>
                 {sesionesFiltradas.map((sesion) => (
                   <tr key={sesion.Idsesion}>
-                    <td>{obtenerNombrePaciente(sesion)}</td>
+                    <td>{obtenerNombrePaciente(sesion.Idpac)}</td>
                     <td>
-                      {new Date(sesion.cita?.fecha_cita).toLocaleDateString()}
+                      {new Date(
+                        sesion.Fecha + "T00:00:00"
+                      ).toLocaleDateString()}
                     </td>
                     <td>
                       {formatearHora(sesion.Hora_ini)} -{" "}

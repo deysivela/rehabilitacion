@@ -1,13 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { Sesion, CitaMedica, Tratamiento, Paciente, ProfSalud, Tecnica, Area } = require('../modelos');
-const { Op } = require('sequelize');
+const { Sesion, Tratamiento, Paciente, ProfSalud, Tecnica, Area } = require('../modelos');
 
 router.post("/crear", async (req, res) => {
   try {
-    const { Idcita, Hora_ini, Hora_fin, Tipo, Atencion, Notas, Novedades, Idtrat, Idtec } = req.body;
+    const { Idtrat, Idpac, Idprof, Fecha, Hora_ini, Hora_fin, Tipo, Atencion, Notas, Novedades, Idtec } = req.body;
 
-    // Validar que Idtec sea un array
     if (!Array.isArray(Idtec)) {
       return res.status(400).json({ 
         success: false, 
@@ -16,17 +14,18 @@ router.post("/crear", async (req, res) => {
     }
 
     const nuevaSesion = await Sesion.create({
-      Idcita,
+      Idtrat,
+      Idpac,
+      Idprof,
+      Fecha,
       Hora_ini,
       Hora_fin,
       Tipo,
       Atencion,
       Notas,
-      Novedades,
-      Idtrat,
+      Novedades
     });
 
-    // Asociar técnicas si existen
     if (Idtec && Idtec.length > 0) {
       const tecnicasIds = Idtec.map(id => parseInt(id));
       await nuevaSesion.addTecnicas(tecnicasIds);
@@ -47,24 +46,11 @@ router.post("/crear", async (req, res) => {
   }
 });
 
-// Listar todas las sesiones
 router.get('/listar', async (req, res) => {
   try {
     const sesiones = await Sesion.findAll({
+      attributes: ['Idsesion', 'Idpac','Idtrat', 'Idprof', 'Fecha', 'Hora_ini', 'Hora_fin', 'Tipo', 'Atencion', 'Notas', 'Novedades'],
       include: [
-        {
-          model: CitaMedica,
-          as: 'cita',
-          required: false,
-          attributes: ['fecha_cita', 'hora_cita', 'motivo_cita'],
-          include: [
-            {
-              model: ProfSalud,
-              as: 'profesional',
-              attributes: ['Idprof', 'Nombre_prof', 'Appaterno_prof', 'Apmaterno_prof']
-            }
-          ]
-        },
         {
           model: Tecnica,
           as: 'tecnicas',
@@ -74,14 +60,7 @@ router.get('/listar', async (req, res) => {
         {
           model: Tratamiento,
           as: 'tratamiento',
-          attributes: ['Idtrat', 'Fecha_ini', 'Estado'],
-          include: [
-            {
-              model: Paciente,
-              as: 'paciente',
-              attributes: ['Idpac', 'Nombre_pac', 'Appaterno_pac', 'Apmaterno_pac']
-            }
-          ]
+          attributes: ['Idtrat','nombre', 'Fecha_ini', 'Estado'],
         }
       ],
       order: [['Hora_ini', 'DESC']]
@@ -101,7 +80,6 @@ router.get('/listar', async (req, res) => {
   }
 });
 
-// Obtener las técnicas asociadas a una sesión específica
 router.get('/:id/tecnicas', async (req, res) => {
   try {
     const { id } = req.params;
@@ -147,33 +125,34 @@ router.get('/:id/tecnicas', async (req, res) => {
 
 router.put("/editar/:id", async (req, res) => {
   const { id } = req.params;
-  const datos = req.body;
+  const { Idtrat, Idpac, Idprof, Fecha, Hora_ini, Hora_fin, Tipo, Atencion, Notas, Novedades } = req.body;
 
   try {
     const sesion = await Sesion.findByPk(id);
     if (!sesion) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Sesión no encontrada" 
-      });
+      return res.status(404).json({ success: false, message: "Sesión no encontrada" });
     }
 
-    await sesion.update(datos);
-    res.json({ 
-      success: true, 
-      message: "Sesión actualizada correctamente" 
+    await sesion.update({
+      Idtrat,
+      Idpac,
+      Idprof,
+      Fecha,
+      Hora_ini,
+      Hora_fin,
+      Tipo,
+      Atencion,
+      Notas,
+      Novedades
     });
+
+    res.json({ success: true, message: "Sesión actualizada correctamente" });
   } catch (error) {
     console.error('Error al actualizar sesión:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error al actualizar sesión',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Error al actualizar sesión', error: error.message });
   }
 });
 
-// Actualizar técnicas
 router.post("/editar/:id/tecnicas", async (req, res) => {
   try {
     const { id } = req.params;
@@ -210,7 +189,6 @@ router.post("/editar/:id/tecnicas", async (req, res) => {
   }
 });
 
-// Eliminar sesión
 router.delete('/eliminar/:id', async (req, res) => {
   try {
     const sesion = await Sesion.findByPk(req.params.id);
@@ -236,12 +214,10 @@ router.delete('/eliminar/:id', async (req, res) => {
   }
 });
 
-// Obtener sesiones por paciente
 router.get('/paciente/:idPaciente', async (req, res) => {
   try {
     const { idPaciente } = req.params;
 
-    // Validar que el ID sea un número
     if (isNaN(idPaciente)) {
       return res.status(400).json({
         success: false,
@@ -250,6 +226,8 @@ router.get('/paciente/:idPaciente', async (req, res) => {
     }
 
     const sesiones = await Sesion.findAll({
+      where: { Idpac: idPaciente },
+      attributes: ['Idsesion', 'Idpac', 'Idprof', 'Fecha', 'Hora_ini', 'Hora_fin', 'Tipo', 'Atencion', 'Notas', 'Novedades'],
       include: [
         {
           model: Tratamiento,
@@ -259,14 +237,9 @@ router.get('/paciente/:idPaciente', async (req, res) => {
           required: true
         },
         {
-          model: CitaMedica,
-          as: 'cita',
-          attributes: ['fecha_cita', 'hora_cita'],
-          include: [{
-            model: ProfSalud,
-            as: 'profesional',
-            attributes: ['Nombre_prof', 'Appaterno_prof']
-          }]
+          model: ProfSalud,
+          as: 'profesional',
+          attributes: ['Nombre_prof', 'Appaterno_prof']
         },
         {
           model: Tecnica,
@@ -275,9 +248,7 @@ router.get('/paciente/:idPaciente', async (req, res) => {
           through: { attributes: [] }
         }
       ],
-      order: [
-        ['Hora_ini', 'DESC']
-      ]
+      order: [['Hora_ini', 'DESC']]
     });
 
     if (sesiones.length === 0) {

@@ -2,8 +2,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
-  const token = localStorage.getItem('token');
-  const userData = JSON.parse(localStorage.getItem('usuario')); 
+  const token = sessionStorage.getItem('token');
+  const userData = JSON.parse(sessionStorage.getItem('usuario')); 
   const userRole = userData?.rol?.toLowerCase() || '';
 
   if (!token) {

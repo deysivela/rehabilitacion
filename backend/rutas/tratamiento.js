@@ -18,39 +18,6 @@ router.get('/listar', async (req, res) => {
   }
 });
 
-// Ruta para obtener tratamientos por paciente (versión corregida)
-router.get('/paciente/:idpac', async (req, res) => {
-  const { idpac } = req.params;
-  
-  // Validación del ID
-  if (!idpac || isNaN(idpac)) {
-    return res.status(400).json({ error: 'ID de paciente inválido' });
-  }
-
-  try {
-    // Opción 1: Usando Sequelize (recomendado)
-    const tratamientos = await Tratamiento.findAll({
-      where: { Idpac: idpac },
-      include: { model: Paciente, as: 'paciente' },
-      order: [['Fecha_ini', 'DESC']]
-    });
-
-    if (!tratamientos || tratamientos.length === 0) {
-      return res.status(404).json({ 
-        message: 'No se encontraron tratamientos para este paciente' 
-      });
-    }
-
-    res.json(tratamientos);
-  } catch (error) {
-    console.error('Error al obtener tratamientos por paciente:', error);
-    res.status(500).json({ 
-      error: 'Error al obtener tratamientos',
-      details: error.message 
-    });
-  }
-});
-
 // Crear tratamiento
 router.post('/crear', async (req, res) => {
   try {
@@ -83,5 +50,23 @@ router.put('/:id', async (req, res) => {
     });
   }
 });
+// Obtener tratamientos por ID de paciente
+router.get('/paciente/:idpac', async (req, res) => {
+  try {
+    const tratamientos = await Tratamiento.findAll({
+      where: { Idpac: req.params.idpac },
+      include: { model: Paciente, as: 'paciente' }
+    });
+
+    res.json(tratamientos);
+  } catch (error) {
+    console.error('Error al obtener tratamientos por paciente:', error);
+    res.status(500).json({ 
+      error: 'Error al obtener tratamientos por paciente',
+      details: error.message 
+    });
+  }
+});
+
 
 module.exports = router;

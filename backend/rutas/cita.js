@@ -7,42 +7,17 @@ const { Op } = require('sequelize');
 router.get('/listar', async (req, res) => {
   try {
     const citas = await CitaMedica.findAll({
+      attributes: ['Idcita','Idpac','Idprof', 'fecha_cita', 'hora_cita', 'estado_cita', 'motivo_cita'],
       include: [
         {
           model: Paciente,
           as: 'paciente',
-          attributes: [
-            'Idpac',
-            'Ci_pac', 
-            [
-              fn('CONCAT',
-                fn('COALESCE', col('paciente.Nombre_pac'), ''),
-                ' ',
-                fn('COALESCE', col('paciente.Appaterno_pac'), ''),
-                ' ',
-                fn('COALESCE', col('paciente.Apmaterno_pac'), '')
-              ),
-              'nombreCompleto'
-            ]
-          ]
-          
+          attributes: ['Idpac', 'Ci_pac', 'Nombre_pac', 'Appaterno_pac', 'Apmaterno_pac']
         },
         {
           model: ProfSalud,
           as: 'profesional',
-          attributes: [
-            [
-              fn('CONCAT',
-                fn('COALESCE', col('profesional.Nombre_prof'), ''),
-                ' ',
-                fn('COALESCE', col('profesional.Appaterno_prof'), ''),
-                ' ',
-                fn('COALESCE', col('profesional.Apmaterno_prof'), '')
-              ),
-              'nombreCompleto'
-            ]
-          ]
-          ,
+          attributes: ['Idprof', 'Nombre_prof', 'Appaterno_prof', 'Apmaterno_prof'],
           include: [
             {
               model: Area,
@@ -53,12 +28,14 @@ router.get('/listar', async (req, res) => {
         }
       ]
     });
+
     res.json(citas);
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: 'Error al obtener las citas médicas' });
   }
 });
+
 
 router.post('/crear', async (req, res) => {
   const { fecha_cita, hora_cita, Idpac, Idprof, motivo_cita, estado_cita } = req.body;

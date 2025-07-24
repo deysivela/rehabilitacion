@@ -17,6 +17,7 @@ const tecnicaRutas = require('./rutas/tecnica');
 const sesion_tecnicasRutas=require('./rutas/sesion_tecnica');
 const actividadRutas=require('./rutas/actividad');
 const indicadoresRutas= require('./rutas/indicadores');
+const reportesRutas= require('./rutas/reportes');
 const app = express();
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -41,6 +42,7 @@ app.use('/api/tecnica', tecnicaRutas);
 app.use('/api/sesion_tecnica',sesion_tecnicasRutas);
 app.use('/api/actividad',actividadRutas);
 app.use('/api/indicadores',indicadoresRutas);
+app.use('/api/reportes',reportesRutas);
 
 // Conexión a la base de datos
 sequelize.authenticate()

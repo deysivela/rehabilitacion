@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { 
+  FiCalendar, FiUsers, FiActivity, 
+  FiClock, FiTool, FiBarChart2 
+} from "react-icons/fi";
 import "./Inicio.css";
 import Footer from "../componentes/Footer";
 
@@ -7,40 +11,103 @@ const Inicio = () => {
   const [indicadores, setIndicadores] = useState({
     pacientesEnTratamiento: 0,
     citasProgramadas: 0,
+    totalPacientes: 0,
+    tratamientosActivos: 0,
+    diagnosticosRegistrados: 0,
+    sesionesRealizadas: 0,
+    tecnicasDisponibles: 0,
+    discapacidadesRegistradas: 0,
+    loading: true
   });
+  const [userRole, setUserRole] = useState('');
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("usuario"));
+
+  const fetchData = useCallback(async () => {
+    const user = JSON.parse(sessionStorage.getItem("usuario"));
     if (!user) return;
-  
-    const fetchIndicadores = () => {
-      fetch("http://localhost:5000/api/indicadores", {
+    
+    try {
+      setIndicadores(prev => ({...prev, loading: true}));
+      const response = await fetch("http://localhost:5000/api/indicadores", {
         headers: {
           "Content-Type": "application/json",
           "x-user-id": user?.id,
           "x-user-rol": user?.rol?.toLowerCase(),
         },
-      })
-        .then((res) => res.json())
-        .then((data) => setIndicadores(data))
-        .catch((err) => console.error("Error al obtener indicadores:", err));
-    };
-  
-    fetchIndicadores();
-  
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        fetchIndicadores();
-      }
-    };
-  
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-  
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
+      });
+      const data = await response.json();
+      setIndicadores(prev => ({
+        ...data,
+        loading: false
+      }));
+    } catch (err) {
+      console.error("Error al obtener datos:", err);
+      setIndicadores(prev => ({...prev, loading: false}));
+    }
   }, []);
-  
+
+  useEffect(() => {
+    const user = JSON.parse(sessionStorage.getItem("usuario"));
+    if (user) {
+      setUserRole(user?.rol?.toLowerCase());
+    }
+
+    fetchData();
+  }, [fetchData]);
+
+  const quickLinks = [
+    {
+      title: "Pacientes",
+      path: "/pacientes",
+      icon: <FiUsers className="link-icon" />,
+      count: indicadores.totalPacientes || 0,
+      color: "#3498db",
+      group: "pacientes"
+    },
+    {
+      title: "Citas Programadas",
+      path: "/citas",
+      icon: <FiCalendar className="link-icon" />,
+      count: indicadores.citasProgramadas || 0,
+      color: "#e74a3b",
+      group: "citas"
+    },
+    {
+      title: "Tratamientos activos",
+      path: "/profesionales",
+      icon: <FiActivity className="link-icon" />,
+      count: indicadores.tratamientosActivos || 0,
+      color: "#9b59b6",
+      group: "tratamientos"
+    },
+    {
+      title: "Sesiones",
+      path: "/sesion",
+      icon: <FiClock className="link-icon" />,
+      count: indicadores.sesionesRealizadas || 0,
+      color: "#1abc9c",
+      group: "sesiones"
+    },
+    {
+      title: "Técnicas",
+      path: "/tecnicas",
+      icon: <FiTool className="link-icon" />,
+      count: indicadores.tecnicasDisponibles || 0,
+      color: "#e67e22",
+      group: "tecnicas"
+    },
+    {
+      title: "Reportes",
+      path: "/reportes",
+      icon: <FiBarChart2 className="link-icon" />,
+      color: "#16a085",
+      group: "reportes"
+    }
+  ];
+
+  const filteredLinks = quickLinks.filter(link => 
+    !link.adminOnly || userRole === 'administrador'
+  );
 
   return (
     <div className="inicio-container">
@@ -50,7 +117,7 @@ const Inicio = () => {
           alt="Logo Centro de Rehabilitación"
           className="inicio-logo"
         />
-        <h1>Sistema de Información Web</h1>
+        <h2>Sistema de Información Web</h2>
         <h2>Centro de Rehabilitación Llallagua</h2>
       </header>
 
@@ -58,49 +125,37 @@ const Inicio = () => {
         <section className="inicio-resumen">
           <h3>Bienvenido al Sistema</h3>
           <p>
-            Este sistema permite gestionar las historias clínicas, citas médicas
-            y reportes de manera eficiente y segura, facilitando el trabajo del
-            personal y mejorando la atención a los pacientes.
+            Este sistema permite gestionar las historias clínicas, citas médicas,
+            tratamientos y reportes de manera eficiente y segura, facilitando el
+            trabajo del personal y mejorando la atención a los pacientes.
           </p>
         </section>
 
         <section className="inicio-modulos">
           <h3>Acceso Rápido</h3>
-          <div className="inicio-modulos-links">
-            <Link to="/pacientes" className="modulo-link">
-              Gestión de Pacientes
-            </Link>
-            <Link to="/citas" className="modulo-link">
-              Citas Médicas
-            </Link>
-            <Link to="/reportes" className="modulo-link">
-              Reportes
-            </Link>
-            <Link to="/configuracion" className="modulo-link">
-              Configuración
-            </Link>
-          </div>
-        </section>
-
-        <section className="indicadores">
-          <h3>Indicadores Clave</h3>
-          <div className="indicadores-grid">
-            <div className="indicador-card">
-              <span className="indicador-icon">👥</span>
-              <div className="indicador-info">
-                <p className="indicador-num">
-                  {indicadores.pacientesEnTratamiento}
-                </p>
-                <p className="indicador-label">Pacientes en Tratamiento</p>
-              </div>
-            </div>
-            <div className="indicador-card">
-              <span className="indicador-icon">📅</span>
-              <div className="indicador-info">
-                <p className="indicador-num">{indicadores.citasProgramadas}</p>
-                <p className="indicador-label">Citas Médicas Programadas</p>
-              </div>
-            </div>
+          <div className="quick-links-grid">
+            {filteredLinks.map((link, index) => (
+              <Link 
+                to={link.path} 
+                className="quick-link-card" 
+                key={index}
+                style={{ '--link-color': link.color }}
+              >
+                <div className="link-icon-container">
+                  {link.icon}
+                </div>
+                <div className="link-info">
+                  <h4>{link.title}</h4>
+                  {indicadores.loading ? (
+                    <div className="loading-dots">
+                      <span>.</span><span>.</span><span>.</span>
+                    </div>
+                  ) : (
+                    <span className="link-count">{link.count}</span>
+                  )}
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
       </main>

@@ -28,7 +28,7 @@ const Sidebar = () => {
   };
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("usuario"));
+    const userData = JSON.parse(sessionStorage.getItem("usuario"));
     if (userData) {
       setUsuario({ nombre: userData.nombre, rol: userData.rol.toLowerCase() }); // por si viene en mayúsculas
     }
@@ -77,10 +77,14 @@ const Sidebar = () => {
       </div>
 
       <ul className="sidebar-menu">
+
         <li>
-          <Link to="/">
-            <FaHome /> {isOpen && "Inicio"}
-          </Link>
+          <div className="submenu-toggle">
+            <Link to="/" className="submenu-main-link">
+              <FaHome />
+              {isOpen && <span>Inicio</span>}
+            </Link>
+          </div>
         </li>
 
         {/* ADMINISTRADOR SOLO SI TIENE ROL */}
@@ -170,7 +174,6 @@ const Sidebar = () => {
             </Link>
           </div>
           <ul className={`submenu ${isCitasOpen && isOpen ? "visible" : ""}`}>
-            <li><Link to="/sesion"><span className="submenu-item">Sesiones</span></Link></li>
           </ul>
         </li>
         {/* SESION */}
@@ -181,15 +184,16 @@ const Sidebar = () => {
               {isOpen && <span>Sesiones</span>}
             </Link>
           </div>
-          <ul className={`submenu ${isCitasOpen && isOpen ? "visible" : ""}`}>
-            <li><Link to="/sesion"><span className="submenu-item">Sesiones</span></Link></li>
-          </ul>
         </li>
         {/* REPORTES */}
+
         <li>
-          <Link to="/reportes">
-            <FaChartLine /> {isOpen && "Reportes"}
-          </Link>
+          <div className="submenu-toggle">
+            <Link to="/reportes" className="submenu-main-link">
+              <FaChartLine />
+              {isOpen && <span>Reportes</span>}
+            </Link>
+          </div>
         </li>
 
         {/* SALIR */}

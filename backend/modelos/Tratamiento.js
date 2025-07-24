@@ -13,6 +13,10 @@ const Tratamiento = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    nombre: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     Fecha_ini: {
       type: DataTypes.DATEONLY,
       allowNull: false,

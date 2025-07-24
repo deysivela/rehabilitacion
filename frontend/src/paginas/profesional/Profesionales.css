@@ -51,23 +51,23 @@
     }
     
     .btn-detalle {
-      background-color: #3498db !important;
-      color: white !important;
+      background-color: #3498db ;
+      color: white;
     }
     
     .btn-action {
-      background-color: #2ecc71 !important;
-      color: white !important;
+      background-color: #2ecc71 ;
+      color: white ;
     }
     
     .btn-editar {
-      background-color: #e67e22 !important;
-      color: white !important;
+      background-color: #e67e22 ;
+      color: white ;
     }
     
     .btn-eliminar {
-      background-color: #e74c3c !important;
-      color: white !important;
+      background-color: #e74c3c ;
+      color: white ;
     }
     
     

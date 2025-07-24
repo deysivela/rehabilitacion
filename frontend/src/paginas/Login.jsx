@@ -13,9 +13,9 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Redirige si ya hay sesión activa (token válido en localStorage)
+  // Redirige si ya hay sesión activa (token válido en sessionStorage)
   useEffect(() => {
-    const storedUser = localStorage.getItem('usuario');
+    const storedUser = sessionStorage.getItem('usuario');
 
     if (storedUser) {
       try {
@@ -45,7 +45,7 @@ const Login = () => {
         id: response.data.id,
         idprof: response.data.Idprof,
       };
-      localStorage.setItem('usuario', JSON.stringify(usuario));
+      sessionStorage.setItem('usuario', JSON.stringify(usuario));
 
       navigate('/');
     } catch (err) {

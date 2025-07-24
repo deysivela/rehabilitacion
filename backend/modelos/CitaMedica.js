@@ -16,7 +16,6 @@ const CitaMedica = sequelize.define("CitaMedica", {
     type: DataTypes.TIME,
     allowNull: false
   },
-
   motivo_cita: {
     type: DataTypes.TEXT
   },
@@ -35,17 +34,5 @@ const CitaMedica = sequelize.define("CitaMedica", {
   tableName: 'citasmd',
   timestamps: false
 });
-
-CitaMedica.associate = function(models) {
-  CitaMedica.belongsTo(models.Paciente, {
-    foreignKey: 'Idpac',
-    as: 'paciente'
-  });
-
-  CitaMedica.belongsTo(models.ProfSalud, {
-    foreignKey: 'Idprof',
-    as: 'profesional'
-  });
-};
 
 module.exports = CitaMedica;

@@ -148,7 +148,6 @@ const Actividad = () => {
               <th>Lugar</th>
               <th>Resultado</th>
               <th>Medio Verificación</th>
-              <th>Profesional</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -161,7 +160,7 @@ const Actividad = () => {
                 <td>{a.Lugar}</td>
                 <td>{a.Resultado}</td>
                 <td>{a.Medio_ver}</td>
-                <td>{obtenerNombreProfesional(a.Idprof)}</td>
+                  
                 <td className="acciones">
                   <FaEye
                     className="icono ojo"

@@ -41,7 +41,7 @@ const RegistrarPaciente = () => {
           Grado_disc: nuevoPaciente.Grado_disc,
           Obs: nuevoPaciente.Obs,
         });
-        idDiscapacidad = discResponse.data.Iddisc; // ID generado por la BD
+        idDiscapacidad = discResponse.data.Iddisc;
       }
       // Preparar el objeto paciente con el idDiscapacidad si existe
       const datosPaciente = {
@@ -63,7 +63,6 @@ const RegistrarPaciente = () => {
           Obs: nuevoPaciente.Obs,
         } : null
       };
-      // 3. Registrar paciente
       await axios.post("http://localhost:5000/api/paciente/registrar", datosPaciente);
       navigate("/pacientes");
     } catch (error) {
@@ -176,7 +175,6 @@ const RegistrarPaciente = () => {
               <option value="INTELECTUAL">Intelectual</option>
               <option value="MÚLTIPLE">Múltiple</option>
               <option value="VISUAL">Visual</option>
-              {/* Agregar otros tipos de discapacidad si es necesario */}
             </select>
 
             <select

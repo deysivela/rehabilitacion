@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   FaEdit,
@@ -13,6 +13,7 @@ import {
   FaTimes,
   FaEye,
   FaFileMedical,
+  FaPlusCircle,
 } from "react-icons/fa";
 import "./Profesionales.css";
 
@@ -25,11 +26,11 @@ const Profesionales = () => {
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [cargando, setCargando] = useState(true);
-  
+
   const navigate = useNavigate();
 
   // Obtener ID del profesional logueado
-  const usuario = JSON.parse(localStorage.getItem("usuario"));
+  const usuario = JSON.parse(sessionStorage.getItem("usuario"));
   const idProfesionalLogeado = usuario?.idprof;
 
   // Función para calcular edad con años y meses
@@ -80,7 +81,6 @@ const Profesionales = () => {
       try {
         setCargando(true);
 
-        // Cargar datos en paralelo
         const [pacientesRes, discapacidadesRes, tratamientosRes] =
           await Promise.all([
             axios.get("http://localhost:5000/api/paciente/listar"),
@@ -88,23 +88,23 @@ const Profesionales = () => {
             axios.get("http://localhost:5000/api/tratamiento/listar"),
           ]);
 
-        // Filtrar tratamientos del profesional logueado
+        // Filtrar tratamientos activos del profesional
         const tratamientosProfesional = tratamientosRes.data.filter(
-          (t) => t.Idprof === idProfesionalLogeado
+          (t) =>
+            t.Idprof === idProfesionalLogeado &&
+            (!t.Fecha_fin || new Date(t.Fecha_fin) >= new Date())
         );
 
-        // Obtener IDs de pacientes únicos del profesional
         const idsPacientesProfesional = [
           ...new Set(tratamientosProfesional.map((t) => t.Idpac)),
         ];
 
-        // Filtrar pacientes que están en tratamiento con este profesional
         const pacientesFiltrados = pacientesRes.data
           .filter((p) => idsPacientesProfesional.includes(p.Idpac))
           .sort((a, b) => b.Idpac - a.Idpac);
 
         setPacientes(pacientesFiltrados);
-        setDiscapacidades(discapacidadesRes.data || []); // Asegurar que sea array
+        setDiscapacidades(discapacidadesRes.data || []);
         setCargando(false);
       } catch (error) {
         console.error("Error al obtener datos:", error);
@@ -118,16 +118,19 @@ const Profesionales = () => {
   // Mostrar detalles del paciente en modal (solo información personal)
   const mostrarDetallesPaciente = (paciente) => {
     // Manejo seguro de discapacidades
-    const discapacidadPaciente = paciente.Tienediscapacidad?.toLowerCase() === "sí"
-      ? (Array.isArray(discapacidades) 
-          ? discapacidades.find((d) => d.Iddiscapacidad === paciente.IdDiscapacidad)
-          : null)
-      : null;
+    const discapacidadPaciente =
+      paciente.Tienediscapacidad?.toLowerCase() === "sí"
+        ? Array.isArray(discapacidades)
+          ? discapacidades.find(
+              (d) => d.Iddiscapacidad === paciente.IdDiscapacidad
+            )
+          : null
+        : null;
 
     setPacienteSeleccionado({
       ...paciente,
       discapacidad: discapacidadPaciente,
-      discapacidades: discapacidadPaciente ? [discapacidadPaciente] : [] // Asegurar array
+      discapacidades: discapacidadPaciente ? [discapacidadPaciente] : [], // Asegurar array
     });
     setMostrarModal(true);
   };
@@ -136,6 +139,13 @@ const Profesionales = () => {
     navigate(`/historial-clinico/${pacienteId}`);
   };
 
+  const redirigirSesion = (idPac) => {
+    navigate("/sesion", {
+      state: {
+        Idpac: idPac,
+      },
+    });
+  };
   // Filtrar pacientes
   const pacientesFiltrados = pacientes.filter((paciente) => {
     const cumpleFiltro = `${paciente.Nombre_pac} ${
@@ -170,7 +180,7 @@ const Profesionales = () => {
     <div className="pacientes-container">
       <div className="header-container">
         <h1>
-          <FaUser /> Mis Pacientes en Tratamiento
+          <FaUser /> Mis Pacientes en Tratamiento Activos
         </h1>
       </div>
 
@@ -300,13 +310,22 @@ const Profesionales = () => {
                         >
                           <FaFileMedical />
                         </button>
-                        <Link
-                          to={`/pacientes/editar/${paciente.Idpac}`}
+                        <button
                           className="btn-action btn-editar"
                           title="Editar"
+                          onClick={() =>
+                            navigate(`/pacientes/editar/${paciente.Idpac}`)
+                          }
                         >
                           <FaEdit />
-                        </Link>
+                        </button>
+                        <button
+                          className="btn-action btn-sesion"
+                          title="Realizar una sesión"
+                          onClick={() => redirigirSesion(paciente.Idpac)}
+                        >
+                          <FaPlusCircle />
+                        </button>
                       </td>
                     </tr>
                   );
@@ -435,9 +454,7 @@ const Profesionales = () => {
               </div>
             </div>
 
-            <div className="modal-footer">
-
-            </div>
+            <div className="modal-footer"></div>
           </div>
         </div>
       )}

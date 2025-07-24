@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaEdit, FaTimes } from "react-icons/fa";
+import { FaEdit, FaTimes, FaEye } from "react-icons/fa";
 import "./Tecnicas.css";
 
 const Tecnica = () => {
@@ -12,6 +12,8 @@ const Tecnica = () => {
     Idarea: "",
   });
   const [modalOpen, setModalOpen] = useState(false);
+  const [detalleModalOpen, setDetalleModalOpen] = useState(false);
+  const [detalleSeleccionado, setDetalleSeleccionado] = useState(null);
   const [filtroArea, setFiltroArea] = useState("");
   const [cargando, setCargando] = useState(true);
 
@@ -50,6 +52,11 @@ const Tecnica = () => {
       });
     }
     setModalOpen(true);
+  };
+
+  const abrirModalDetalle = (tecnica) => {
+    setDetalleSeleccionado(tecnica);
+    setDetalleModalOpen(true);
   };
 
   const handleChange = (e) => {
@@ -97,7 +104,7 @@ const Tecnica = () => {
   return (
     <div className="tecnica-container">
       <div className="header-tecnica">
-        <h2>Gestión de Técnicas</h2>
+        <h2>Gestión de Técnicas / Terapias</h2>
         <button className="btn-nuevo" onClick={() => abrirModalEdicion()}>
           + Nueva Técnica
         </button>
@@ -143,14 +150,18 @@ const Tecnica = () => {
                 <tr key={tecnica.Idtec}>
                   <td>{tecnica.Descripcion}</td>
                   <td>{obtenerNombreArea(tecnica.Idarea)}</td>
-                  <td>
-                    <button
-                      className="btn-editar"
-                      onClick={() => abrirModalEdicion(tecnica)}
-                    >
-                      <FaEdit />
-                    </button>
-                  </td>
+                  <td className="acciones">
+                  <FaEye
+                    className="icono ojo"
+                    onClick={() => abrirModalDetalle(tecnica)}
+                    title="Ver Detalle"
+                  />
+                  <FaEdit
+                    className="icono editar"
+                    onClick={() => abrirModalEdicion(tecnica)}
+                    title="Editar"
+                  />
+                </td>
                 </tr>
               ))
             ) : (
@@ -165,6 +176,7 @@ const Tecnica = () => {
         </table>
       )}
 
+      {/* Modal de Edición */}
       {modalOpen && (
         <div className="modal">
           <div className="modal-contenido">
@@ -211,6 +223,26 @@ const Tecnica = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Detalle */}
+      {detalleModalOpen && detalleSeleccionado && (
+        <div className="modal">
+          <div className="modal-contenido">
+            <h3>Detalle de la Técnica</h3>
+            <p><strong>Descripción:</strong> {detalleSeleccionado.Descripcion}</p>
+            <p><strong>Área:</strong> {obtenerNombreArea(detalleSeleccionado.Idarea)}</p>
+
+            <div className="botones-modal">
+              <button
+                className="btn-cancelar"
+                onClick={() => setDetalleModalOpen(false)}
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,66 +1,143 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, LabelList,
-} from 'recharts';
 import './Administrador.css';
+import { 
+  FiUsers, 
+  FiUserPlus, 
+  FiLayers, 
+  FiCalendar, 
+  FiFileText, 
+  FiUser,
+} from 'react-icons/fi';
 
 const Administrador = () => {
-  const [estadisticas, setEstadisticas] = useState({
+  const [stats, setStats] = useState({
     usuarios: 0,
     pacientes: 0,
-    sesion: 0,
-  });  
+    sesiones: 0,
+    profesionales: 0,
+    areas: 0,
+    citasProgramadas: 0,
+    loading: true
+  });
 
-  useEffect(() => {
-    fetch('http://localhost:5000/api/estadisticas') 
-      .then((res) => res.json())
-      .then((data) => setEstadisticas(data))
-      .catch((err) => console.error('Error al cargar estadísticas:', err));
+  // Función para cargar estadísticas
+  const fetchStats = useCallback(async () => {
+    try {
+      setStats(prev => ({...prev, loading: true}));
+      const response = await fetch('http://localhost:5000/api/estadisticas');
+      const data = await response.json();
+      
+      setStats({
+        usuarios: data.usuarios || 0,
+        pacientes: data.pacientes || 0,
+        sesiones: data.sesiones || 0,
+        profesionales: data.profesionales || 0,
+        areas: data.areas || 0,
+        citasProgramadas: data.citasProgramadas || 0, 
+        loading: false
+      });
+    } catch (err) {
+      console.error('Error al cargar estadísticas:', err);
+      setStats(prev => ({...prev, loading: false}));
+    }
   }, []);
 
-  const datosGrafico = [
-    { nombre: 'Usuarios', valor: estadisticas.usuarios },
-    { nombre: 'Pacientes', valor: estadisticas.pacientes },
-    { nombre: 'Sesiones', valor: estadisticas.sesion },
+  // Carga inicial
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]); 
+
+  const quickLinks = [
+    {
+      title: "Profesionales",
+      path: "/profesional",
+      icon: <FiUsers className="link-icon" />,
+      count: stats.profesionales || 0,
+      color: "#4e73df"
+    },
+    {
+      title: "Usuarios",
+      path: "/usuario",
+      icon: <FiUserPlus className="link-icon" />,
+      count: stats.usuarios || 0,
+      color: "#1cc88a"
+    },
+    {
+      title: "Áreas",
+      path: "/areas",
+      icon: <FiLayers className="link-icon" />,
+      count: stats.areas || 0,
+      color: "#36b9cc"
+    },
+    {
+      title: "Todos los Pacientes",
+      path: "/paciente",
+      icon: <FiUser className="link-icon" />,
+      count: stats.pacientes || 0,
+      color: "#4e73df",
+      group: "pacientes"
+    },
+    {
+      title: "Sesiones",
+      path: "/sesion",
+      icon: <FiCalendar className="link-icon" />,
+      count: stats.sesiones || 0,
+      color: "#f6c23e"
+    },
+    {
+      title: "Citas Programadas",
+      path: "/citas",
+      icon: <FiCalendar className="link-icon" />,
+      count: stats.citasProgramadas || 0,
+      color: "#e74a3b",
+      group: "citas"
+    },
+    {
+      title: "Reportes",
+      path: "/reportes",
+      icon: <FiFileText className="link-icon" />,
+      count: stats.reportes || 0,
+      color: "#e74a3b"
+    }
   ];
-  
-  
+
   return (
     <div className="admin-container">
       <header className="admin-header">
-        <h1>Gestión completa del sistema y usuarios</h1>
+        <div className="header-content">
+          <h1>Panel de Administración</h1>
+        </div>
       </header>
 
       <main className="admin-main">
-        <section className="admin-modulos">
-          <h3>Accesos Directos</h3>
-          <div className="admin-links">
-            <Link to="/profesional" className="admin-link">Gestionar Profesionales</Link>
-            <Link to="/usuario" className="admin-link">Gestionar Usuarios</Link>
-            <Link to="/areas" className="admin-link">Gestionar Áreas</Link>
-            <Link to="/citas" className="admin-link">Sesiones</Link>
-            <Link to="/reportes" className="admin-link">Generar Reportes</Link>
+        <section className="quick-access">
+          <div className="links-grid">
+            {quickLinks.map((link, index) => (
+              <Link to={link.path} key={index} className="access-card" style={{'--card-color': link.color}}>
+                <div className="card-content">
+                  <div className="card-icon">{link.icon}</div>
+                  <h3>{link.title}</h3>
+                  <div className="card-count">
+                    {stats.loading ? (
+                      <div className="loading-dots">
+                        <span>.</span><span>.</span><span>.</span>
+                      </div>
+                    ) : (
+                      link.count
+                    )}
+                  </div>
+                </div>
+                <div className="card-badge" style={{backgroundColor: link.color}}>
+                  {link.count}
+                </div>
+              </Link>
+            ))}
           </div>
-        </section>
-
-        <section className="admin-indicadores">
-          <h3>📊 Estadísticas del Sistema</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={datosGrafico}>
-              <XAxis dataKey="nombre" />
-              <Tooltip />
-              <Bar dataKey="valor" fill="#3498db" radius={[4, 4, 0, 0]}>
-                <LabelList dataKey="valor" position="top" />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
         </section>
       </main>
     </div>
   );
 };
 
-
 export default Administrador;
-

@@ -7,6 +7,18 @@ const Sesion = sequelize.define('Sesion', {
     primaryKey: true,
     autoIncrement: true
   },
+  Idpac: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  Idprof: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  Fecha: {
+    type: DataTypes.DATEONLY,
+    allowNull: false
+  },
   Hora_ini: {
     type: DataTypes.TIME,
     allowNull: false
@@ -31,25 +43,13 @@ const Sesion = sequelize.define('Sesion', {
     type: DataTypes.STRING(255),
     allowNull: true
   },
-  Idcita: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'citasmd', // nombre de la tabla de citas
-      key: 'Idcita'
-    }
-  },
   Idtrat: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'tratamiento', // nombre de la tabla de tratamiento
-      key: 'Idtrat'
-    }
+    allowNull: false
   }
 }, {
   tableName: 'sesion',
-  timestamps: false // Esto desactiva la creación automática de createdAt y updatedAt
+  timestamps: false
 });
 
 module.exports = Sesion;

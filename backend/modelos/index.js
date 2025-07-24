@@ -31,15 +31,17 @@ db.CitaMedica.belongsTo(db.ProfSalud, {
   as: "profesional",
 });
 
-// Una CitaMedica tiene muchas Sesiones
-db.CitaMedica.hasMany(db.Sesion, { foreignKey: "Idcita", as: "sesiones" });
-
 // Una Sesión pertenece a una CitaMedica y a un Tratamiento
-db.Sesion.belongsTo(db.CitaMedica, { foreignKey: "Idcita", as: "cita" });
 db.Sesion.belongsTo(db.Tratamiento, {
   foreignKey: "Idtrat",
   as: "tratamiento",
 });
+
+// Una sesión pertenece a un paciente
+db.Sesion.belongsTo(db.Paciente, { foreignKey: "Idpac", as: "paciente" });
+
+//  Una sesión pertenece a un profesional
+db.Sesion.belongsTo(db.ProfSalud, { foreignKey: "idprof", as: "profesional" });
 
 // Un Tratamiento pertenece a un Paciente
 db.Tratamiento.belongsTo(db.Paciente, { foreignKey: "Idpac", as: "paciente" });
@@ -81,6 +83,5 @@ db.Tecnica.belongsToMany(db.Sesion, {
 });
 
 db.Actividad.belongsTo(db.ProfSalud, { foreignKey: 'Idprof', as: 'profesional' });
-
 
 module.exports = db;
