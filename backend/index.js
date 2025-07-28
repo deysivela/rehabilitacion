@@ -45,11 +45,15 @@ app.use('/api/indicadores',indicadoresRutas);
 app.use('/api/reportes',reportesRutas);
 
 // Conexión a la base de datos
+const PORT = process.env.PORT || 5000;
+
 sequelize.authenticate()
   .then(() => {
     console.log(' Conexión a la base de datos establecida correctamente.');
-    app.listen(5000, () => console.log(' Servidor corriendo en http://localhost:5000'));
+    app.listen(PORT, () =>
+      console.log(` Servidor corriendo en http://localhost:${PORT}`));
   })
   .catch((error) => {
     console.error(' Error al conectar con la base de datos:', error);
   });
+
