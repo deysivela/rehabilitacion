@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - backend\modelos\index.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/es-analysis/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>backend\modelos\index.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">38.31</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">93</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">12.48</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">0.82</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">const Sequelize = require(&quot;sequelize&quot;);
+const sequelize = require(&quot;../conexion/db&quot;);
+
+const db = {};
+db.sequelize = sequelize;
+
+// Importar modelos
+db.Usuario = require(&quot;./usuario&quot;);
+db.ProfSalud = require(&quot;./ProfSalud&quot;);
+db.Paciente = require(&quot;./Paciente&quot;);
+db.Discapacidad = require(&quot;./Discapacidad&quot;);
+db.CitaMedica = require(&quot;./CitaMedica&quot;);
+db.Sesion = require(&quot;./Sesion&quot;);
+db.Tratamiento = require(&quot;./Tratamiento&quot;);
+db.Tecnica = require(&quot;./Tecnica&quot;);
+db.Area = require(&quot;./Area&quot;);
+db.Sesion_Tecnica = require(&quot;./Sesion_tecnica&quot;);
+db.Actividad = require(&quot;./Actividad&quot;);
+
+// Asociaciones
+db.Usuario.belongsTo(db.ProfSalud, {
+  foreignKey: &quot;Idprof&quot;,
+  as: &quot;profesional&quot;,
+});
+
+// CitaMedica pertenece a un Paciente y un Profesional de salud
+db.CitaMedica.belongsTo(db.Paciente, { foreignKey: &quot;Idpac&quot;, as: &quot;paciente&quot; });
+db.CitaMedica.belongsTo(db.ProfSalud, {
+  foreignKey: &quot;Idprof&quot;,
+  as: &quot;profesional&quot;,
+});
+
+// Una Sesión pertenece a una CitaMedica y a un Tratamiento
+db.Sesion.belongsTo(db.Tratamiento, {
+  foreignKey: &quot;Idtrat&quot;,
+  as: &quot;tratamiento&quot;,
+});
+
+// Una sesión pertenece a un paciente
+db.Sesion.belongsTo(db.Paciente, { foreignKey: &quot;Idpac&quot;, as: &quot;paciente&quot; });
+
+//  Una sesión pertenece a un profesional
+db.Sesion.belongsTo(db.ProfSalud, { foreignKey: &quot;idprof&quot;, as: &quot;profesional&quot; });
+
+// Un Tratamiento pertenece a un Paciente
+db.Tratamiento.belongsTo(db.Paciente, { foreignKey: &quot;Idpac&quot;, as: &quot;paciente&quot; });
+db.Paciente.hasMany(db.Tratamiento, {
+  foreignKey: &quot;Idpac&quot;,
+  as: &quot;tratamientos&quot;,
+});
+
+// Relación Paciente-Discapacidad
+db.Paciente.belongsTo(db.Discapacidad, {
+  foreignKey: &quot;Iddisc&quot;,
+  as: &quot;detalleDiscapacidad&quot; 
+});
+
+db.Discapacidad.hasMany(db.Paciente, {
+  foreignKey: &quot;Iddisc&quot;,
+  as: &quot;pacientes&quot;
+});
+
+// Un Profesional de salud pertenece a un Área
+db.ProfSalud.belongsTo(db.Area, { foreignKey: &quot;Idarea&quot;, as: &quot;area&quot; });
+
+// Una Técnica pertenece a un Área
+db.Tecnica.belongsTo(db.Area, { foreignKey: &quot;Idarea&quot;, as: &quot;area&quot; });
+
+// Un Área puede tener muchas Técnicas
+db.Area.hasMany(db.Tecnica, { foreignKey: &quot;Idarea&quot;, as: &quot;tecnicas&quot; });
+
+db.Sesion_Tecnica.belongsTo(db.Sesion, { foreignKey: &quot;Idsesion&quot;,onDelete: &#039;CASCADE&#039; });
+db.Sesion_Tecnica.belongsTo(db.Tecnica, { foreignKey: &quot;Idtec&quot;,onDelete: &#039;CASCADE&#039; });
+
+db.Sesion.belongsToMany(db.Tecnica, {
+  through: db.Sesion_Tecnica,
+  foreignKey: &quot;Idsesion&quot;,
+  otherKey: &quot;Idtec&quot;,
+  as: &quot;tecnicas&quot;,
+  onDelete: &#039;CASCADE&#039;
+});
+
+db.Tecnica.belongsToMany(db.Sesion, {
+  through: db.Sesion_Tecnica,
+  foreignKey: &quot;Idtec&quot;,
+  otherKey: &quot;Idsesion&quot;,
+  as: &quot;sesiones&quot;,
+  onDelete: &#039;CASCADE&#039;
+});
+
+db.Actividad.belongsTo(db.ProfSalud, { foreignKey: &#039;Idprof&#039;, as: &#039;profesional&#039; });
+
+module.exports = db;</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ cyclomatic }} <br>
+    Length : {{ halstead.length }} <br>
+    Difficulty : {{ halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

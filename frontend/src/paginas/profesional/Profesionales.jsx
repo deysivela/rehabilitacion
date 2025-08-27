@@ -19,7 +19,6 @@ import "./Profesionales.css";
 
 const Profesionales = () => {
   const [pacientes, setPacientes] = useState([]);
-  const [discapacidades, setDiscapacidades] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [filtroDiscapacidad, setFiltroDiscapacidad] = useState("todos");
   const [rangoEdad, setRangoEdad] = useState({ min: "", max: "" });
@@ -80,57 +79,43 @@ const Profesionales = () => {
     const fetchData = async () => {
       try {
         setCargando(true);
-
-        const [pacientesRes, discapacidadesRes, tratamientosRes] =
-          await Promise.all([
-            axios.get("http://localhost:5000/api/paciente/listar"),
-            axios.get("http://localhost:5000/api/discapacidad/listar"),
-            axios.get("http://localhost:5000/api/tratamiento/listar"),
-          ]);
-
+  
+        const [pacientesRes, tratamientosRes] = await Promise.all([
+          axios.get("http://localhost:5000/api/paciente/listar"),
+          axios.get("http://localhost:5000/api/tratamiento/listar"),
+        ]);
+  
         // Filtrar tratamientos activos del profesional
         const tratamientosProfesional = tratamientosRes.data.filter(
           (t) =>
             t.Idprof === idProfesionalLogeado &&
             (!t.Fecha_fin || new Date(t.Fecha_fin) >= new Date())
         );
-
+  
         const idsPacientesProfesional = [
           ...new Set(tratamientosProfesional.map((t) => t.Idpac)),
         ];
-
+  
         const pacientesFiltrados = pacientesRes.data
           .filter((p) => idsPacientesProfesional.includes(p.Idpac))
           .sort((a, b) => b.Idpac - a.Idpac);
-
+  
         setPacientes(pacientesFiltrados);
-        setDiscapacidades(discapacidadesRes.data || []);
         setCargando(false);
       } catch (error) {
         console.error("Error al obtener datos:", error);
         setCargando(false);
       }
     };
-
+  
     fetchData();
   }, [idProfesionalLogeado]);
 
   // Mostrar detalles del paciente en modal (solo información personal)
   const mostrarDetallesPaciente = (paciente) => {
-    // Manejo seguro de discapacidades
-    const discapacidadPaciente =
-      paciente.Tienediscapacidad?.toLowerCase() === "sí"
-        ? Array.isArray(discapacidades)
-          ? discapacidades.find(
-              (d) => d.Iddiscapacidad === paciente.IdDiscapacidad
-            )
-          : null
-        : null;
-
     setPacienteSeleccionado({
       ...paciente,
-      discapacidad: discapacidadPaciente,
-      discapacidades: discapacidadPaciente ? [discapacidadPaciente] : [], // Asegurar array
+      discapacidad: paciente.detalleDiscapacidad || null
     });
     setMostrarModal(true);
   };
@@ -180,7 +165,7 @@ const Profesionales = () => {
     <div className="pacientes-container">
       <div className="header-container">
         <h1>
-          <FaUser /> Mis Pacientes en Tratamiento Activos
+          <FaUser /> Mis Pacientes en Tratamientos
         </h1>
       </div>
 

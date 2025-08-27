@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Sesion, Tratamiento, Paciente, ProfSalud, Tecnica, Area } = require('../modelos');
+const { Sesion, Tratamiento, Paciente, ProfSalud, Tecnica, Area, Sesion_Tecnica } = require('../modelos');
 
 router.post("/crear", async (req, res) => {
   try {
@@ -48,7 +48,15 @@ router.post("/crear", async (req, res) => {
 
 router.get('/listar', async (req, res) => {
   try {
+    const { Idprof } = req.query; // Obtener el Idprof de los query parameters
+    
+    const whereClause = {};
+    if (Idprof) {
+      whereClause.Idprof = Idprof; // Agregar filtro por profesional si existe
+    }
+
     const sesiones = await Sesion.findAll({
+      where: whereClause, // Aplicar el filtro aquí
       attributes: ['Idsesion', 'Idpac','Idtrat', 'Idprof', 'Fecha', 'Hora_ini', 'Hora_fin', 'Tipo', 'Atencion', 'Notas', 'Novedades'],
       include: [
         {
@@ -61,9 +69,21 @@ router.get('/listar', async (req, res) => {
           model: Tratamiento,
           as: 'tratamiento',
           attributes: ['Idtrat','nombre', 'Fecha_ini', 'Estado'],
+          include: [
+            {
+              model: Paciente,
+              as: 'paciente',
+              attributes: ['Nombre_pac', 'Appaterno_pac', 'Apmaterno_pac']
+            }
+          ]
+        },
+        {
+          model: ProfSalud,
+          as: 'profesional',
+          attributes: ['Nombre_prof', 'Appaterno_prof', 'Apmaterno_prof']
         }
       ],
-      order: [['Hora_ini', 'DESC']]
+      order: [['Fecha', 'DESC'], ['Hora_ini', 'DESC']]
     });
 
     res.json({
@@ -80,6 +100,39 @@ router.get('/listar', async (req, res) => {
   }
 });
 
+// Obtener pacientes únicos por profesional
+router.get('/pacientes/:idprof', async (req, res) => {
+  try {
+    const tratamientos = await Tratamiento.findAll({
+      where: { Idprof: req.params.idprof },
+      include: { 
+        model: Paciente, 
+        as: 'paciente',
+        attributes: ['Idpac', 'Nombre_pac', 'Appaterno_pac', 'Apmaterno_pac']
+      },
+      attributes: [] // No necesitamos datos de tratamiento
+    });
+
+    // Extraer pacientes únicos
+    const pacientesUnicos = [];
+    const idsPacientes = new Set();
+    
+    tratamientos.forEach(trat => {
+      if (trat.paciente && !idsPacientes.has(trat.paciente.Idpac)) {
+        idsPacientes.add(trat.paciente.Idpac);
+        pacientesUnicos.push(trat.paciente);
+      }
+    });
+
+    res.json(pacientesUnicos);
+  } catch (error) {
+    console.error('Error al obtener pacientes por profesional:', error);
+    res.status(500).json({ 
+      error: 'Error al obtener pacientes',
+      details: error.message 
+    });
+  }
+});
 router.get('/:id/tecnicas', async (req, res) => {
   try {
     const { id } = req.params;
@@ -189,26 +242,33 @@ router.post("/editar/:id/tecnicas", async (req, res) => {
   }
 });
 
+// Eliminar sesión
+// Eliminar sesión
 router.delete('/eliminar/:id', async (req, res) => {
+  // Iniciar transacción a través del modelo Sesion
+  const transaction = await Sesion.sequelize.transaction();
+  
   try {
-    const sesion = await Sesion.findByPk(req.params.id);
-    if (!sesion) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'Sesión no encontrada' 
-      });
-    }
-
-    await sesion.destroy();
-    res.json({
-      success: true,
-      message: 'Sesión eliminada correctamente'
+    // 1. Primero eliminar las relaciones en sesion_tecnica
+    await Sesion_Tecnica.destroy({
+      where: { Idsesion: req.params.id },
+      transaction
     });
+
+    // 2. Luego eliminar la sesión
+    await Sesion.destroy({
+      where: { Idsesion: req.params.id },
+      transaction
+    });
+
+    await transaction.commit();
+    res.json({ success: true, message: 'Sesión eliminada correctamente' });
   } catch (error) {
+    await transaction.rollback();
     console.error('Error al eliminar sesión:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Error al eliminar la sesión',
+      message: 'Error al eliminar sesión',
       error: error.message
     });
   }

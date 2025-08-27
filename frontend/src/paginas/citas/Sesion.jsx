@@ -27,6 +27,9 @@ const Sesion = () => {
   const [areaSeleccionada, setAreaSeleccionada] = useState("");
   const [tecnicasFiltradas, setTecnicasFiltradas] = useState([]);
   const [tratamientosFiltrados, setTratamientosFiltrados] = useState([]);
+  const [condiciones, setCondiciones] = useState([]);
+  const [cargandoCondiciones, setCargandoCondiciones] = useState(false);
+
 
   // fecha y hora actual
   const obtenerFechaHoraActual = () => {
@@ -50,6 +53,7 @@ const Sesion = () => {
     Novedades: "",
     Idtrat: "",
     Idtec: [],
+    CondicionRehabilitacion: ""
   });
 
   // Resetear formulario con valores por defecto
@@ -69,6 +73,7 @@ const Sesion = () => {
       Novedades: "",
       Idtrat: "",
       Idtec: [],
+      CondicionRehabilitacion: ""
     });
   };
 
@@ -78,29 +83,32 @@ const Sesion = () => {
       try {
         setCargando(true);
         const usuario = JSON.parse(sessionStorage.getItem("usuario"));
+        const idProf = usuario?.idprof;
         const { fecha, hora } = obtenerFechaHoraActual();
 
-        const [
-          resSesiones,
-          resTratamientos,
-          resPacientes,
-          resProfesionales,
-          resTecnicas,
-        ] = await Promise.all([
-          axios.get(
-            "http://localhost:5000/api/sesion/listar?include=tecnicas,tratamiento.paciente,prof_salud"
-          ),
-          axios.get("http://localhost:5000/api/tratamiento/listar"),
-          axios.get("http://localhost:5000/api/paciente/listar"),
-          axios.get("http://localhost:5000/api/prof_salud/listar"),
-          axios.get("http://localhost:5000/api/tecnica/listar"),
-        ]);
+        // Obtener pacientes del profesional usando el nuevo endpoint
+        const resPacientes = await axios.get(
+          `http://localhost:5000/api/tratamiento/pacientes/${idProf}`
+        );
+
+        // Obtener otros datos necesarios
+        const [resSesiones, resTratamientos, resProfesionales, resTecnicas] =
+          await Promise.all([
+            axios.get(
+              `http://localhost:5000/api/sesion/listar?include=tecnicas,tratamiento.paciente,prof_salud&Idprof=${idProf}`
+            ),
+            axios.get(
+              `http://localhost:5000/api/tratamiento/listar?Idprof=${idProf}`
+            ),
+            axios.get("http://localhost:5000/api/prof_salud/listar"),
+            axios.get("http://localhost:5000/api/tecnica/listar"),
+          ]);
 
         setSesiones(
           Array.isArray(resSesiones.data.data) ? resSesiones.data.data : []
         );
-        setTratamientos(resTratamientos.data);
         setPacientes(resPacientes.data);
+        setTratamientos(resTratamientos.data);
         setProfesionales(resProfesionales.data);
         setTecnicas(resTecnicas.data);
 
@@ -144,6 +152,21 @@ const Sesion = () => {
   }, [addNotification, location.state]);
 
   useEffect(() => {
+    const cargarCondiciones = async () => {
+      try {
+        setCargandoCondiciones(true);
+        const response = await axios.get("http://localhost:5000/api/condicion/listar");
+        setCondiciones(response.data);
+      } catch (error) {
+        addNotification("error", "Error al cargar condiciones de rehabilitación");
+      } finally {
+        setCargandoCondiciones(false);
+      }
+    };
+
+    cargarCondiciones();
+  }, [addNotification]);
+  useEffect(() => {
     const profesional = profesionales.find(
       (prof) => prof.Idprof === formulario.Idprof
     );
@@ -153,6 +176,7 @@ const Sesion = () => {
       setAreaSeleccionada("");
     }
   }, [formulario.Idprof, profesionales]);
+
   const obtenerNombreArea = (idArea) => {
     const area = areas.find((a) => a.Idarea === parseInt(idArea));
     return area ? area.Nombre : "";
@@ -256,6 +280,9 @@ const Sesion = () => {
       const datosParaEnviar = {
         ...formulario,
         Idtec: formulario.Idtec,
+        Notas: formulario.CondicionRehabilitacion ? 
+          ` ${formulario.CondicionRehabilitacion}` : 
+          ""
       };
 
       if (modoEdicion) {
@@ -334,6 +361,13 @@ const Sesion = () => {
   const editarSesion = (sesion) => {
     setModoEdicion(true);
     setIdSesionEditar(sesion.Idsesion);
+    
+    // Extraer la condición de rehabilitación si existe en las notas
+    let condicionRehabilitacion = "";
+    if (sesion.Notas && sesion.Notas.startsWith("USUARIO EN REHABILITACIÓN POR: ")) {
+      condicionRehabilitacion = sesion.Notas.replace("USUARIO EN REHABILITACIÓN POR: ", "");
+    }
+
     setFormulario({
       Idpac: sesion.Idpac,
       Idprof: sesion.Idprof,
@@ -342,10 +376,11 @@ const Sesion = () => {
       Hora_fin: sesion.Hora_fin,
       Tipo: sesion.Tipo,
       Atencion: sesion.Atencion || "",
-      Notas: sesion.Notas || "",
+      Notas: "",
       Novedades: sesion.Novedades || "",
       Idtrat: sesion.Idtrat,
       Idtec: sesion.tecnicas ? sesion.tecnicas.map((t) => t.Idtec) : [],
+      CondicionRehabilitacion: condicionRehabilitacion || ""
     });
     setMostrarModal(true);
     addNotification("info", "Modo edición activado");
@@ -361,7 +396,16 @@ const Sesion = () => {
   // Obtener nombre completo del paciente
   const obtenerNombrePaciente = (id) => {
     if (!id) return "Sin paciente asignado";
+    
     const paciente = pacientes.find((p) => String(p.Idpac) === String(id));
+    
+    if (!paciente) {
+      const sesion = sesiones.find(s => String(s.Idpac) === String(id));
+      if (sesion && sesion.tratamiento && sesion.tratamiento.paciente) {
+        return `${sesion.tratamiento.paciente.Nombre_pac} ${sesion.tratamiento.paciente.Appaterno_pac} ${sesion.tratamiento.paciente.Apmaterno_pac}`;
+      }
+    }
+    
     return paciente
       ? `${paciente.Nombre_pac} ${paciente.Appaterno_pac} ${paciente.Apmaterno_pac}`
       : "Paciente no encontrado";
@@ -584,14 +628,24 @@ const Sesion = () => {
               </div>
 
               <div className="form-group">
-                <label>Notas:</label>
-                <textarea
-                  name="Notas"
-                  value={formulario.Notas}
-                  onChange={handleInputChange}
-                  rows="2"
-                />
-              </div>
+          <label>USUARIO EN REHABILITACIÓN POR:</label>
+          <select
+            name="CondicionRehabilitacion"
+            value={formulario.CondicionRehabilitacion}
+            onChange={handleInputChange}
+            required
+            disabled={cargandoCondiciones}
+          >
+            <option value="">Seleccione una condición...</option>
+            {condiciones.map((condicion) => (
+              <option key={condicion.id_cond} value={condicion.condicion}>
+                {condicion.condicion}
+              </option>
+            ))}
+          </select>
+          {cargandoCondiciones && <p>Cargando condiciones...</p>}
+        </div>
+
               <div className="form-group">
                 <label>Novedades:</label>
                 <textarea
@@ -599,6 +653,7 @@ const Sesion = () => {
                   value={formulario.Novedades}
                   onChange={handleInputChange}
                   rows="2"
+                  placeholder="Información adicional sobre la sesión"
                 />
               </div>
 
@@ -693,9 +748,9 @@ const Sesion = () => {
               </div>
 
               <div className="detalle-row">
-                <span className="detalle-label">Notas:</span>
+                <span className="detalle-label">Condición de Rehabilitación:</span>
                 <span className="detalle-value">
-                  {sesionSeleccionada.Notas || "No hay notas"}
+                  {sesionSeleccionada.Notas || "No especificado"}
                 </span>
               </div>
 
@@ -723,7 +778,7 @@ const Sesion = () => {
       <div className="sesion-list">
         <div className="filtros">
           <div className="filtro-group">
-            <label>Buscar :</label>
+            <label>Buscar:</label>
             <input
               type="text"
               placeholder="Nombre del paciente"
@@ -761,7 +816,7 @@ const Sesion = () => {
                   <th>Hora</th>
                   <th>Técnicas</th>
                   <th>Estado</th>
-                  <th>Notas</th>
+                  <th>Novedades</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -780,7 +835,7 @@ const Sesion = () => {
                     </td>
                     <td>{obtenerNombresTecnicas(sesion)}</td>
                     <td>{sesion.Tipo}</td>
-                    <td>{sesion.Notas}</td>
+                    <td>{sesion.Novedades}</td>
 
                     <td className="action-cell">
                       <div className="action-buttons">

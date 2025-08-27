@@ -20,7 +20,6 @@ import "./Pacientes.css";
 
 const Pacientes = () => {
   const [pacientes, setPacientes] = useState([]);
-  const [discapacidades, setDiscapacidades] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [filtroDiscapacidad, setFiltroDiscapacidad] = useState("todos");
   const [rangoEdad, setRangoEdad] = useState({ min: "", max: "" });
@@ -76,40 +75,30 @@ const Pacientes = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [pacientesRes, discapacidadesRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/paciente/listar"),
-          axios.get("http://localhost:5000/api/discapacidad/listar"),
-        ]);
-
+        const pacientesRes = await axios.get("http://localhost:5000/api/paciente/listar");
+        
         // Ordenar pacientes por ID de forma descendente
         const pacientesOrdenados = pacientesRes.data.sort(
           (a, b) => b.Idpac - a.Idpac
         );
-
+  
         setPacientes(pacientesOrdenados);
-        setDiscapacidades(discapacidadesRes.data);
         setCargando(false);
       } catch (error) {
         console.error("Error al obtener datos:", error);
         setCargando(false);
       }
     };
-
+  
     fetchData();
   }, []);
 
   // Mostrar detalles del paciente en modal
   const mostrarDetallesPaciente = (paciente) => {
-    const discapacidadPaciente =
-      paciente.Tienediscapacidad?.toLowerCase() === "sí"
-        ? discapacidades.find(
-            (d) => d.Iddiscapacidad === paciente.IdDiscapacidad
-          )
-        : null;
-
+    // Usar directamente detalleDiscapacidad que ya viene con el paciente
     setPacienteSeleccionado({
       ...paciente,
-      discapacidad: discapacidadPaciente,
+      discapacidad: paciente.detalleDiscapacidad || null
     });
     setMostrarModal(true);
   };

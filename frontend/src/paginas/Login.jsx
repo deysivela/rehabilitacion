@@ -24,6 +24,7 @@ const Login = () => {
           navigate('/');
         }
       } catch (e) {
+        console.error("Error parsing stored user:", e);
       }
     }
   }, [navigate, location]);

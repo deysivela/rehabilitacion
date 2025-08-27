@@ -18,7 +18,6 @@ db.Sesion_Tecnica = require("./Sesion_tecnica");
 db.Actividad = require("./Actividad");
 
 // Asociaciones
-
 db.Usuario.belongsTo(db.ProfSalud, {
   foreignKey: "Idprof",
   as: "profesional",
@@ -50,10 +49,15 @@ db.Paciente.hasMany(db.Tratamiento, {
   as: "tratamientos",
 });
 
-// Un Paciente tiene una Discapacidad
-db.Paciente.hasOne(db.Discapacidad, {
+// Relación Paciente-Discapacidad
+db.Paciente.belongsTo(db.Discapacidad, {
   foreignKey: "Iddisc",
-  as: "detalleDiscapacidad",
+  as: "detalleDiscapacidad" 
+});
+
+db.Discapacidad.hasMany(db.Paciente, {
+  foreignKey: "Iddisc",
+  as: "pacientes"
 });
 
 // Un Profesional de salud pertenece a un Área
@@ -65,14 +69,15 @@ db.Tecnica.belongsTo(db.Area, { foreignKey: "Idarea", as: "area" });
 // Un Área puede tener muchas Técnicas
 db.Area.hasMany(db.Tecnica, { foreignKey: "Idarea", as: "tecnicas" });
 
-db.Sesion_Tecnica.belongsTo(db.Sesion, { foreignKey: "Idsesion" });
-db.Sesion_Tecnica.belongsTo(db.Tecnica, { foreignKey: "Idtec" });
+db.Sesion_Tecnica.belongsTo(db.Sesion, { foreignKey: "Idsesion",onDelete: 'CASCADE' });
+db.Sesion_Tecnica.belongsTo(db.Tecnica, { foreignKey: "Idtec",onDelete: 'CASCADE' });
 
 db.Sesion.belongsToMany(db.Tecnica, {
   through: db.Sesion_Tecnica,
   foreignKey: "Idsesion",
   otherKey: "Idtec",
   as: "tecnicas",
+  onDelete: 'CASCADE'
 });
 
 db.Tecnica.belongsToMany(db.Sesion, {
@@ -80,6 +85,7 @@ db.Tecnica.belongsToMany(db.Sesion, {
   foreignKey: "Idtec",
   otherKey: "Idsesion",
   as: "sesiones",
+  onDelete: 'CASCADE'
 });
 
 db.Actividad.belongsTo(db.ProfSalud, { foreignKey: 'Idprof', as: 'profesional' });

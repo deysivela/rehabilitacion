@@ -96,15 +96,18 @@ function procesarSesiones(sesiones, areaFiltro = null, profesionalFiltro = null)
     }
 
     const tipoSesion = sesion.Tipo === 'Nuevo' ? 'Nuevo' : 'Repetido';
-    const clave = `${area}_${nombreProfesional}_${tipoSesion}`;
+   /*  const clave = `${area}_${nombreProfesional}_${tipoSesion}`; */
+    const clave = profesionalFiltro 
+      ? `${area}_${nombreProfesional}_${tipoSesion}` // Por profesional: incluye nombre
+      : `${area}_${tipoSesion}`; // General o por área: solo área
     
-    if (!resultado[clave]) {
-      resultado[clave] = {
-        area,
-        profesional: nombreProfesional,
-        tipo_sesion: tipoSesion,
-        id_profesional: sesion.profesional.Idprof,
-        '<6 MESES_M': 0,
+      if (!resultado[clave]) {
+        resultado[clave] = {
+          area,
+          profesional: profesionalFiltro ? nombreProfesional : 'VARIOS',
+          tipo_sesion: tipoSesion,
+          id_profesional: profesionalFiltro ? sesion.profesional.Idprof : null,
+          '<6 MESES_M': 0,
         '<6 MESES_F': 0,
         '6 M A 1 AÑO_M': 0,
         '6 M A 1 AÑO_F': 0,

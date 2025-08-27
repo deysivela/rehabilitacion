@@ -22,7 +22,7 @@ router.post('/registrar', ValidarPac, async (req, res) => {
     });
     res.status(201).json({ paciente });
   } catch (error) {
-    console.error("❌ Error al registrar paciente:", error);
+    console.error(" Error al registrar paciente:", error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -49,6 +49,7 @@ router.get('/buscar', async (req, res) => {
 });
 
 // Listar todos los pacientes
+// Listar todos los pacientes
 router.get('/listar', async (req, res) => {
   try {
     const pacientes = await Paciente.findAll({
@@ -56,38 +57,38 @@ router.get('/listar', async (req, res) => {
         model: Discapacidad,
         as: 'detalleDiscapacidad',
         required: false
-      }
+      },
+      raw: true, // Obtener datos como objetos planos
+      nest: true // Mantener la estructura anidada
     });
 
     const pacientesModificados = pacientes.map(paciente => {
-      paciente.Tienediscapacidad = paciente.Tienediscapacidad ? 'Sí' : 'No';
-      return paciente;
+      return {
+        ...paciente,
+        Tienediscapacidad: paciente.Tienediscapacidad ? 'Sí' : 'No'
+      };
     });
 
     res.json(pacientesModificados);
   } catch (error) {
     console.error('Error al listar pacientes:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Error al obtener la lista de pacientes',
+      error: error.message 
+    });
   }
 });
 
-// Obtener paciente por ID (this is the route you're trying to access)
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-
-    if (!id || isNaN(id)) {
-      return res.status(400).json({ 
-        success: false,
-        message: 'ID de paciente inválido' 
-      });
-    }
 
     const paciente = await Paciente.findOne({
       where: { Idpac: id },
       include: {
         model: Discapacidad,
-        as: 'detalleDiscapacidad',
+        as: 'detalleDiscapacidad', // Mantenemos el alias original
         required: false
       }
     });
@@ -99,22 +100,22 @@ router.get('/:id', async (req, res) => {
       });
     }
 
+    // Estructura de respuesta consistente
     const response = {
       success: true,
       data: {
         ...paciente.get({ plain: true }),
-        discapacidades: paciente.detalleDiscapacidad 
-          ? [paciente.detalleDiscapacidad]
-          : []
+        // Aseguramos que detalleDiscapacidad esté presente incluso si es null
+        detalleDiscapacidad: paciente.detalleDiscapacidad || null
       }
     };
+
     res.json(response);
   } catch (error) {
     console.error('Error al obtener paciente:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Error al obtener paciente',
-      error: error.message 
+      message: 'Error al obtener paciente'
     });
   }
 });
@@ -206,5 +207,4 @@ router.put('/editar/:id', async (req, res) => {
   }
 });
 
-// Only one export at the end
 module.exports = router;

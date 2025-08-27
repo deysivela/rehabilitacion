@@ -33,7 +33,7 @@ router.post('/login', async (req, res) => {
 
     const isPasswordValid = await bcrypt.compare(password, user.Pass);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Contraseña incorrecta' });
+      return res.status(401).json({ message: 'Credenciales incorrecta' });
     }
 
     let idprof = null;

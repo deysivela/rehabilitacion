@@ -486,6 +486,10 @@ const Tratamiento = () => {
                       <option value="Familiar">Familiar</option>
                       <option value="Vivienda">Vivienda</option>
                       <option value="Violencia">Violencia</option>
+                      <option value="Educación">Educación</option>
+                      <option value="Transporte ">Transporte </option>
+                      <option value="Económico ">Económico </option>
+                      <option value="Desastre natural ">Desastre natural </option>
                       <option value="Otro">Otro</option>
                     </select>
                   </div>

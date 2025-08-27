@@ -5,6 +5,7 @@ import "./Actividad.css";
 
 const Actividad = () => {
   const [actividades, setActividades] = useState([]);
+  const [actividadesFiltradas, setActividadesFiltradas] = useState([]);
   const [actividadActual, setActividadActual] = useState({
     Idact: null,
     Fecha: "",
@@ -15,15 +16,26 @@ const Actividad = () => {
     Medio_ver: "",
     Idprof: "",
   });
-  const [profesionales, setProfesionales] = useState([]);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [modalDetalle, setModalDetalle] = useState(false);
 
+  // Obtener ID del profesional logueado
+  const usuario = JSON.parse(sessionStorage.getItem("usuario"));
+  const idProfesionalLogeado = usuario?.idprof;
+
   useEffect(() => {
     obtenerActividades();
-    obtenerProfesionales();
   }, []);
+
+  useEffect(() => {
+    if (actividades.length > 0 && idProfesionalLogeado) {
+      const filtradas = actividades.filter(
+        (act) => act.Idprof === idProfesionalLogeado
+      );
+      setActividadesFiltradas(filtradas);
+    }
+  }, [actividades, idProfesionalLogeado]);
 
   const obtenerActividades = async () => {
     try {
@@ -34,16 +46,7 @@ const Actividad = () => {
     }
   };
 
-  const obtenerProfesionales = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:5000/api/prof_salud/listar"
-      );
-      setProfesionales(res.data);
-    } catch (err) {
-      console.error("Error al obtener profesionales", err);
-    }
-  };
+
 
   const formatearFecha = (fecha) => {
     if (!fecha) return "-";
@@ -54,16 +57,6 @@ const Actividad = () => {
       day: "2-digit",
     });
   };
-
-  const obtenerNombreProfesional = (id) => {
-    const prof = profesionales.find((p) => p.Idprof === id);
-    if (!prof) return "—";
-    const { Nombre_prof, Appaterno_prof, Apmaterno_prof } = prof;
-    return `${Nombre_prof} ${Appaterno_prof}${
-      Apmaterno_prof ? " " + Apmaterno_prof : ""
-    }`;
-  };
-
   const abrirModal = (actividad = null) => {
     if (actividad) {
       setActividadActual(actividad);
@@ -77,7 +70,7 @@ const Actividad = () => {
         Lugar: "",
         Resultado: "",
         Medio_ver: "",
-        Idprof: "",
+        Idprof: idProfesionalLogeado, // Asignar automáticamente el ID del profesional logueado
       });
       setModoEdicion(false);
     }
@@ -152,7 +145,7 @@ const Actividad = () => {
             </tr>
           </thead>
           <tbody>
-            {actividades.map((a) => (
+            {actividadesFiltradas.map((a) => (
               <tr key={a.Idact}>
                 <td>{formatearFecha(a.Fecha)}</td>
                 <td>{a.Actividad}</td>
@@ -230,22 +223,9 @@ const Actividad = () => {
                 value={actividadActual.Medio_ver}
                 onChange={handleChange}
               />
-              <div className="form-group">
-                <label>Profesional:</label>
-                <select
-                  name="Idprof"
-                  value={actividadActual.Idprof}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Seleccione un profesional</option>
-                  {profesionales.map((a) => (
-                    <option key={a.Idprof} value={a.Idprof}>
-                      {a.Nombre_prof} {a.Appaterno_prof} {a.Apmaterno_prof}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {!modoEdicion && (
+                <input type="hidden" name="Idprof" value={idProfesionalLogeado} />
+              )}
             </form>
             <div className="modal-botones">
               <button onClick={guardarActividad}>Guardar</button>
@@ -277,10 +257,6 @@ const Actividad = () => {
             </p>
             <p>
               <strong>Medio Verificación:</strong> {actividadActual.Medio_ver}
-            </p>
-            <p>
-              <strong>Profesional:</strong>{" "}
-              {obtenerNombreProfesional(actividadActual.Idprof)}
             </p>
             <div className="modal-botones">
               <button onClick={cerrarModalDetalle}>Cerrar</button>

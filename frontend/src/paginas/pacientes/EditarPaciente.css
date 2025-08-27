@@ -1,144 +1,303 @@
-/* Contenedor principal de la página de edición */
+
+/* Variables de color */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2ecc71;
+  --danger-color: #e74c3c;
+  --warning-color: #f39c12;
+  --light-color: #ecf0f1;
+  --dark-color: #2c3e50;
+  --gray-color: #95a5a6;
+  --border-color: #ddd;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Contenedor principal */
 .editar-container {
-    max-width: 800px;
-    margin: 30px auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #f9f9f9;
+  font-family: Arial, sans-serif;
+  padding: 2rem;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Tarjeta contenedora */
+.card {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 900px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.card-header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-header p {
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+/* Formulario */
+.paciente-form {
+  padding: 1.5rem;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+}
+
+.form-section h2 {
+  font-size: 1.3rem;
+  color: var(--dark-color);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.form-section h3 {
+  font-size: 1.1rem;
+  color: var(--dark-color);
+  margin: 1rem 0;
+}
+
+/* Grid del formulario */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--dark-color);
+}
+
+.form-group label::after {
+  content: attr(data-required);
+  color: var(--danger-color);
+  margin-left: 4px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  outline: none;
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Checkbox personalizado */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkbox-custom {
+  position: relative;
+  height: 20px;
+  width: 20px;
+  background-color: white;
+  border: 2px solid var(--primary-color);
+  border-radius: 4px;
+  margin-right: 10px;
+  transition: all 0.3s;
+}
+
+.checkbox-label input:checked ~ .checkbox-custom {
+  background-color: var(--primary-color);
+}
+
+.checkbox-custom:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.checkbox-label input:checked ~ .checkbox-custom:after {
+  display: block;
+}
+
+.checkbox-label .checkbox-custom:after {
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Sección de discapacidad */
+.discapacidad-section {
+  background-color: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-color);
+  margin-top: 1rem;
+}
+
+/* Alertas de error */
+.alert {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 5px;
+}
+
+.alert-danger {
+  background-color: #fdecea;
+  border-left: 4px solid var(--danger-color);
+}
+
+.error-message {
+  color: var(--danger-color);
+  display: flex;
+  align-items: center;
+}
+
+.error-message i {
+  margin-right: 8px;
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+}
+
+.loading-spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top: 4px solid var(--primary-color);
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Botones */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #e67e22;
+  transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+  background-color: var(--gray-color);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--dark-color);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: #f1f1f1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .editar-container {
+    padding: 1rem;
   }
   
-  .editar-container h1 {
-    text-align: center;
-    font-size: 24px;
-    margin-bottom: 20px;
+  .form-grid {
+    grid-template-columns: 1fr;
   }
   
-  /* Mensajes de error */
-  .error-messages {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #f5c6cb;
-    border-radius: 5px;
-  }
-  
-  .error-messages p {
-    margin: 0;
-  }
-  
-  /* Estilo para el formulario */
-  .paciente-form {
-    display: flex;
+  .form-actions {
     flex-direction: column;
-    gap: 15px;
   }
   
-  .paciente-form input,
-  .paciente-form select,
-  .paciente-form textarea {
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .paciente-form input:focus,
-  .paciente-form select:focus,
-  .paciente-form textarea:focus {
-    outline: none;
-    border-color: #007bff;
-  }
-  
-  /* Estilo para los campos del formulario */
-  .paciente-form input[type="text"],
-  .paciente-form input[type="date"],
-  .paciente-form input[type="checkbox"] {
+  .btn-primary, .btn-secondary {
     width: 100%;
   }
-  
-  .paciente-form select {
-    width: 100%;
-  }
-  
-  .paciente-form textarea {
-    width: 100%;
-    height: 50px;
-  }
-  
-  .paciente-form button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .paciente-form button:hover {
-    background-color: #0056b3;
-  }
-  
-  /* Estilos para los campos de discapacidad */
-  .discapacidad-info {
-    background-color: #e9f7fa;
-    padding: 15px;
-    border: 1px solid #d1ecf1;
-    border-radius: 5px;
-  }
-  
-  .discapacidad-info select,
-  .discapacidad-info textarea {
-    margin-bottom: 10px;
-  }
-  
-  /* Estilo para la casilla de discapacidad */
-  .paciente-form label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .paciente-form label input {
-    width: auto;
-  }
-  
-  /* Estilo para los botones de acción */
-  .icon-button {
-    border: none;
-    background: none;
-    cursor: pointer;
-  }
-  
-  .edit-btn,
-  .delete-btn {
-    color: #007bff;
-    font-size: 20px;
-    margin-right: 10px;
-  }
-  
-  .edit-btn:hover,
-  .delete-btn:hover {
-    color: #0056b3;
-  }
-  
-  /* Asegúrate de que el formulario sea sensible */
-  @media (max-width: 600px) {
-    .editar-container {
-      padding: 15px;
-    }
-  
-    .paciente-form {
-      gap: 10px;
-    }
-  
-    .paciente-form input,
-    .paciente-form select,
-    .paciente-form textarea {
-      font-size: 14px;
-    }
-  }
-  
+}

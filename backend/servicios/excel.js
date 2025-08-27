@@ -1,6 +1,7 @@
 const ExcelJS = require('exceljs');
 const axios = require('axios');
 const db = require('../modelos');
+const { Op } = require('sequelize');
 
 async function generarExcelReporte(datos, config) {
   const { areaSeleccionada, profesionalSeleccionado, fechaReporte, tipoReporte } = config;
@@ -323,21 +324,311 @@ async function generarExcelReporte(datos, config) {
     }
   }
 
-  // 12. Ajustar anchos columnas
-  hoja.columns = [
-    { key: 'A', width: 2 },
-    { key: 'B', width: 35 },
-    { key: 'C', width: 5 },
-    ...Array(20).fill({ width: 8 }),
-    { key: 'X', width: 10 }
-  ];
+// 12. Tabla de condiciones de rehabilitación
+filaActual += 1; // Espacio después de la tabla anterior
 
-  // 13. Ajustar altura filas
-  hoja.eachRow(row => {
-    row.height = 20;
+// Título de la sección
+hoja.mergeCells(`B${filaActual}:X${filaActual}`);
+hoja.getCell(`B${filaActual}`).style = estiloTitulo;
+filaActual++;
+
+// Encabezados de la tabla
+hoja.getCell(`B${filaActual}`).value = '2. USUARIOS EN REHABILITACIÓN POR:';
+hoja.getCell(`B${filaActual}`).style = estiloEncabezado;
+hoja.getCell(`C${filaActual}`).value = 'N';
+hoja.getCell(`C${filaActual}`).style = estiloEncabezado;
+filaActual++;
+
+let condiciones = [];
+try {
+    const response = await axios.get('http://localhost:5000/api/condicion/listar');
+    condiciones = response.data;
+    
+    // Obtener el rango de fechas del reporte
+    const [anio, mes] = fechaReporte.split('-');
+    const fechaInicio = `${anio}-${mes}-01`;
+    const fechaFin = new Date(anio, parseInt(mes), 0).toISOString().slice(0, 10);
+
+    // Obtener todas las sesiones del periodo reportado
+    const sesiones = await db.Sesion.findAll({
+        where: {
+            Fecha: {
+                [Op.between]: [fechaInicio, fechaFin]
+            },
+            Notas: {
+                [Op.ne]: null
+            }
+        },
+        attributes: ['Idsesion', 'Notas']
+    });
+
+    // Inicializar objeto para conteo
+    const conteoCondiciones = {};
+    let totalGeneral = 0;
+    
+    // Inicializar todas las condiciones con 0
+    condiciones.forEach(cond => {
+        conteoCondiciones[cond.condicion] = 0;
+    });
+
+    // Verificar si existe "Otros" en las condiciones
+    const tieneOtros = condiciones.some(cond => cond.condicion === 'Otros');
+    let otrosCount = 0;
+
+    // Contar ocurrencias en las notas
+    sesiones.forEach(sesion => {
+        if (sesion.Notas) {
+            let condicionEncontrada = false;
+            const notas = sesion.Notas.toLowerCase();
+            
+            condiciones.forEach(cond => {
+                const condicionLower = cond.condicion.toLowerCase();
+                if (notas.includes(condicionLower)) {
+                    conteoCondiciones[cond.condicion]++;
+                    totalGeneral++;
+                    condicionEncontrada = true;
+                }
+            });
+            
+            if (!condicionEncontrada) {
+                otrosCount++;
+                totalGeneral++;
+            }
+        }
+    });
+
+    // Manejar "Otros"
+    if (tieneOtros) {
+        conteoCondiciones['Otros'] += otrosCount;
+    } else if (otrosCount > 0) {
+        condiciones.push({ condicion: 'Otros' });
+        conteoCondiciones['Otros'] = otrosCount;
+    }
+
+    // Separar y ordenar condiciones
+    const otrasCondiciones = condiciones.filter(cond => cond.condicion !== 'Otros')
+        .sort((a, b) => a.condicion.localeCompare(b.condicion));
+    const condicionOtros = condiciones.find(cond => cond.condicion === 'Otros');
+
+    // Escribir condiciones ordenadas
+    let contador = 1;
+    otrasCondiciones.forEach(cond => {
+        const condicion = cond.condicion;
+        const cantidad = conteoCondiciones[condicion] || 0;
+        
+        hoja.getCell(`B${filaActual}`).value = `2.${contador} ${condicion.toUpperCase()}`;
+        hoja.getCell(`B${filaActual}`).style = estiloCelda;
+        
+        hoja.getCell(`C${filaActual}`).value = cantidad;
+        hoja.getCell(`C${filaActual}`).style = estiloCelda;
+        
+        filaActual++;
+        contador++;
+    });
+
+    // Escribir "Otros" si existe
+    if (condicionOtros && conteoCondiciones['Otros'] > 0) {
+        hoja.getCell(`B${filaActual}`).value = `2.${contador} OTROS`;
+        hoja.getCell(`B${filaActual}`).style = estiloCelda;
+        
+        hoja.getCell(`C${filaActual}`).value = conteoCondiciones['Otros'];
+        hoja.getCell(`C${filaActual}`).style = estiloCelda;
+        
+        filaActual++;
+    }
+
+    // Escribir TOTAL GENERAL
+    hoja.getCell(`B${filaActual}`).value = 'TOTAL';
+    hoja.getCell(`B${filaActual}`).style = estiloCeldaRelleno;
+    
+    hoja.getCell(`C${filaActual}`).value = totalGeneral;
+    hoja.getCell(`C${filaActual}`).style = estiloCeldaRelleno;
+
+    // Aplicar bordes a la tabla de condiciones
+    const primeraFilaCond = filaActual - contador - 1;
+    const ultimaFilaCond = filaActual;
+    for (let row = primeraFilaCond; row <= ultimaFilaCond; row++) {
+        for (let col = 'B'.charCodeAt(0); col <= 'C'.charCodeAt(0); col++) {
+            const colLetter = String.fromCharCode(col);
+            const cell = hoja.getCell(`${colLetter}${row}`);
+            if (!cell.style.border) {
+                cell.style = { ...cell.style, ...estiloCelda };
+            }
+        }
+    }
+
+    filaActual++;
+
+} catch (error) {
+    console.error('Error al obtener condiciones:', error);
+    hoja.mergeCells(`B${filaActual}:D${filaActual}`);
+    hoja.getCell(`B${filaActual}`).value = 'ERROR AL OBTENER CONDICIONES DE REHABILITACIÓN';
+    hoja.getCell(`B${filaActual}`).style = estiloMensajeSinDatos;
+    filaActual++;
+}
+// ... (código anterior se mantiene igual hasta el final de la tabla de condiciones)
+
+// 13. Tabla de Altas y Abandonos
+// Título de la sección
+hoja.mergeCells(`B${filaActual}:D${filaActual}`);
+hoja.getCell(`B${filaActual}`).style = estiloTitulo;
+filaActual++;
+
+// Obtener datos de tratamientos
+try {
+  const [anio, mes] = fechaReporte.split('-');
+  const fechaInicioReporte = `${anio}-${mes}-01`;
+  const fechaFinReporte = new Date(anio, parseInt(mes), 0).toISOString().slice(0, 10);
+  
+  // 1. Tratamientos que finalizaron en el mes reportado
+  const tratamientosFinalizados = await db.Tratamiento.findAll({
+      where: {
+          Fecha_fin: {
+              [Op.between]: [fechaInicioReporte, fechaFinReporte]
+          }
+      },
+      attributes: ['Estado', 'Razon', 'Fecha_fin', 'Fecha_ini']
   });
 
-  return libro;
+  // 2. Tratamientos activos (sin fecha_fin o que continúan después del mes)
+  const tratamientosActivos = await db.Tratamiento.findAll({
+      where: {
+          [Op.or]: [
+              { Fecha_fin: null },
+              { Fecha_fin: { [Op.gt]: fechaFinReporte } }
+          ],
+          Fecha_ini: { [Op.lte]: fechaFinReporte } // Que hayan empezado antes del fin del mes
+      },
+      attributes: ['Estado', 'Razon', 'Fecha_fin', 'Fecha_ini']
+  });
+
+  // Combinar ambos conjuntos
+  const todosTratamientos = [...tratamientosFinalizados, ...tratamientosActivos];
+  
+  console.log('Total tratamientos encontrados:', todosTratamientos.length);
+  console.log('Ejemplos:', JSON.stringify(todosTratamientos.slice(0, 5), null, 2));
+
+  // Inicializar contadores
+  const contadores = {
+      altasDefinitivas: 0,
+      altasTemporales: 0,
+      continuanTratamiento: 0,
+      abandonos: 0,
+      razonesAbandono: {
+          Familiar: 0,
+          Vivienda: 0,
+          Violencia: 0,
+          'Educación': 0,
+          Transporte: 0,
+          'Económico': 0,
+          'Desastre natural': 0
+      }
+  };
+
+  // Procesar todos los tratamientos
+  todosTratamientos.forEach(trat => {
+      const estado = trat.Estado?.trim()?.toUpperCase();
+      const razon = trat.Razon?.trim();
+      const fechaFinTrat = trat.Fecha_fin;
+      const esDelMes = fechaFinTrat && 
+                      new Date(fechaFinTrat) >= new Date(fechaInicioReporte) && 
+                      new Date(fechaFinTrat) <= new Date(fechaFinReporte);
+
+      if (estado === 'ALTA DEFINITIVA' && esDelMes) {
+          contadores.altasDefinitivas++;
+      } else if (estado === 'ALTA TEMPORAL' && esDelMes) {
+          contadores.altasTemporales++;
+      } else if (estado === 'ABANDONO' && esDelMes) {
+          contadores.abandonos++;
+          if (razon) {
+              const razonLower = razon.toLowerCase();
+              for (const [key] of Object.entries(contadores.razonesAbandono)) {
+                  if (razonLower.includes(key.toLowerCase())) {
+                      contadores.razonesAbandono[key]++;
+                      break;
+                  }
+              }
+          }
+      } else if (!fechaFinTrat || new Date(fechaFinTrat) > new Date(fechaFinReporte)) {
+          // Solo contar como "continúa tratamiento" si no es una alta/abandono del mes
+          if (!['ALTA DEFINITIVA', 'ALTA TEMPORAL', 'ABANDONO'].includes(estado)) {
+              contadores.continuanTratamiento++;
+          }
+      }
+  });
+
+  console.log('Contadores finales:', contadores);
+
+  // Escribir tabla de altas
+  hoja.getCell(`B${filaActual}`).value = 'N° DE ALTAS DEFINITIVAS';
+  hoja.getCell(`B${filaActual}`).style = estiloCelda;
+  hoja.getCell(`C${filaActual}`).value = contadores.altasDefinitivas;
+  hoja.getCell(`C${filaActual}`).style = estiloCelda;
+  filaActual++;
+
+  hoja.getCell(`B${filaActual}`).value = 'N° DE ALTAS TEMPORALES';
+  hoja.getCell(`B${filaActual}`).style = estiloCelda;
+  hoja.getCell(`C${filaActual}`).value = contadores.altasTemporales;
+  hoja.getCell(`C${filaActual}`).style = estiloCelda;
+  filaActual++;
+
+  hoja.getCell(`B${filaActual}`).value = 'N° PACIENTES QUE CONTINUAN EN TRATAMIENTO';
+  hoja.getCell(`B${filaActual}`).style = estiloCelda;
+  hoja.getCell(`C${filaActual}`).value = contadores.continuanTratamiento;
+  hoja.getCell(`C${filaActual}`).style = estiloCelda;
+  filaActual++;
+
+  hoja.getCell(`B${filaActual}`).value = 'N° ABANDONO DE REHABILITACIÓN';
+  hoja.getCell(`B${filaActual}`).style = estiloCelda;
+  hoja.getCell(`C${filaActual}`).value = contadores.abandonos;
+  hoja.getCell(`C${filaActual}`).style = estiloCelda;
+  filaActual++;
+
+  for (const [razon, cantidad] of Object.entries(contadores.razonesAbandono)) {
+      hoja.getCell(`B${filaActual}`).value = razon;
+      hoja.getCell(`B${filaActual}`).style = estiloCelda;
+      hoja.getCell(`C${filaActual}`).value = cantidad;
+      hoja.getCell(`C${filaActual}`).style = estiloCelda;
+      filaActual++;
+  }
+
+    // Aplicar bordes a toda la tabla de altas y abandonos
+    const primeraFilaAltas = filaActual - (Object.keys(contadores.razonesAbandono).length + 5);
+    const ultimaFilaAltas = filaActual - 1;
+    
+    for (let row = primeraFilaAltas; row <= ultimaFilaAltas; row++) {
+        for (let col = 'B'.charCodeAt(0); col <= 'C'.charCodeAt(0); col++) {
+            const colLetter = String.fromCharCode(col);
+            const cell = hoja.getCell(`${colLetter}${row}`);
+            if (!cell.style.border) {
+                cell.style = { ...cell.style, ...estiloCelda };
+            }
+        }
+    }
+
+} catch (error) {
+    console.error('Error al obtener datos de tratamientos:', error);
+    hoja.mergeCells(`B${filaActual}:C${filaActual}`);
+    hoja.getCell(`B${filaActual}`).value = 'ERROR AL OBTENER DATOS DE ALTAS Y ABANDONOS';
+    hoja.getCell(`B${filaActual}`).style = estiloMensajeSinDatos;
+    filaActual++;
+}
+
+// 14. Ajustar anchos columnas
+hoja.columns = [
+    { key: 'A', width: 2 },
+    { key: 'B', width: 40 },
+    { key: 'C', width: 5 }, // Aumentado para acomodar los números
+    ...Array(20).fill({ width: 8 }),
+    { key: 'X', width: 10 }
+];
+
+// 15. Ajustar altura filas
+hoja.eachRow(row => {
+    row.height = 20;
+});
+
+return libro;
 }
 
 module.exports = { generarExcelReporte };

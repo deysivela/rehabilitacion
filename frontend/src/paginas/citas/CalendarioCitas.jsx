@@ -4,11 +4,11 @@ import { format, parse, startOfWeek, getDay, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { FaCalendarAlt } from "react-icons/fa";
-import "./CalendarioCitas.css";
 import { useNavigate } from "react-router-dom";
 import Modal from "react-modal";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./CalendarioCitas.css";
 
 // Configuración de localización
 const locales = { es };
@@ -208,40 +208,38 @@ const CalendarioCitas = () => {
         </div>
       </div>
 
-      <div className="calendario-grid">
-        <div className="calendario-wrapper">
-          <Calendar
-            localizer={localizer}
-            events={citasFiltradas}
-            defaultView="week"
-            views={["week", "day", "agenda"]}
-            step={60}
-            timeslots={1}
-            min={new Date(0, 0, 0, 8, 0)}
-            max={new Date(0, 0, 0, 18, 0)}
-            scrollToTime={new Date(0, 0, 0, 8, 0)}
-            style={{ height: "80vh" }}
-            culture="es"
-            eventPropGetter={eventStyleGetter}
-            onSelectEvent={(event) => {
-              setCitaSeleccionada(event);
-              setMostrarModal(true);
-            }}
-            messages={{
-              today: "Hoy",
-              previous: "Atrás",
-              next: "Siguiente",
-              week: "Semana",
-              day: "Día",
-              agenda: "Agenda",
-              date: "Fecha",
-              time: "Hora",
-              event: "Evento",
-              noEventsInRange: "No hay citas en este rango de fechas.",
-            }}
-            allDaySlot={false}
-          />
-        </div>
+      <div className="calendario-wrapper">
+        <Calendar
+          localizer={localizer}
+          events={citasFiltradas}
+          defaultView="week"
+          views={["week", "day", "agenda"]}
+          step={60}
+          timeslots={1}
+          min={new Date(0, 0, 0, 8, 0)}
+          max={new Date(0, 0, 0, 18, 0)}
+          scrollToTime={new Date(0, 0, 0, 8, 0)}
+          className="calendario-responsive"
+          culture="es"
+          eventPropGetter={eventStyleGetter}
+          onSelectEvent={(event) => {
+            setCitaSeleccionada(event);
+            setMostrarModal(true);
+          }}
+          messages={{
+            today: "Hoy",
+            previous: "Atrás",
+            next: "Siguiente",
+            week: "Semana",
+            day: "Día",
+            agenda: "Agenda",
+            date: "Fecha",
+            time: "Hora",
+            event: "Evento",
+            noEventsInRange: "No hay citas en este rango de fechas.",
+          }}
+          allDaySlot={false}
+        />
       </div>
 
       {/* Modal de detalles */}

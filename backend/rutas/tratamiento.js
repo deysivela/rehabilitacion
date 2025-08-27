@@ -17,6 +17,39 @@ router.get('/listar', async (req, res) => {
     });
   }
 });
+// Obtener pacientes únicos por profesional
+router.get('/pacientes/:idprof', async (req, res) => {
+  try {
+    const tratamientos = await Tratamiento.findAll({
+      where: { Idprof: req.params.idprof },
+      include: { 
+        model: Paciente, 
+        as: 'paciente',
+        attributes: ['Idpac', 'Nombre_pac', 'Appaterno_pac', 'Apmaterno_pac']
+      },
+      attributes: [] // No necesitamos datos de tratamiento
+    });
+
+    // Extraer pacientes únicos
+    const pacientesUnicos = [];
+    const idsPacientes = new Set();
+    
+    tratamientos.forEach(trat => {
+      if (trat.paciente && !idsPacientes.has(trat.paciente.Idpac)) {
+        idsPacientes.add(trat.paciente.Idpac);
+        pacientesUnicos.push(trat.paciente);
+      }
+    });
+
+    res.json(pacientesUnicos);
+  } catch (error) {
+    console.error('Error al obtener pacientes por profesional:', error);
+    res.status(500).json({ 
+      error: 'Error al obtener pacientes',
+      details: error.message 
+    });
+  }
+});
 
 // Crear tratamiento
 router.post('/crear', async (req, res) => {

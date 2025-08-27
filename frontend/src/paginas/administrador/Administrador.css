@@ -1,11 +1,12 @@
+/* Administrador.css */
 .admin-container {
   font-family: 'Nunito', sans-serif;
   width: 100%;
   min-height: 100vh;
   background-color: #f8f9fc;
-  color: var(--text-color);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
- 
+  color: #5a5c69;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .admin-header {
@@ -18,37 +19,52 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .admin-header h1 {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--primary-color);
-  margin: 0;
-  
   color: #2c3e50;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
 }
 
 .refresh-btn {
-  background: var(--primary-color);
+  background: #4e73df;
   color: white;
   border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
+  padding: 10px 15px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
   transition: all 0.3s;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .refresh-btn:hover {
   background: #3a5ccc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .refresh-btn:disabled {
   background: #cccccc;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.refresh-btn.refreshing {
+  background: #3a5ccc;
 }
 
 .refresh-btn .spin {
@@ -61,50 +77,55 @@
 }
 
 .last-update {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #858796;
-  margin-top: 5px;
+  margin-top: 10px;
 }
 
 .section-title {
-  font-size: 1.3rem;
-  color: var(--primary-color);
+  font-size: 1.4rem;
+  color: #2c3e50;
   margin-bottom: 20px;
   font-weight: 600;
 }
 
 .links-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
 }
 
 .access-card {
   background: white;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 20px;
   box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
   text-decoration: none;
-  color: var(--text-color);
+  color: #5a5c69;
   position: relative;
   overflow: hidden;
-  transition: transform 0.3s;
+  transition: all 0.3s ease;
   border-left: 4px solid var(--card-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 140px;
 }
 
 .access-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
 }
 
 .card-content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  flex-grow: 1;
 }
 
 .card-icon {
-  font-size: 1.8rem;
+  font-size: 2rem;
   color: var(--card-color);
 }
 
@@ -112,30 +133,44 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
+  line-height: 1.3;
 }
 
 .card-count {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 700;
   color: var(--card-color);
+  margin-top: auto;
 }
 
 .card-badge {
   position: absolute;
   top: 15px;
   right: 15px;
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.mini-loading {
+  width: 18px;
+  height: 18px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 .loading-dots span {
   animation: blink 1.4s infinite both;
+  font-size: 2.5rem;
+  font-weight: bold;
 }
 
 .loading-dots span:nth-child(2) {
@@ -152,19 +187,137 @@
   100% { opacity: 0.2; }
 }
 
+/* Media Queries para Responsividad */
+@media (max-width: 1200px) {
+  .links-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
 
-.summary-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--primary-color);
+@media (max-width: 992px) {
+  .admin-header h1 {
+    font-size: 1.6rem;
+  }
+  
+  .links-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+  }
+  
+  .access-card {
+    padding: 15px;
+    min-height: 130px;
+  }
+  
+  .card-icon {
+    font-size: 1.8rem;
+  }
+  
+  .card-count {
+    font-size: 2rem;
+  }
 }
 
 @media (max-width: 768px) {
-  .links-grid {
-    grid-template-columns: 1fr;
+  .admin-container {
+    padding: 15px;
   }
   
-  .summary-cards {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .refresh-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .links-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  
+  .access-card {
+    min-height: 120px;
+  }
+  
+  .access-card h3 {
+    font-size: 1rem;
+  }
+  
+  .card-count {
+    font-size: 1.8rem;
+  }
+  
+  .card-badge {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .admin-header h1 {
+    font-size: 1.5rem;
+    text-align: center;
+    width: 100%;
+  }
+  
+  .links-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .access-card {
+    min-height: 110px;
+    padding: 15px;
+  }
+  
+  .card-icon {
+    font-size: 1.6rem;
+  }
+  
+  .card-count {
+    font-size: 1.7rem;
+  }
+  
+  .section-title {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+  
+  .last-update {
+    text-align: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .admin-container {
+    padding: 10px;
+  }
+  
+  .access-card {
+    padding: 12px;
+  }
+  
+  .access-card h3 {
+    font-size: 0.95rem;
+  }
+  
+  .card-count {
+    font-size: 1.5rem;
+  }
+  
+  .card-badge {
+    width: 28px;
+    height: 28px;
+    top: 12px;
+    right: 12px;
   }
 }

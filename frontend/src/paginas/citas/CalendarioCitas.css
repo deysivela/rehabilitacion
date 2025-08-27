@@ -1,8 +1,10 @@
+/* CalendarioCitas.css */
 .calendario-container {
-  padding: 20px;
-  max-width: 95vw;
+  padding: 15px;
+  max-width: 100%;
   margin: 0 auto;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
 }
 
 .header-calendario {
@@ -11,6 +13,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 15px;
+  margin-bottom: 20px;
 }
 
 .header-calendario h1 {
@@ -19,52 +22,134 @@
   gap: 10px;
   color: #2c3e50;
   margin: 0;
+  font-size: 1.5rem;
 }
 
 .controles-superiores {
   display: flex;
-  gap: 15px;
+  justify-content: flex-start; 
+  gap: 10px; 
   align-items: center;
 }
 
-/* === LAYOUT PRINCIPAL === */
-
-
-@media (min-width: 1200px) {
-  .calendario-grid {
-    grid-template-columns: 2fr 1fr;
-  }
+.rbc-time-view .rbc-row {
+  min-height: unset !important; /* o auto */
 }
 
+/* === CALENDARIO RESPONSIVE === */
 .calendario-wrapper {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 15px;
   height: 70vh;
+  min-height: 500px;
+  overflow: hidden;
 }
 
-.lista-citas {
+.calendario-responsive {
+  height: 100%;
+}
+
+/* Ajustes para el calendario en móviles */
+.rbc-calendar {
+  font-size: 14px;
+}
+
+.rbc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 5px;
+}
+
+.rbc-toolbar .rbc-toolbar-label {
+  margin: 0;
+  text-align: center;
+  flex-grow: 1;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.rbc-btn-group {
+  display: flex;
+  gap: 5px;
+  flex-wrap: nowrap;
+}
+
+.rbc-btn-group:first-child {
+  /* Navegación: Hoy, Atrás, Siguiente */
+  order: 1;
+  flex-shrink: 0;
+}
+
+.rbc-btn-group:nth-child(2) {
+  /* Vistas: Semana, Día, Agenda */
+  order: 2;
+  flex-shrink: 0;
+}
+
+.rbc-btn-group button {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 15px;
+  color: #2c3e50;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.rbc-btn-group button:hover {
+  background: #f8f9fa;
+}
+
+.rbc-btn-group button.rbc-active {
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+.rbc-time-view,
+.rbc-month-view {
+  min-width: 0;
+}
+
+.rbc-event {
+  font-size: 11px;
+  padding: 2px 4px;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rbc-date-cell {
+  font-size: 12px;
+  padding: 5px;
+}
+
+.rbc-time-slot {
+  font-size: 11px;
 }
 
 /* === BOTONES Y CONTROLES === */
 .btn-agregar-cita {
   background-color: #3498db;
   color: white;
-  padding: 10px 20px;
+  padding: 10px 15px;
   border: none;
   border-radius: 5px;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
   transition: background 0.3s;
+  white-space: nowrap;
 }
 
 .btn-agregar-cita:hover {
@@ -81,123 +166,10 @@
   border-radius: 5px;
   border: 1px solid #ddd;
   font-size: 14px;
+  min-width: 150px;
 }
 
-/* === TABLA DE CITAS === */
-.table-container {
-  max-height: 55vh;
-  overflow-y: auto;
-  margin-top: 15px;
-  border-radius: 5px;
-  border: 1px solid #eee;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-th, td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
-}
-
-th {
-  background-color: #3498db;
-  color: white;
-  position: sticky;
-  top: 0;
-}
-
-tbody tr:hover {
-  background-color: #f5f5f5;
-}
-
-.sin-resultados {
-  padding: 20px;
-  text-align: center;
-  color: #7f8c8d;
-}
-
-/* === BADGES DE ESTADO === */
-.badge-estado {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.badge-estado.programada {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-}
-
-.badge-estado.finalizada {
-  background-color: #e3f2fd;
-  color: #1565c0;
-}
-
-.badge-estado.ausente {
-  background-color: #ffebee;
-  color: #c62828;
-}
-
-/* === BOTONES DE ACCIÓN === */
-.action-cell {
-  width: 150px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.action-btn {
-  border: none;
-  background: none;
-  cursor: pointer;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.action-btn.session {
-  color: #3498db;
-}
-
-.action-btn.session:hover {
-  background-color: #ebf5fb;
-}
-
-.action-btn.session:disabled {
-  color: #bdc3c7;
-  cursor: not-allowed;
-}
-
-.action-btn.edit {
-  color: #f39c12;
-}
-
-.action-btn.edit:hover {
-  background-color: #fef5e7;
-}
-
-.action-btn.delete {
-  color: #e74c3c;
-}
-
-.action-btn.delete:hover {
-  background-color: #fdedec;
-}
-
-/* === MODALES === */
+/* === MODALES RESPONSIVE === */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -209,17 +181,20 @@ tbody tr:hover {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 15px;
+  box-sizing: border-box;
 }
 
 .modal-detalles, .modal-formulario {
   background: white;
-  padding: 25px;
+  padding: 20px;
   border-radius: 8px;
-  width: 90%;
+  width: 100%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+  box-sizing: border-box;
 }
 
 .modal-formulario {
@@ -228,35 +203,39 @@ tbody tr:hover {
 
 .modal-cerrar {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 10px;
+  right: 10px;
   background: none;
   border: none;
   font-size: 20px;
   cursor: pointer;
   color: #7f8c8d;
+  z-index: 10;
 }
 
 /* === DETALLES DE CITA === */
 .detalles-cita {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
 .detalle-item {
   display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .detalle-item strong {
-  width: 100px;
   color: #7f8c8d;
+  font-size: 14px;
 }
 
 .modal-acciones {
   display: flex;
   gap: 10px;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 .btn-registrar-sesion, .btn-editar-cita {
@@ -265,7 +244,9 @@ tbody tr:hover {
   border-radius: 5px;
   cursor: pointer;
   flex: 1;
+  min-width: 140px;
   transition: background 0.3s;
+  font-size: 14px;
 }
 
 .btn-registrar-sesion {
@@ -291,18 +272,20 @@ tbody tr:hover {
   background-color: #e67e22;
 }
 
-/* === FORMULARIO === */
+/* === FORMULARIO RESPONSIVE === */
 .form-group {
   margin-bottom: 15px;
 }
 
 .form-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 15px;
 }
 
 .form-row .form-group {
   flex: 1;
+  min-width: 200px;
 }
 
 label {
@@ -310,14 +293,16 @@ label {
   margin-bottom: 5px;
   font-weight: 500;
   color: #2c3e50;
+  font-size: 14px;
 }
 
 input, select, textarea {
   width: 100%;
-  padding: 9 px;
+  padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 textarea {
@@ -325,19 +310,11 @@ textarea {
   min-height: 80px;
 }
 
-.paciente-info {
-  margin-top: 5px;
-  padding: 8px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #3498db;
-}
-
 .form-actions {
   display: flex;
   gap: 10px;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 .btn-guardar, .btn-cancelar {
@@ -346,7 +323,9 @@ textarea {
   border-radius: 5px;
   cursor: pointer;
   flex: 1;
+  min-width: 120px;
   transition: background 0.3s;
+  font-size: 14px;
 }
 
 .btn-guardar {
@@ -396,4 +375,149 @@ textarea {
 .evento-default {
   background-color: #7f8c8d;
   border-color: #95a5a6;
+}
+
+/* === BADGES DE ESTADO === */
+.badge-estado {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.badge-estado.programada {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badge-estado.finalizada {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.badge-estado.ausente {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* === MEDIA QUERIES === */
+@media (max-width: 768px) {
+  .calendario-container {
+    padding: 10px;
+  }
+  
+  .header-calendario {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .header-calendario h1 {
+    font-size: 1.3rem;
+    justify-content: center;
+  }
+  
+  .controles-superiores {
+    justify-content: center;
+  }
+  
+  .calendario-wrapper {
+    padding: 10px;
+    height: 60vh;
+    min-height: 400px;
+  }
+  
+  .rbc-toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .rbc-toolbar .rbc-toolbar-label {
+    order: 0;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .rbc-btn-group:first-child {
+    order: 1;
+  }
+  
+  .rbc-btn-group:nth-child(2) {
+    order: 2;
+  }
+  
+  .rbc-btn-group button {
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+  
+  .rbc-time-slot {
+    font-size: 10px;
+  }
+  
+  .rbc-date-cell {
+    font-size: 10px;
+    padding: 3px;
+  }
+  
+  .modal-detalles, .modal-formulario {
+    padding: 15px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .form-row .form-group {
+    min-width: 100%;
+  }
+  
+  .modal-acciones {
+    flex-direction: column;
+  }
+  
+  .btn-registrar-sesion, .btn-editar-cita {
+    width: 100%;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .btn-guardar, .btn-cancelar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-calendario h1 {
+    font-size: 1.2rem;
+  }
+  
+  .btn-agregar-cita, .filtro-estado {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  
+  .calendario-wrapper {
+    height: 50vh;
+    min-height: 350px;
+  }
+  
+  .rbc-event {
+    font-size: 10px;
+    padding: 1px 3px;
+  }
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
