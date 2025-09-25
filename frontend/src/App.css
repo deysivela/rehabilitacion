@@ -45,3 +45,10 @@ body.sidebar-collapsed .main-content {
   margin-left: 70px;
   transition: margin-left 0.3s ease;
 }
+
+/* CONTENIDO PRINCIPAL AJUSTE CON SIDEBAR */
+.main-content {
+  transition: margin-left 0.3s ease;
+  width: calc(100% - 250px);
+/*   overflow-x: auto; */
+}

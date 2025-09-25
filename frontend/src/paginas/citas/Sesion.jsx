@@ -27,9 +27,6 @@ const Sesion = () => {
   const [areaSeleccionada, setAreaSeleccionada] = useState("");
   const [tecnicasFiltradas, setTecnicasFiltradas] = useState([]);
   const [tratamientosFiltrados, setTratamientosFiltrados] = useState([]);
-  const [condiciones, setCondiciones] = useState([]);
-  const [cargandoCondiciones, setCargandoCondiciones] = useState(false);
-
 
   // fecha y hora actual
   const obtenerFechaHoraActual = () => {
@@ -39,6 +36,44 @@ const Sesion = () => {
     const minutos = String(actual.getMinutes()).padStart(2, "0");
     return { fecha, hora: `${horas}:${minutos}` };
   };
+  const condiciones= [
+    'Algias vertebrales',
+    'Amputacion',
+    'Artritis',
+    'Artritis reumatoidea',
+    'Artrosis',
+    'Bursitis',
+    'Contractura muscular',
+    'Deformidades angulares de rodilla',
+    'Deformidades de columna',
+    'Displasia del desarrollo de cadera',
+    'Distrofias musculares',
+    'Enf. Respiratorias (asma, epoc)',
+    'Enf. Vascular Cerebral (secuelas)',
+    'Esclerosis Multiple',
+    'Esguince',
+    'Fascitis plantar',
+    'Fracturas',
+    'Lesion medular',
+    'Luxacion',
+    'Mialgias',
+    'Paralisis Braquial',
+    'Paralisis Cerebral',
+    'Paralisis fascial periferico',
+    'Parkinson',
+    'Pie equino varo',
+    'Pie Plano',
+    'Polineuropatia',
+    'Sindrome de Down',
+    'Sindrome de inmovilidad',
+    'Sindrome post poliomielitis',
+    'Sinovitis',
+    'Tendinitis - tendinosis',
+    'Trastorno del Desarrollo',
+    'Traumatismo craneoencefalico',
+    'Ulceras por presion',
+    'Otros'
+  ];
 
   // Estado inicial del formulario
   const [formulario, setFormulario] = useState({
@@ -47,13 +82,12 @@ const Sesion = () => {
     Fecha: "",
     Hora_ini: "",
     Hora_fin: "",
-    Tipo: "Nuevo",
+    Tipo: "Repetido",
     Atencion: "Dentro de la institución",
     Notas: "",
     Novedades: "",
     Idtrat: "",
     Idtec: [],
-    CondicionRehabilitacion: ""
   });
 
   // Resetear formulario con valores por defecto
@@ -67,13 +101,12 @@ const Sesion = () => {
       Fecha: fecha,
       Hora_ini: hora,
       Hora_fin: "",
-      Tipo: "Nuevo",
+      Tipo: "Repetido",
       Atencion: "Dentro de la institución",
       Notas: "",
       Novedades: "",
       Idtrat: "",
       Idtec: [],
-      CondicionRehabilitacion: ""
     });
   };
 
@@ -84,26 +117,34 @@ const Sesion = () => {
         setCargando(true);
         const usuario = JSON.parse(sessionStorage.getItem("usuario"));
         const idProf = usuario?.idprof;
+        const rol = usuario?.rol; 
         const { fecha, hora } = obtenerFechaHoraActual();
-
-        // Obtener pacientes del profesional usando el nuevo endpoint
-        const resPacientes = await axios.get(
-          `http://localhost:5000/api/tratamiento/pacientes/${idProf}`
-        );
-
-        // Obtener otros datos necesarios
-        const [resSesiones, resTratamientos, resProfesionales, resTecnicas] =
+  
+        // Endpoint para sesiones dependiendo del rol
+        const urlSesiones =
+          rol === "Administrador"
+            ? "http://localhost:5000/api/sesion/listar?include=tecnicas,tratamiento.paciente,prof_salud"
+            : `http://localhost:5000/api/sesion/listar?include=tecnicas,tratamiento.paciente,prof_salud&Idprof=${idProf}`;
+  
+        // Pacientes: si es admin puedes traer todos, si es médico solo los suyos
+        const urlPacientes =
+          rol === "Administrador"
+            ? "http://localhost:5000/api/paciente/listar"
+            : `http://localhost:5000/api/tratamiento/pacientes/${idProf}`;
+  
+        const [resSesiones, resPacientes, resTratamientos, resProfesionales, resTecnicas] =
           await Promise.all([
+            axios.get(urlSesiones),
+            axios.get(urlPacientes),
             axios.get(
-              `http://localhost:5000/api/sesion/listar?include=tecnicas,tratamiento.paciente,prof_salud&Idprof=${idProf}`
-            ),
-            axios.get(
-              `http://localhost:5000/api/tratamiento/listar?Idprof=${idProf}`
+              rol === "Administrador"
+                ? "http://localhost:5000/api/tratamiento/listar"
+                : `http://localhost:5000/api/tratamiento/listar?Idprof=${idProf}`
             ),
             axios.get("http://localhost:5000/api/prof_salud/listar"),
             axios.get("http://localhost:5000/api/tecnica/listar"),
           ]);
-
+  
         setSesiones(
           Array.isArray(resSesiones.data.data) ? resSesiones.data.data : []
         );
@@ -111,16 +152,15 @@ const Sesion = () => {
         setTratamientos(resTratamientos.data);
         setProfesionales(resProfesionales.data);
         setTecnicas(resTecnicas.data);
-
-        // Establecer valores por defecto
+  
+        // valores por defecto del form
         setFormulario((prev) => ({
           ...prev,
           Idprof: usuario?.idprof || "",
           Fecha: fecha,
           Hora_ini: hora,
         }));
-
-        // Sobreescribir con datos de navegación si existen
+  
         if (location.state) {
           const { Idpac, Idprof, Fecha, Hora_ini } = location.state;
           setFormulario((prev) => ({
@@ -130,13 +170,13 @@ const Sesion = () => {
             Fecha: Fecha || fecha,
             Hora_ini: Hora_ini || hora,
           }));
-
+  
           if (Idpac) {
             setMostrarModal(true);
             addNotification("info", "Complete los datos de la sesión");
           }
         }
-
+  
         addNotification("success", "Datos cargados correctamente");
       } catch (err) {
         addNotification(
@@ -147,25 +187,11 @@ const Sesion = () => {
         setCargando(false);
       }
     };
-
+  
     cargarDatos();
   }, [addNotification, location.state]);
+  
 
-  useEffect(() => {
-    const cargarCondiciones = async () => {
-      try {
-        setCargandoCondiciones(true);
-        const response = await axios.get("http://localhost:5000/api/condicion/listar");
-        setCondiciones(response.data);
-      } catch (error) {
-        addNotification("error", "Error al cargar condiciones de rehabilitación");
-      } finally {
-        setCargandoCondiciones(false);
-      }
-    };
-
-    cargarCondiciones();
-  }, [addNotification]);
   useEffect(() => {
     const profesional = profesionales.find(
       (prof) => prof.Idprof === formulario.Idprof
@@ -249,7 +275,7 @@ const Sesion = () => {
       }
     });
   };
-
+ 
   // Validar formulario antes de enviar
   const validarFormulario = () => {
     if (formulario.Idtec.length === 0) {
@@ -280,9 +306,9 @@ const Sesion = () => {
       const datosParaEnviar = {
         ...formulario,
         Idtec: formulario.Idtec,
-        Notas: formulario.CondicionRehabilitacion ? 
-          ` ${formulario.CondicionRehabilitacion}` : 
-          ""
+        Notas: formulario.Notas
+          ? ` ${formulario.Notas}`
+          : "",
       };
 
       if (modoEdicion) {
@@ -361,12 +387,6 @@ const Sesion = () => {
   const editarSesion = (sesion) => {
     setModoEdicion(true);
     setIdSesionEditar(sesion.Idsesion);
-    
-    // Extraer la condición de rehabilitación si existe en las notas
-    let condicionRehabilitacion = "";
-    if (sesion.Notas && sesion.Notas.startsWith("USUARIO EN REHABILITACIÓN POR: ")) {
-      condicionRehabilitacion = sesion.Notas.replace("USUARIO EN REHABILITACIÓN POR: ", "");
-    }
 
     setFormulario({
       Idpac: sesion.Idpac,
@@ -376,11 +396,10 @@ const Sesion = () => {
       Hora_fin: sesion.Hora_fin,
       Tipo: sesion.Tipo,
       Atencion: sesion.Atencion || "",
-      Notas: "",
+      Notas: sesion.Notas,
       Novedades: sesion.Novedades || "",
       Idtrat: sesion.Idtrat,
       Idtec: sesion.tecnicas ? sesion.tecnicas.map((t) => t.Idtec) : [],
-      CondicionRehabilitacion: condicionRehabilitacion || ""
     });
     setMostrarModal(true);
     addNotification("info", "Modo edición activado");
@@ -396,16 +415,16 @@ const Sesion = () => {
   // Obtener nombre completo del paciente
   const obtenerNombrePaciente = (id) => {
     if (!id) return "Sin paciente asignado";
-    
+
     const paciente = pacientes.find((p) => String(p.Idpac) === String(id));
-    
+
     if (!paciente) {
-      const sesion = sesiones.find(s => String(s.Idpac) === String(id));
+      const sesion = sesiones.find((s) => String(s.Idpac) === String(id));
       if (sesion && sesion.tratamiento && sesion.tratamiento.paciente) {
         return `${sesion.tratamiento.paciente.Nombre_pac} ${sesion.tratamiento.paciente.Appaterno_pac} ${sesion.tratamiento.paciente.Apmaterno_pac}`;
       }
     }
-    
+
     return paciente
       ? `${paciente.Nombre_pac} ${paciente.Appaterno_pac} ${paciente.Apmaterno_pac}`
       : "Paciente no encontrado";
@@ -532,12 +551,15 @@ const Sesion = () => {
                     required
                   >
                     <option value="">Seleccione un tratamiento...</option>
-                    {tratamientosFiltrados.map((trat) => (
-                      <option key={trat.Idtrat} value={trat.Idtrat}>
-                        {trat.nombre}
-                      </option>
-                    ))}
+                    {tratamientosFiltrados
+                      .filter((trat) => trat.Estado === "En tratamiento")
+                      .map((trat) => (
+                        <option key={trat.Idtrat} value={trat.Idtrat}>
+                          {trat.nombre}
+                        </option>
+                      ))}
                   </select>
+
                 </div>
               </div>
 
@@ -628,23 +650,21 @@ const Sesion = () => {
               </div>
 
               <div className="form-group">
-          <label>USUARIO EN REHABILITACIÓN POR:</label>
-          <select
-            name="CondicionRehabilitacion"
-            value={formulario.CondicionRehabilitacion}
-            onChange={handleInputChange}
-            required
-            disabled={cargandoCondiciones}
-          >
-            <option value="">Seleccione una condición...</option>
-            {condiciones.map((condicion) => (
-              <option key={condicion.id_cond} value={condicion.condicion}>
-                {condicion.condicion}
-              </option>
-            ))}
-          </select>
-          {cargandoCondiciones && <p>Cargando condiciones...</p>}
-        </div>
+                <label>USUARIO EN REHABILITACIÓN POR:</label>
+                <select name="Notas"
+                    value={formulario.Notas?.trim() || ""}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Seleccione una condición...</option>
+                    {condiciones.map((condicion, index) => (
+                      <option key={index} value={condicion}>
+                        {condicion}
+                      </option>
+                    ))}
+                  </select>
+
+              </div>
 
               <div className="form-group">
                 <label>Novedades:</label>
@@ -671,7 +691,7 @@ const Sesion = () => {
                 </button>
                 <button
                   type="button"
-                  className="btn-cancel"
+                  className="btn-cancels"
                   onClick={() => {
                     setMostrarModal(false);
                     setModoEdicion(false);
@@ -748,7 +768,9 @@ const Sesion = () => {
               </div>
 
               <div className="detalle-row">
-                <span className="detalle-label">Condición de Rehabilitación:</span>
+                <span className="detalle-label">
+                  Condición de Rehabilitación:
+                </span>
                 <span className="detalle-value">
                   {sesionSeleccionada.Notas || "No especificado"}
                 </span>
@@ -765,7 +787,7 @@ const Sesion = () => {
             <div className="modal-buttons">
               <button
                 type="button"
-                className="btn-cancel"
+                className="btn-cancels"
                 onClick={() => setMostrarModalDetalle(false)}
               >
                 Cerrar
@@ -807,15 +829,15 @@ const Sesion = () => {
         {cargando ? (
           <p>Cargando sesiones...</p>
         ) : (
-          <div className="sessions-table">
-            <table>
+          <div className="sessions-table-container">
+            <table className="sessions-table">
               <thead>
                 <tr>
                   <th>Paciente</th>
                   <th>Fecha</th>
                   <th>Hora</th>
-                  <th>Técnicas</th>
                   <th>Estado</th>
+                  <th>Técnicas</th>
                   <th>Novedades</th>
                   <th>Acciones</th>
                 </tr>
@@ -823,21 +845,39 @@ const Sesion = () => {
               <tbody>
                 {sesionesFiltradas.map((sesion) => (
                   <tr key={sesion.Idsesion}>
-                    <td>{obtenerNombrePaciente(sesion.Idpac)}</td>
-                    <td>
+                  <td 
+                    data-label="Paciente"
+                    className="nombre-paciente-cell"
+                    title={obtenerNombrePaciente(sesion.Idpac)}
+                  >
+                    {obtenerNombrePaciente(sesion.Idpac)}
+                  </td>
+
+                    <td data-label="Fecha">
                       {new Date(
                         sesion.Fecha + "T00:00:00"
                       ).toLocaleDateString()}
                     </td>
-                    <td>
-                      {formatearHora(sesion.Hora_ini)} -{" "}
-                      {formatearHora(sesion.Hora_fin)}
+                    <td data-label="Hora">
+                      {formatearHora(sesion.Hora_ini)}
                     </td>
-                    <td>{obtenerNombresTecnicas(sesion)}</td>
-                    <td>{sesion.Tipo}</td>
-                    <td>{sesion.Novedades}</td>
+                    <td data-label="Estado">{sesion.Tipo}</td>
+                    <td data-label="Técnicas">
+                      {obtenerNombresTecnicas(sesion)}
+                    </td>
+                    <td 
+                    data-label="Novedades"
+                    className="novedades-cell"
+                    title={sesion.Novedades || "Sin novedades"}
+                  >
+                    {sesion.Novedades
+                      ? sesion.Novedades.length > 50
+                        ? `${sesion.Novedades.substring(0, 50)}...`
+                        : sesion.Novedades
+                      : "—"}
+                  </td>
 
-                    <td className="action-cell">
+                    <td data-label="Acciones" className="action-cell">
                       <div className="action-buttons">
                         <button
                           className="action-btn view"

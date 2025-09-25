@@ -169,7 +169,6 @@ const Sidebar = () => {
                 <li><Link to="/profesional" onClick={closeSidebar}><span className="submenu-item">Gestionar Profesionales</span></Link></li>
                 <li><Link to="/usuario" onClick={closeSidebar}><span className="submenu-item">Gestionar Usuarios</span></Link></li>
                 <li><Link to="/areas" onClick={closeSidebar}><span className="submenu-item">Gestionar Áreas</span></Link></li>
-                <li><Link to="/reportes" onClick={closeSidebar}><span className="submenu-item">Generar Reportes</span></Link></li>
               </ul>
             </li>
           )}

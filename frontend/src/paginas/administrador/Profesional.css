@@ -13,6 +13,7 @@
     text-overflow: ellipsis;
     max-width: 200px;
     text-align: left;
+    height: 30px;
   }
   
   .tabla-profesionales th {
@@ -83,5 +84,72 @@
   .acciones {
     display: flex;
     align-items: center;
+  }
+  .modal-title {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #2c3e50;
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 15px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #34495e;
+  }
+  
+  .required {
+    color: red;
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  
+  .modal-actions {
+    grid-column: span 2; /* ocupa todo el ancho */
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .btn-guardar {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .btn-guardar:hover {
+    background-color: #2980b9;
+  }
+  
+  .btn-cancelar {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .btn-cancelar:hover {
+    background-color: #c0392b;
   }
   

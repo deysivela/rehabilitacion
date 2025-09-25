@@ -67,5 +67,63 @@ router.delete('/eliminar/:id', async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar actividad' });
   }
 });
+// Contar actividades según Tipo y tipoReporte
+async function contarActividadesPorTipo(tipoReporte, profesionalId = null, areaNombre = null) {
+  const where = {};
+  let include = [];
+
+  if (tipoReporte === "por-profesional" && profesionalId) {
+    where.Idprof = profesionalId;
+  } else if (tipoReporte === "por-area" && areaNombre) {
+    // Unir con prof_salud para filtrar por área
+    include = [
+      {
+        model: db.ProfSalud,
+        as: "profesional",
+        attributes: [],
+        where: { Idarea: db.Sequelize.literal(`(SELECT Idarea FROM Area WHERE Nombre='${areaNombre}')`) },
+        required: true,
+      },
+    ];
+  }
+
+  const conteo = await db.Actividad.findAll({
+    attributes: [
+      "Tipo",
+      [db.Sequelize.fn("COUNT", db.Sequelize.col("Tipo")), "total"],
+    ],
+    where,
+    include,
+    group: ["Tipo"],
+    raw: true,
+  });
+
+  // Mostrar en consola
+  console.log("📊 Conteo de actividades por Tipo:");
+  conteo.forEach((row) => {
+    console.log(`Tipo: ${row.Tipo} | Total: ${row.total}`);
+  });
+
+  return conteo;
+}
+
+// Ejemplo de uso en ruta
+router.post("/reporte-actividades", async (req, res) => {
+  try {
+    const { tipoReporte, profesional, areaProfesional } = req.body;
+
+    const conteo = await contarActividadesPorTipo(
+      tipoReporte,
+      profesional || null,
+      areaProfesional || null
+    );
+
+    res.json({ conteo });
+  } catch (error) {
+    console.error("❌ Error al contar actividades:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 module.exports = router;

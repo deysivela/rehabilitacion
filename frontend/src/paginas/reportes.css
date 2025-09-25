@@ -1,30 +1,77 @@
 .contenedor-reportes {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.contenedor-reportes h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #2c3e50;
+}
+
+.contenedor-filtros {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.formulario-filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.formulario-filtros > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.formulario-filtros label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #495057;
+}
+
+.formulario-filtros select,
+.formulario-filtros input {
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ced4da;
+  width: 100%;
+  font-size: 16px;
+}
+
+.formulario-filtros button {
+  background-color: #28a745;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-end;
+  width: fit-content;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.formulario-filtros button:hover {
+  background-color: #218838;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
   .formulario-filtros {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
-    margin-bottom: 30px;
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
+    grid-template-columns: 1fr;
   }
   
-  .boton-generar {
-    background-color: #28a745;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    align-self: end;
+  .contenedor-reportes {
+    padding: 10px;
   }
-  
-  .boton-generar:hover {
-    background-color: #218838;
-  }
+}

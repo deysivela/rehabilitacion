@@ -22,8 +22,8 @@ router.post('/registrar', ValidarPac, async (req, res) => {
     });
     res.status(201).json({ paciente });
   } catch (error) {
-    console.error(" Error al registrar paciente:", error);
-    res.status(400).json({ error: error.message });
+    console.error(error.errors); 
+    res.status(400).json({ error: error.errors });
   }
 });
 
@@ -38,7 +38,13 @@ router.get('/buscar', async (req, res) => {
   try {
     const paciente = await Paciente.findOne({ where: { Ci_pac: ci } }); 
     if (paciente) {
-      return res.json({ Idpac: paciente.Idpac });
+      return res.json({ 
+        Idpac: paciente.Idpac,
+        Nombre_pac: paciente.Nombre_pac,
+        Appaterno_pac: paciente.Appaterno_pac,
+        Apmaterno_pac: paciente.Apmaterno_pac,
+      });
+      
     } else {
       return res.status(404).json({ mensaje: 'Paciente no encontrado' });
     }
@@ -48,7 +54,6 @@ router.get('/buscar', async (req, res) => {
   }
 });
 
-// Listar todos los pacientes
 // Listar todos los pacientes
 router.get('/listar', async (req, res) => {
   try {
@@ -132,79 +137,54 @@ router.get('/paciente/:idpac', async (req, res) => {
   }
 });
 
-// Editar paciente
 router.put('/editar/:id', async (req, res) => {
   try {
-    const id = req.params.id;
+    const { id } = req.params;
     const {
-      Nombre_pac,
-      Appaterno_pac,
-      Apmaterno_pac,
-      Fnaci_pac,
-      Genero_pac,
-      Ci_pac,
-      Telefono_pac,
-      Direccion_pac,
-      Seguro,
-      Diagnostico,
-      Tienediscapacidad,
-      Tipo_disc,
-      Grado_disc,
-      Obs
+      Nombre_pac, Appaterno_pac, Apmaterno_pac, Fnaci_pac, Genero_pac,
+      Ci_pac, Telefono_pac, Direccion_pac, Seguro, Diagnostico,
+      Tienediscapacidad, Tipo_disc, Grado_disc, Obs
     } = req.body;
 
     const paciente = await Paciente.findByPk(id, {
       include: { model: Discapacidad, as: 'detalleDiscapacidad' }
     });
 
-    if (!paciente) {
-      return res.status(404).json({ error: 'Paciente no encontrado' });
-    }
+    if (!paciente) return res.status(404).json({ error: 'Paciente no encontrado' });
+
+    // Actualiza paciente
+    await paciente.update({ Nombre_pac, Appaterno_pac, Apmaterno_pac, Fnaci_pac, Genero_pac, Ci_pac, Telefono_pac, Direccion_pac, Seguro, Diagnostico });
 
     const tieneDisc = Tienediscapacidad === "true" || Tienediscapacidad === true;
-  
-    await paciente.update({
-      Nombre_pac,
-      Appaterno_pac,
-      Apmaterno_pac,
-      Fnaci_pac,
-      Genero_pac,
-      Ci_pac,
-      Telefono_pac,
-      Direccion_pac,
-      Seguro,
-      Diagnostico
-    });
 
     if (tieneDisc) {
-      if (paciente.Iddisc) {
-        const discapacidadExistente = await Discapacidad.findByPk(paciente.Iddisc);
-        if (discapacidadExistente) {
-          await discapacidadExistente.update({ Tipo_disc, Grado_disc, Obs });
-        } else {
-          return res.status(404).json({ error: 'Discapacidad no encontrada para actualizar' });
-        }
-        await paciente.update({ Tienediscapacidad: 1 });
+      if (paciente.detalleDiscapacidad) {
+        // Actualiza la discapacidad existente
+        await paciente.detalleDiscapacidad.update({ Tipo_disc, Grado_disc, Obs });
       } else {
+        // Crea una nueva discapacidad si no existe
         const nuevaDiscapacidad = await Discapacidad.create({ Tipo_disc, Grado_disc, Obs });
-        await paciente.update({ Iddisc: nuevaDiscapacidad.Iddisc, Tienediscapacidad: 1 });
+        await paciente.update({ Iddisc: nuevaDiscapacidad.Iddisc });
       }
+      await paciente.update({ Tienediscapacidad: 1 });
     } else {
-      if (paciente.Iddisc) {
+      if (paciente.detalleDiscapacidad) {
         await paciente.update({ Iddisc: null });
       }
       await paciente.update({ Tienediscapacidad: 0 });
     }
-    
+
     const pacienteActualizado = await Paciente.findByPk(id, {
       include: { model: Discapacidad, as: 'detalleDiscapacidad' }
     });
 
     res.json(pacienteActualizado);
+
   } catch (error) {
-    console.error("Error al actualizar paciente:", error);
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 module.exports = router;

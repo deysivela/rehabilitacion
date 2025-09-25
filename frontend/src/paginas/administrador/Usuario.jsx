@@ -78,6 +78,13 @@ const Usuario = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+
+    // Restricción: un profesional solo puede tener un usuario
+    if (!form.Iduser && lista.some(u => u.Idprof === parseInt(form.Idprof, 10))) {
+      alert("⚠️ Este profesional ya tiene un usuario asociado.");
+      return;
+    }
+
     const payload = {
       Usuario: form.Usuario,
       Pass: form.Pass,
@@ -85,6 +92,7 @@ const Usuario = () => {
       Activo: form.Activo,
       Idprof: form.Idprof ? parseInt(form.Idprof, 10) : null
     };
+
     if (form.Iduser) {
       await axios.put(`http://localhost:5000/api/usuario/actualizar/${form.Iduser}`, payload);
     } else {
@@ -175,10 +183,8 @@ const Usuario = () => {
                   onChange={handleChange}
                   disabled={soloVista}
                 >
-                  <option value="Admin">Administrador</option>
+                  <option value="Administrador">Administrador</option>
                   <option value="Medico">Médico</option>
-                  <option value="Auxiliar">Auxiliar</option>
-                  <option value="Otro">Otro</option>
                 </select>
               </label>
 
@@ -203,11 +209,19 @@ const Usuario = () => {
                   disabled={soloVista}
                 >
                   <option value="">— Ninguno —</option>
-                  {profesionales.map(p => (
-                    <option key={p.Idprof} value={p.Idprof}>
-                      {p.Nombre_prof} {p.Appaterno_prof}
-                    </option>
-                  ))}
+                  {profesionales
+                    .filter(p => {
+                      if (!form.Iduser) {
+                        // Si es nuevo, excluir los que ya tienen usuario
+                        return !lista.some(u => u.Idprof === p.Idprof);
+                      }
+                      return true; // En edición permitir
+                    })
+                    .map(p => (
+                      <option key={p.Idprof} value={p.Idprof}>
+                        {p.Nombre_prof} {p.Appaterno_prof}
+                      </option>
+                    ))}
                 </select>
               </label>
 
@@ -233,7 +247,7 @@ const Usuario = () => {
           <div className="modal-content">
             <h3>Detalles del Usuario</h3>
             <p><strong>Usuario:</strong> {usuarioSeleccionado.Usuario}</p>
-            <p><strong>Contraseña:</strong> 🔒 Encriptada</p>
+            <p><strong>Contraseña:</strong> Encriptada</p>
             <p><strong>Rol:</strong> {usuarioSeleccionado.Rol}</p>
             <p><strong>Activo:</strong> {usuarioSeleccionado.Activo ? 'Sí' : 'No'}</p>
             <p>

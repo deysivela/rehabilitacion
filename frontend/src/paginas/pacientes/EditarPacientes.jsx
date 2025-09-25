@@ -21,6 +21,7 @@ const EditarPaciente = () => {
     Tipo_disc: "",
     Grado_disc: "",
     Obs: "",
+    Iddisc: null, 
   });
   const [errores, setErrores] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,7 +54,8 @@ const EditarPaciente = () => {
           Diagnostico: pacienteData.Diagnostico || "",
           Tipo_disc: discapacidadData.Tipo_disc || "",
           Grado_disc: discapacidadData.Grado_disc || "",
-          Obs: discapacidadData.Obs || ""
+          Obs: discapacidadData.Obs || "",
+          Iddisc: discapacidadData?.Iddisc || null 
         });
       } catch (error) {
         console.error('Error al obtener el paciente:', error);
@@ -81,19 +83,20 @@ const EditarPaciente = () => {
     
     try {
       // Primero actualizamos la discapacidad si es necesario
-      let idDiscapacidad = null;
+      let idDiscapacidad = paciente.Iddisc; // <- usar el Id actual si existe
+
       if (paciente.Tienediscapacidad) {
         if (paciente.Tipo_disc && paciente.Grado_disc) {
-          if (paciente.detalleDiscapacidad?.Iddisc) {
-            // Actualizar discapacidad existente
-            await axios.put(`http://localhost:5000/api/discapacidad/${paciente.detalleDiscapacidad.Iddisc}`, {
+          if (paciente.Iddisc) {
+            // actualizar existente
+            await axios.put(`http://localhost:5000/api/discapacidad/editar/${paciente.Iddisc}`, {
               Tipo_disc: paciente.Tipo_disc,
               Grado_disc: paciente.Grado_disc,
               Obs: paciente.Obs
             });
-            idDiscapacidad = paciente.detalleDiscapacidad.Iddisc;
+            // idDiscapacidad ya es paciente.Iddisc
           } else {
-            // Crear nueva discapacidad
+            // crear nueva
             const discResponse = await axios.post("http://localhost:5000/api/discapacidad/registrar", {
               Tipo_disc: paciente.Tipo_disc,
               Grado_disc: paciente.Grado_disc,
@@ -102,7 +105,9 @@ const EditarPaciente = () => {
             idDiscapacidad = discResponse.data.Iddisc;
           }
         }
-      }
+      } else {
+        idDiscapacidad = null; // paciente ya no tiene discapacidad
+      }      
 
       // Preparar datos del paciente para actualizar
       const datosActualizacion = {

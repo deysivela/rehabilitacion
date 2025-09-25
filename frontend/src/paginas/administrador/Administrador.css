@@ -49,6 +49,22 @@
   font-size: 0.9rem;
   font-weight: 500;
 }
+.backup-btn {
+  background-color: #6f42c1;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 10px;
+  transition: background 0.3s;
+}
+
+.backup-btn:hover {
+  background-color: #5a32a3;
+}
+
 
 .refresh-btn:hover {
   background: #3a5ccc;

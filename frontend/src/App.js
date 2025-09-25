@@ -26,7 +26,7 @@ import Profesionales from "./paginas/profesional/Profesionales";
 import HistorialClinico from "./paginas/profesional/HistorialClinico";
 import Actividad from "./paginas/profesional/Actividad";
 import PaginaReportes from './paginas/PaginaReportes';
-
+import Respaldo from './paginas/administrador/Respaldo';
 
 // Layout con Sidebar y Outlet para contenido
 const Layout = () => (
@@ -105,6 +105,14 @@ const App = () => {
               element={
                 <PrivateRoute allowedRoles={["administrador"]}>
                   <Profesional />
+                </PrivateRoute>
+              }
+            />
+           <Route
+              path="respaldo"
+              element={
+                <PrivateRoute allowedRoles={["administrador"]}>
+                  <Respaldo />
                 </PrivateRoute>
               }
             />

@@ -18,7 +18,7 @@ const sesion_tecnicasRutas=require('./rutas/sesion_tecnica');
 const actividadRutas=require('./rutas/actividad');
 const indicadoresRutas= require('./rutas/indicadores');
 const reportesRutas= require('./rutas/reportes');
-const condicionRutas= require('./rutas/condicion');
+const respaldoRutas=require('./rutas/respaldo');
 
 const app = express();
 app.use(express.json());
@@ -45,7 +45,7 @@ app.use('/api/sesion_tecnica',sesion_tecnicasRutas);
 app.use('/api/actividad',actividadRutas);
 app.use('/api/indicadores',indicadoresRutas);
 app.use('/api/reportes',reportesRutas);
-app.use('/api/condicion',condicionRutas);
+app.use('/api/respaldo',respaldoRutas);
 
 // Conexión a la base de datos
 const PORT = process.env.PORT || 5000;

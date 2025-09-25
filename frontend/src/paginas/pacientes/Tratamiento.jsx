@@ -318,7 +318,7 @@ const Tratamiento = () => {
                   <th>Fecha Inicio</th>
                   <th>Fecha Fin</th>
                   <th>Estado</th>
-                  <th>Observaciones</th>
+                  <th>Diagnostico</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -336,7 +336,7 @@ const Tratamiento = () => {
                         {t.Estado}
                       </span>
                     </td>
-                    <td>{t.Obs || "-"}</td>
+                    <td>{t.diagnostico || "-"}</td>
                     <td className="acciones">
                       <button
                         className="btn-detalle"

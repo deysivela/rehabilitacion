@@ -33,9 +33,34 @@
 }
 
 .rbc-time-view .rbc-row {
-  min-height: unset !important; /* o auto */
+  min-height: unset !important; 
 }
 
+.rbc-event {
+  white-space: pre-line !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2px 4px;
+}
+
+.rbc-event-content {
+  line-height: 1.2;
+}
+/* Añade estos estilos a tu CalendarioCitas.css */
+.rbc-event {
+  white-space: pre-line !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2px 4px;
+  line-height: 1.2;
+  min-height: 40px; /* Ajusta según necesites */
+}
+
+.rbc-event-content {
+  font-size: 0.85em;
+}
 /* === CALENDARIO RESPONSIVE === */
 .calendario-wrapper {
   background: white;
@@ -377,7 +402,6 @@ textarea {
   border-color: #95a5a6;
 }
 
-/* === BADGES DE ESTADO === */
 .badge-estado {
   padding: 4px 8px;
   border-radius: 12px;

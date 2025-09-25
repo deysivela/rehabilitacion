@@ -9,6 +9,20 @@
   font-weight: 500;
   white-space: nowrap;
   font-weight: bold; 
+  
+}
+
+.tabla-tecnicas th,
+.tabla-tecnicas td {
+  padding: 5px 15px;
+  border-bottom: 1px solid #e0f2fe;
+  color: black;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  text-align: left;
+  height: 25px;
 }
 /* Header con título y botón al mismo nivel */
 .header-tecnica {

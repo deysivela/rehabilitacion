@@ -38,6 +38,7 @@
     text-overflow: ellipsis;
     max-width: 200px;
     text-align: left;
+    height: 30px;
   }
   
   .tabla-usuarios th {

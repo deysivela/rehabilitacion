@@ -277,6 +277,12 @@
   color: white;
 }
 
+/* CONTENIDO PRINCIPAL AJUSTE CON SIDEBAR */
+.main-content {
+  transition: margin-left 0.3s ease;
+  width: calc(100% - 250px);
+/*   overflow-x: auto; */
+}
 /* Ajustes dinámicos del contenido */
 body.sidebar-expanded .main-content {
   margin-left: 250px;

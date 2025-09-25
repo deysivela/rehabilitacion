@@ -239,6 +239,8 @@ const RegistrarPaciente = () => {
                       <option value="INTELECTUAL">Intelectual</option>
                       <option value="MÚLTIPLE">Múltiple</option>
                       <option value="VISUAL">Visual</option>
+                      <option value="AUDITIVO">Auditivo</option>
+                      <option value="MENTAL">Mental</option>
                     </select>
                   </div>
 

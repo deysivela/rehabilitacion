@@ -46,8 +46,6 @@ const Actividad = () => {
     }
   };
 
-
-
   const formatearFecha = (fecha) => {
     if (!fecha) return "-";
     const date = new Date(fecha);
@@ -124,6 +122,22 @@ const Actividad = () => {
       console.error("Error al eliminar actividad", err);
     }
   };
+  // Lista de opciones sin numeración
+  const opcionesTipo = [
+    "N° de CAI de establecimiento",
+    "N° de CAI de la red funcional de salud",
+    "Nº de actividades realizadas con participación de la comunidad",
+    "N° de actividades de la comunidad con participación del establecimiento",
+    "Nº de capacitaciones impartidas",
+    "Nº de participación en Ferias",
+    "Nº de actividades educativas realizadas",
+    "Nº de visitas familiares realizadas",
+    "Nº de supervisiones y autoevaluaciones del establecimiento de Rehabilitación",
+    "Nº de quejas y reclamos realizadas por los usuarios",
+    "Nº de sugerencias y agradecimientos realizados por los usuarios",
+    "N° de evaluaciones de satisfacción realizadas",
+    "N° de actividades a favor de las Personas con Discapacidad",
+  ];
 
   return (
     <div className="actividad-container">
@@ -153,7 +167,7 @@ const Actividad = () => {
                 <td>{a.Lugar}</td>
                 <td>{a.Resultado}</td>
                 <td>{a.Medio_ver}</td>
-                  
+
                 <td className="acciones">
                   <FaEye
                     className="icono ojo"
@@ -197,13 +211,19 @@ const Actividad = () => {
                 value={actividadActual.Actividad}
                 onChange={handleChange}
               />
-              <input
-                type="text"
+              <select
                 name="Tipo"
-                placeholder="Tipo"
                 value={actividadActual.Tipo}
                 onChange={handleChange}
-              />
+              >
+                <option value="">-- Seleccione un tipo --</option>
+                {opcionesTipo.map((opcion, index) => (
+                  <option key={index} value={opcion}>
+                    {opcion}
+                  </option>
+                ))}
+              </select>
+
               <input
                 type="text"
                 name="Lugar"
@@ -224,7 +244,11 @@ const Actividad = () => {
                 onChange={handleChange}
               />
               {!modoEdicion && (
-                <input type="hidden" name="Idprof" value={idProfesionalLogeado} />
+                <input
+                  type="hidden"
+                  name="Idprof"
+                  value={idProfesionalLogeado}
+                />
               )}
             </form>
             <div className="modal-botones">

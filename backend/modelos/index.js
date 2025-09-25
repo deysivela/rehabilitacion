@@ -49,19 +49,25 @@ db.Paciente.hasMany(db.Tratamiento, {
   as: "tratamientos",
 });
 
-// Relación Paciente-Discapacidad
+// Paciente tiene una discapacidad
 db.Paciente.belongsTo(db.Discapacidad, {
   foreignKey: "Iddisc",
-  as: "detalleDiscapacidad" 
+  as: "detalleDiscapacidad"
 });
 
-db.Discapacidad.hasMany(db.Paciente, {
+// Discapacidad pertenece a un paciente (uno a uno)
+db.Discapacidad.hasOne(db.Paciente, {
   foreignKey: "Iddisc",
-  as: "pacientes"
+  as: "paciente"
 });
+
+
 
 // Un Profesional de salud pertenece a un Área
 db.ProfSalud.belongsTo(db.Area, { foreignKey: "Idarea", as: "area" });
+
+// Un Área puede tener muchos Profesionales
+db.Area.hasMany(db.ProfSalud, { foreignKey: "Idarea", as: "profesionales" });
 
 // Una Técnica pertenece a un Área
 db.Tecnica.belongsTo(db.Area, { foreignKey: "Idarea", as: "area" });
