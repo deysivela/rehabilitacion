@@ -195,7 +195,8 @@ async function generarExcelReporte(datos, config) {
     font: { bold: true, size: 12 },
     alignment: { horizontal: "center", vertical: "middle", wrapText: true },
   });
-  
+ 
+
   hoja.getCell(`B${filaActual}`).value = "1. CONSULTAS";
 
   // 5. Rangos de edad y sexo
@@ -248,7 +249,7 @@ async function generarExcelReporte(datos, config) {
     cell.value = rango.sexo;
     cell.style = estiloEncabezado;
   });
-
+  //console.log("DATOS CRUDOS:", datos);
   // 8. Agrupar datos por área y profesional
 const datosAgrupados = {};
 datos.forEach((dato) => {
@@ -278,19 +279,64 @@ for (const area of areas) {
     (clave) => datosAgrupados[clave].area.toUpperCase() === area.Nombre.toUpperCase()
   );
 
+  //  CORRECCIÓN: Si no hay datos para el área, crear una entrada vacía
   if (clavesArea.length === 0) {
-    clavesArea.push(null);
+    //console.log("Área sin datos:", area.Nombre, "| Creando filas vacías");
+    
+    // Crear estructura vacía para el área
+    const datosAreaVacia = {
+      area: area.Nombre,
+      profesional: "",
+      nuevos: [],
+      repetidos: [],
+    };
+
+    // --- FILA NUEVOS (N) VACÍA ---
+    const numeracionN = `1.${contadorConsulta}`;
+    hoja.getCell(`B${filaActual}`).value = `${numeracionN} ${area.Nombre}`;
+    hoja.getCell(`B${filaActual}`).style = estiloCeldaRelleno;
+    hoja.getCell(`C${filaActual}`).value = "N";
+    hoja.getCell(`C${filaActual}`).style = estiloCeldaRelleno;
+
+    // Todas las celdas de rangos vacías
+    rangosEdad.forEach(({ col }) => {
+      const cell = hoja.getCell(`${col}${filaActual}`);
+      cell.value = "";
+      cell.style = estiloCelda;
+    });
+
+    hoja.getCell(`X${filaActual}`).value = 0;
+    hoja.getCell(`X${filaActual}`).style = estiloEncabezado;
+
+    filaActual++;
+    contadorConsulta++;
+
+    // --- FILA REPETIDOS (R) VACÍA ---
+    const numeracionR = `1.${contadorConsulta}`;
+    hoja.getCell(`B${filaActual}`).value = `${numeracionR} ${area.Nombre}`;
+    hoja.getCell(`B${filaActual}`).style = estiloCeldaRelleno;
+    hoja.getCell(`C${filaActual}`).value = "R";
+    hoja.getCell(`C${filaActual}`).style = estiloCeldaRelleno;
+
+    // Todas las celdas de rangos vacías
+    rangosEdad.forEach(({ col }) => {
+      const cell = hoja.getCell(`${col}${filaActual}`);
+      cell.value = "";
+      cell.style = estiloCelda;
+    });
+
+    hoja.getCell(`X${filaActual}`).value = 0;
+    hoja.getCell(`X${filaActual}`).style = estiloEncabezado;
+
+    filaActual++;
+    contadorConsulta++;
+    
+    continue; // Saltar al siguiente área
   }
 
+  // 🔥 PROCESAR ÁREAS CON DATOS (código original)
   for (const clave of clavesArea) {
-    const datosArea = clave
-      ? datosAgrupados[clave]
-      : {
-          area: area.Nombre,
-          profesional: "",
-          nuevos: [],
-          repetidos: [],
-        };
+    const datosArea = datosAgrupados[clave];
 
     let nombreFila = datosArea.area;
 

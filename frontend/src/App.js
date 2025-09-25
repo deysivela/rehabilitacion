@@ -20,7 +20,6 @@ import Usuario from "./paginas/administrador/Usuario";
 import Area from "./paginas/administrador/Area";
 import Profesional from "./paginas/administrador/Profesional";
 import Sesion from "./paginas/citas/Sesion";
-import Tratamiento from "./paginas/pacientes/Tratamiento";
 import Tecnica from "./paginas/profesional/Tecnicas";
 import Profesionales from "./paginas/profesional/Profesionales";
 import HistorialClinico from "./paginas/profesional/HistorialClinico";
@@ -131,7 +130,6 @@ const App = () => {
             <Route path="pacientes/editar/:id" element={<EditarPaciente />} />
             <Route path="citas" element={<Citas />} />
             <Route path="sesion" element={<Sesion />} />
-            <Route path="tratamientos" element={<Tratamiento />} />
             <Route path="tecnicas" element={<Tecnica />} />
             <Route path="actividad" element={<Actividad />} />
             <Route path="profesionales" element={<Profesionales />} />

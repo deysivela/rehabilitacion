@@ -176,8 +176,6 @@ const Sesion = () => {
             addNotification("info", "Complete los datos de la sesión");
           }
         }
-  
-        addNotification("success", "Datos cargados correctamente");
       } catch (err) {
         addNotification(
           "error",
@@ -278,10 +276,6 @@ const Sesion = () => {
  
   // Validar formulario antes de enviar
   const validarFormulario = () => {
-    if (formulario.Idtec.length === 0) {
-      addNotification("warning", "Debe seleccionar al menos una técnica");
-      return false;
-    }
 
     if (formulario.Hora_ini >= formulario.Hora_fin) {
       addNotification(

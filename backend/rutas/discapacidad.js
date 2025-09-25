@@ -7,14 +7,21 @@ router.post('/registrar', async (req, res) => {
   try {
     const { Tipo_disc, Grado_disc, Obs } = req.body;
 
-    const discp = await Discapacidad.create({ Tipo_disc, Grado_disc, Obs });
+    const discapacidad = await Discapacidad.create({ Tipo_disc, Grado_disc, Obs });
 
-    res.status(201).json(discp);
+    // Retornar solo el ID y los datos relevantes
+    res.status(201).json({
+      Iddisc: discapacidad.Iddisc,
+      Tipo_disc: discapacidad.Tipo_disc,
+      Grado_disc: discapacidad.Grado_disc,
+      Obs: discapacidad.Obs
+    });
   } catch (error) {
     console.error("Error al registrar discapacidad:", error.message);
     res.status(400).json({ error: error.message });
   }
 });
+
 // Obtener discapacidad por paciente (versión mejorada)
 router.get('/paciente/:id', async (req, res) => {
   try {

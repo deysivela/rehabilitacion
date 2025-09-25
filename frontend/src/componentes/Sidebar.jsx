@@ -25,7 +25,6 @@ const Sidebar = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isCitasOpen, setIsCitasOpen] = useState(false);
   const [isProfesionalesOpen, setIsProfesionalesOpen] = useState(false);
-  const [isPacientesOpen, setIsPacientesOpen] = useState(false);
   const [usuario, setUsuario] = useState({ nombre: "", rol: "" });
 
   const toggleSidebar = () => {
@@ -91,11 +90,8 @@ const Sidebar = () => {
       setIsAdminOpen(false);
       setIsCitasOpen(false);
       setIsProfesionalesOpen(false);
-      setIsPacientesOpen(false);
     }
   }, [isOpen]);
-
-  // Determinar tipo de dispositivo según el ancho de pantalla
  
   const isTablet = windowSize.width >= 768 && windowSize.width < 1024;
   const isMobile = windowSize.width < 768;
@@ -180,21 +176,7 @@ const Sidebar = () => {
                 <FaUser />
                 {isOpen && <span>Pacientes</span>}
               </Link>
-              {isOpen && (
-                <span
-                  className="submenu-arrow"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsPacientesOpen(!isPacientesOpen);
-                  }}
-                >
-                  {isPacientesOpen ? <FaChevronUp /> : <FaChevronDown />}
-                </span>
-              )}
             </div>
-            <ul className={`submenu ${isPacientesOpen && isOpen ? "visible" : ""}`}>
-              <li><Link to="/tratamientos" onClick={closeSidebar}><span className="submenu-item">Tratamientos</span></Link></li>
-            </ul>
           </li>
 
           {/* PROFESIONALES */}
@@ -202,7 +184,7 @@ const Sidebar = () => {
             <div className="submenu-toggle">
               <Link to="/profesionales" className="submenu-main-link" onClick={closeSidebar}>
                 <FaUserMd />
-                {isOpen && <span>Profesional de Salud</span>}
+                {isOpen && <span>Tratamientos</span>}
               </Link>
               {isOpen && (
                 <span

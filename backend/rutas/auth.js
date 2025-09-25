@@ -28,7 +28,7 @@ router.post('/login', async (req, res) => {
     }
 
     if (!user.Activo) {
-      return res.status(403).json({ message: 'Usuario inactivo. Comuníquese con el coordinador.' });
+      return res.status(403).json({ message: 'Usuario inactivo. Comuníquese con el encargado.' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.Pass);

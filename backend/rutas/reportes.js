@@ -314,6 +314,7 @@ async function procesarSesiones(
     const clave = profesionalFiltro
       ? `${area}_${nombreProfesional}_${tipoSesion}`
       : `${area}_${tipoSesion}`;
+      //console.log(" Área detectada:", area, "| Tipo:", tipoSesion);
 
     if (!resultado[clave]) {
       resultado[clave] = inicializarEstructuraReporte(profesionalFiltro);
@@ -654,6 +655,7 @@ router.post("/generar", validarParametros, async (req, res) => {
       razonesAbandono: RAZONES_ABANDONO,
       todasTecnicas: TODAS_TECNICAS,
     });
+    
 
     res.setHeader(
       "Content-Type",

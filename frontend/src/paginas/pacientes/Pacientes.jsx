@@ -124,13 +124,10 @@ const Pacientes = () => {
     }
   }, [pacienteSeleccionado]);
 
-  // Redirigir a registro de tratamiento con ID de paciente
-  const registrarTratamiento = (idPaciente) => {
-    navigate({
-      pathname: "/tratamientos",
-      search: `?pacienteId=${idPaciente}&abrirModal=true`,
-    });
-  };
+// Redirigir a registro a profesionales con ID de paciente
+const registrarTratamiento = (idPaciente) => {
+  navigate(`/profesionales?pacienteId=${idPaciente}&abrirModalTratamiento=true`);
+};
 
   // Filtrar pacientes
   const pacientesFiltrados = pacientes.filter((paciente) => {

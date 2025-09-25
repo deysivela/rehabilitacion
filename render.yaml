@@ -1,0 +1,26 @@
+services:
+  # Backend (Node.js)
+  - type: web
+    name: rehabilitacion-backend
+    env: node
+    plan: starter
+    rootDir: backend
+    buildCommand: "npm install"
+    startCommand: "node server.js"
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: PORT
+        value: 10000
+
+  # Frontend (React)
+  - type: web
+    name: rehabilitacion-frontend
+    env: static
+    plan: free
+    rootDir: frontend
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: build
+    envVars:
+      - key: NODE_VERSION
+        value: 18

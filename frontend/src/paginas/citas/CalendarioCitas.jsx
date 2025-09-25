@@ -14,7 +14,6 @@ import { FaCalendarAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Modal from "react-modal";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import "./CalendarioCitas.css";
 
 // Configuración de localización

@@ -6,7 +6,6 @@ import {
   FiUserPlus,
   FiLayers,
   FiCalendar,
-  FiFileText,
   FiUser,
   FiRefreshCw,
   FiDatabase,
@@ -117,13 +116,6 @@ const Administrador = () => {
       count: stats.citasProgramadas || 0,
       color: "#e74a3b",
       group: "citas",
-    },
-    {
-      title: "Reportes",
-      path: "/reportes",
-      icon: <FiFileText className="link-icon" />,
-      count: stats.reportes || 0,
-      color: "#6f42c1",
     },
   ];
 
