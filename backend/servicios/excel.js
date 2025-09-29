@@ -281,7 +281,6 @@ for (const area of areas) {
 
   //  CORRECCIÓN: Si no hay datos para el área, crear una entrada vacía
   if (clavesArea.length === 0) {
-    //console.log("Área sin datos:", area.Nombre, "| Creando filas vacías");
     
     // Crear estructura vacía para el área
     const datosAreaVacia = {

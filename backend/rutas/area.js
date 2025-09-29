@@ -1,5 +1,5 @@
 const express = require('express');
-const Area = require('../modelos/Area');
+const Area = require('../modelos/area');
 const router = express.Router();
 
 // Crear una nueva área
