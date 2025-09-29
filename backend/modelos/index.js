@@ -5,7 +5,7 @@ const db = {};
 db.sequelize = sequelize;
 
 // Importar modelos
-db.Usuario = require("./usuario");
+db.Usuario = require("./Usuario");
 db.ProfSalud = require("./ProfSalud");
 db.Paciente = require("./Paciente");
 db.Discapacidad = require("./Discapacidad");
