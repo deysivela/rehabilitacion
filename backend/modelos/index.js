@@ -14,7 +14,7 @@ db.Sesion = require("./Sesion");
 db.Tratamiento = require("./Tratamiento");
 db.Tecnica = require("./Tecnica");
 db.Area = require("./Area");
-db.Sesion_Tecnica = require("./Sesion_tecnica");
+db.Sesion_Tecnica = require("./SesionTecnica");
 db.Actividad = require("./Actividad");
 
 // Asociaciones
