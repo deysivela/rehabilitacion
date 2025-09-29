@@ -312,68 +312,103 @@ h1 {
     font-size: 0.8rem;
   }
 }
+/* Responsive completo para móviles: tabla tipo tarjeta */
+   @media (max-width: 768px) {
 
-/* Responsive */
-@media (max-width: 768px) {
-  .header-container {
-    flex-direction: column;
-    align-items: flex-start;
+    /* Separar tabla del borde de la pantalla */
+    .table-responsive {
+      padding: 0 10px;
+    }
+  
+    /* Convertir tabla en tarjetas verticales */
+    .pacientes-table,
+    .pacientes-table tbody,
+    .pacientes-table tr,
+    .pacientes-table td {
+      display: block;
+      width: 100%;
+    }
+  
+    .pacientes-table thead {
+      display: none; /* ocultar encabezados */
+    }
+  
+    /* Cada fila como tarjeta */
+    .pacientes-table tr {
+      background: #fff; /* mantener fondo blanco */
+      border-radius: 8px;
+      margin-bottom: 15px;
+      padding: 12px 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      position: relative;
+    }
+  
+    /* Cada celda como línea dentro de la tarjeta */
+    .pacientes-table td {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border: none;
+      font-weight: bold; 
+      color: #000;
+    }
+  
+    /* Etiqueta antes de cada valor */
+    .pacientes-table td::before {
+      font-weight: bold;
+      margin-right: 10px;
+      flex-shrink: 0;
+      color: #3498db; 
+    }
+  
+    /* Definir etiquetas para cada campo */
+    .pacientes-table td:nth-of-type(1)::before { content: "Nombre"; }
+    .pacientes-table td:nth-of-type(2)::before { content: "CI"; }
+    .pacientes-table td:nth-of-type(3)::before { content: "Sexo"; }
+    .pacientes-table td:nth-of-type(4)::before { content: "Edad"; }
+    .pacientes-table td:nth-of-type(5)::before { content: "Teléfono"; }
+    .pacientes-table td:nth-of-type(6)::before { content: "Diagnóstico Inicial"; }
+    .pacientes-table td:nth-of-type(7)::before { content: "PcD"; }
+    .pacientes-table td:nth-of-type(8)::before { content: "Acciones"; }
+  
+    /* Acciones: horizontal al inicio de la tarjeta */
+    .pacientes-table td.acciones {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start; /* alineadas al lado izquierdo */
+      gap: 10px; /* espacio entre botones */
+      padding-left: 0;
+      margin-bottom: 8px;
+      color: #3498db; /* letras de los botones también en celeste */
+    }
+  
+    .pacientes-table td.acciones .btn-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 35px;
+      height: 35px;
+    }
+  
+    /* Separación de cada línea dentro de la tarjeta */
+    .pacientes-table td:not(.acciones) {
+      margin-bottom: 6px;
+    }
   }
   
-  .filtros-container {
-    flex-direction: column;
+  /* Pantallas muy pequeñas */
+  @media (max-width: 480px) {
+    .table-responsive {
+      padding: 0 8px;
+    }
+  
+    .pacientes-table td {
+      font-size: 0.85rem;
+    }
+  
+    .pacientes-table td.acciones .btn-action {
+      min-width: 30px;
+      height: 30px;
+    }
   }
   
-  .filtro-group {
-    width: 100%;
-  }
-  
-  .filtro-group input,
-  .filtro-group select {
-    width: 100%;
-  }
-  
-  .pacientes-table {
-    display: block;
-  }
-  
-  .pacientes-table th, 
-  .pacientes-table td {
-    padding: 8px 10px;
-    font-size: 0.9rem;
-  }
-  
-  .modal-contenido {
-    width: 90%;
-  }
-  
-  .detalle-col {
-    flex: 100%;
-    margin-bottom: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .pacientes-table th, 
-  .pacientes-table td {
-    padding: 6px 8px;
-    font-size: 0.8rem;
-  }
-  
-  .btn-action {
-    padding: 4px 6px;
-    font-size: 0.8rem;
-  }
-  
-  .modal-contenido {
-    width: 95%;
-  }
-  
-  .modal-header h2 {
-    font-size: 1.2rem;
-  }
-  
-  .detalle-col h3 {
-    font-size: 1rem;
-  }
-}

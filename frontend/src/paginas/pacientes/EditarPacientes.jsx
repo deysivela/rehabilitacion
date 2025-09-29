@@ -79,57 +79,84 @@ const EditarPaciente = () => {
   const actualizarPaciente = async (e) => {
     e.preventDefault();
     setErrores([]);
+    
+    // Validaciones
+    if (!paciente.Nombre_pac || !paciente.Fnaci_pac || !paciente.Genero_pac || !paciente.Ci_pac) {
+      setErrores([{ msg: "Los campos Nombre, Fecha de Nacimiento, Género y CI son obligatorios" }]);
+      return;
+    }
+    
+    if (paciente.Tienediscapacidad && (!paciente.Tipo_disc || !paciente.Grado_disc)) {
+      setErrores([{ msg: "Cuando el paciente tiene discapacidad, Tipo y Grado son obligatorios" }]);
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      // Primero actualizamos la discapacidad si es necesario
-      let idDiscapacidad = paciente.Iddisc; // <- usar el Id actual si existe
-
+      let idDiscapacidad = paciente.Iddisc;
+  
+      // Lógica de discapacidad - SOLO si tiene discapacidad
       if (paciente.Tienediscapacidad) {
         if (paciente.Tipo_disc && paciente.Grado_disc) {
           if (paciente.Iddisc) {
-            // actualizar existente
+            // Actualizar discapacidad existente
             await axios.put(`http://localhost:5000/api/discapacidad/editar/${paciente.Iddisc}`, {
               Tipo_disc: paciente.Tipo_disc,
               Grado_disc: paciente.Grado_disc,
               Obs: paciente.Obs
             });
-            // idDiscapacidad ya es paciente.Iddisc
-          } else {
-            // crear nueva
-            const discResponse = await axios.post("http://localhost:5000/api/discapacidad/registrar", {
-              Tipo_disc: paciente.Tipo_disc,
-              Grado_disc: paciente.Grado_disc,
-              Obs: paciente.Obs
-            });
-            idDiscapacidad = discResponse.data.Iddisc;
-          }
+          } 
         }
       } else {
-        idDiscapacidad = null; // paciente ya no tiene discapacidad
-      }      
-
-      // Preparar datos del paciente para actualizar
+        // PACIENTE SIN DISCAPACIDAD - SOLO eliminar si existe
+        idDiscapacidad = null;
+        if (paciente.Iddisc) {
+          try {
+            await axios.delete(`http://localhost:5000/api/discapacidad/eliminar/${paciente.Iddisc}`);
+          } catch (deleteError) {
+            console.warn("No se pudo eliminar la discapacidad:", deleteError);
+          }
+        }
+      }
+  
+      // PREPARAR DATOS - NO enviar campos de discapacidad si no tiene
       const datosActualizacion = {
+        // Datos personales
         Nombre_pac: paciente.Nombre_pac,
         Appaterno_pac: paciente.Appaterno_pac,
         Apmaterno_pac: paciente.Apmaterno_pac,
         Fnaci_pac: paciente.Fnaci_pac,
         Genero_pac: paciente.Genero_pac,
         Ci_pac: paciente.Ci_pac,
+        
+        // Información de contacto
         Telefono_pac: paciente.Telefono_pac,
         Direccion_pac: paciente.Direccion_pac,
         Seguro: paciente.Seguro,
-        Tienediscapacidad: paciente.Tienediscapacidad,
+        
+        // Diagnóstico
         Diagnostico: paciente.Diagnostico,
-        Iddisc: idDiscapacidad
+        
+        // Discapacidad
+        Tienediscapacidad: paciente.Tienediscapacidad,
+        Iddisc: idDiscapacidad,
+        
+        // SOLO enviar campos de discapacidad si el paciente tiene discapacidad
+        ...(paciente.Tienediscapacidad && {
+          Tipo_disc: paciente.Tipo_disc,
+          Grado_disc: paciente.Grado_disc,
+          Obs: paciente.Obs
+        })
       };
-
+  
       await axios.put(`http://localhost:5000/api/paciente/editar/${id}`, datosActualizacion);
       navigate("/pacientes", { state: { success: "Paciente actualizado correctamente" } });
     } catch (error) {
       console.error("Error al actualizar paciente:", error);
-      if (error.response?.data?.errors) {
+      if (error.response?.data?.error) {
+        setErrores([{ msg: error.response.data.error }]);
+      } else if (error.response?.data?.errors) {
         setErrores(error.response.data.errors);
       } else {
         setErrores([{ msg: "Ocurrió un error al actualizar el paciente" }]);

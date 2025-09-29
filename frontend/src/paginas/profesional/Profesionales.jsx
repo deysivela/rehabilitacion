@@ -1,33 +1,52 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import {
-  FaEdit, FaSearch, FaUser, FaCalendarAlt, FaIdCard, FaCalendarCheck,
-  FaWheelchair, FaClipboardList, FaTimes, FaEye, FaFileMedical,
-  FaPlusCircle, FaPlus, FaExclamationTriangle
+  FaEdit,
+  FaSearch,
+  FaUser,
+  FaCalendarAlt,
+  FaIdCard,
+  FaCalendarCheck,
+  FaWheelchair,
+  FaClipboardList,
+  FaTimes,
+  FaEye,
+  FaFileMedical,
+  FaPlusCircle,
+  FaPlus,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import "./Profesionales.css";
 
 const Profesionales = () => {
-  const [pacientes, setPacientes] = useState([]);
+  const [tratamientos, setTratamientos] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [filtroDiscapacidad, setFiltroDiscapacidad] = useState("todos");
   const [profesionales, setProfesionales] = useState([]);
-  const [todosLosPacientes, setTodosLosPacientes] = useState([]);
+  const [pacientes, setPacientes] = useState([]);
   const [todosLosTratamientos, setTodosLosTratamientos] = useState([]);
-  const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
+  const [tratamientoSeleccionado, setTratamientoSeleccionado] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [filtroProfesional, setFiltroProfesional] = useState("");
   const [mostrarModal, setMostrarModal] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [modalTratamientoOpen, setModalTratamientoOpen] = useState(false);
   const [form, setForm] = useState({
-    Idtrat: "", Idpac: "", Idprof: "", nombre: "", diagnostico: "",
-    Fecha_ini: "", Fecha_fin: "", Estado: "En tratamiento", Razon: "", Obs: ""
+    Idtrat: "",
+    Idpac: "",
+    Idprof: "",
+    nombre: "",
+    diagnostico: "",
+    Fecha_ini: "",
+    Fecha_fin: "",
+    Estado: "En tratamiento",
+    Razon: "",
+    Obs: "",
   });
 
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams(); // ✅ Hook para leer parámetros URL
 
   const usuario = JSON.parse(sessionStorage.getItem("usuario"));
   const idProfesionalLogeado = usuario?.idprof;
@@ -42,240 +61,373 @@ const Profesionales = () => {
       let años = hoy.getFullYear() - nacimiento.getFullYear();
       let meses = hoy.getMonth() - nacimiento.getMonth();
       if (meses < 0 || (meses === 0 && hoy.getDate() < nacimiento.getDate())) {
-        años--; meses += 12;
+        años--;
+        meses += 12;
       }
       if (hoy.getDate() < nacimiento.getDate()) {
-        meses--; if (meses < 0) meses = 11;
+        meses--;
+        if (meses < 0) meses = 11;
       }
-      if (años < 1) return { años: 0, meses, texto: `${meses} ${meses===1?'mes':'meses'}` };
-      return { años, meses, texto: `${años} ${años===1?'año':'años'}` };
-    } catch { return { años: "-", meses: "-", texto: "-" }; }
+      if (años < 1)
+        return {
+          años: 0,
+          meses,
+          texto: `${meses} ${meses === 1 ? "mes" : "meses"}`,
+        };
+      return { años, meses, texto: `${años} ${años === 1 ? "año" : "años"}` };
+    } catch {
+      return { años: "-", meses: "-", texto: "-" };
+    }
   }, []);
 
-  // Abrir modal tratamiento
-  const abrirModalTratamiento = useCallback((paciente = null, tratamiento = null) => {
-    if (paciente && tratamiento) {
-      setForm({
-        Idtrat: tratamiento.Idtrat || "",
-        Idpac: paciente.Idpac,
-        Idprof: tratamiento.Idprof || idProfesionalLogeado,
-        nombre: tratamiento.nombre || "",
-        diagnostico: tratamiento.diagnostico || "",
-        Fecha_ini: tratamiento.Fecha_ini ? tratamiento.Fecha_ini.split("T")[0] : "",
-        Fecha_fin: tratamiento.Fecha_fin ? tratamiento.Fecha_fin.split("T")[0] : "",
-        Estado: tratamiento.Estado || "En tratamiento",
-        Razon: tratamiento.Razon || "",
-        Obs: tratamiento.Obs || "",
-      });
-    } else if (paciente) {
-      setForm({
-        Idtrat: "", Idpac: paciente.Idpac, Idprof: idProfesionalLogeado,
-        nombre: "", diagnostico: "",
-        Fecha_ini: new Date().toISOString().split("T")[0],
-        Fecha_fin: "", Estado: "En tratamiento", Razon: "", Obs: ""
-      });
-    } else {
-      setForm({
-        Idtrat: "", Idpac: "", Idprof: idProfesionalLogeado,
-        nombre: "", diagnostico: "",
-        Fecha_ini: new Date().toISOString().split("T")[0],
-        Fecha_fin: "", Estado: "En tratamiento", Razon: "", Obs: ""
-      });
+  // Función para cargar pacientes
+  const cargarPacientes = useCallback(async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/paciente/listar");
+      setPacientes(res.data);
+      console.log("Pacientes cargados:", res.data);
+    } catch (error) {
+      console.error("Error al cargar pacientes:", error);
     }
-    setModalTratamientoOpen(true);
-  }, [idProfesionalLogeado]);
+  }, []);
 
-  // MODIFICADO: Solo pacientes con tratamientos
-  const obtenerPacientesConTratamientos = useCallback((pacientesList, tratamientosList) => {
-    console.log("Total pacientes:", pacientesList.length);
-    console.log("Total tratamientos:", tratamientosList.length);
-    
-    // Filtrar pacientes que tengan al menos un tratamiento
-    const pacientesConTratamientos = pacientesList.filter(paciente => 
-      tratamientosList.some(tratamiento => tratamiento.Idpac === paciente.Idpac)
-    );
+  // Abrir modal tratamiento automáticamente desde URL
+  const abrirModalDesdeURL = useCallback(async () => {
+    const pacienteId = searchParams.get("pacienteId");
+    const abrirModal = searchParams.get("abrirModalTratamiento");
 
-    if (esAdministrador) {
-      // Administrador: mostrar TODOS los pacientes que tengan tratamientos
-      return pacientesConTratamientos.map(paciente => ({
-        ...paciente,
-        tratamientos: tratamientosList.filter(t => t.Idpac === paciente.Idpac)
-      }));
-    } else {
-      // Médico: mostrar solo los pacientes que tienen tratamiento con este profesional
-      const tratamientosDelProfesional = tratamientosList.filter(t => t.Idprof === idProfesionalLogeado);
-      
-      const pacientesFiltrados = pacientesConTratamientos.filter(paciente => 
-        tratamientosDelProfesional.some(t => t.Idpac === paciente.Idpac)
+    if (abrirModal === "true" && pacienteId) {
+      console.log("Abriendo modal automáticamente para paciente:", pacienteId);
+
+      // Asegurar pacientes cargados
+      if (pacientes.length === 0) {
+        await cargarPacientes();
+      }
+
+      // Comparar con seguridad (string vs número)
+      const pacienteExiste = pacientes.find(
+        (pac) => String(pac.Idpac) === String(pacienteId)
       );
-      
-      console.log("Pacientes del profesional:", pacientesFiltrados.length);
-      
-      return pacientesFiltrados.map(paciente => ({
-        ...paciente,
-        tratamientos: tratamientosDelProfesional.filter(t => t.Idpac === paciente.Idpac)
-      }));
+
+      if (pacienteExiste) {
+        setForm((prev) => ({
+          ...prev,
+          Idpac: String(pacienteId),
+          Idprof: idProfesionalLogeado,
+          Fecha_ini: new Date().toISOString().split("T")[0],
+        }));
+        setModalTratamientoOpen(true);
+
+        // Limpiar parámetros de la URL
+        navigate("/profesionales", { replace: true });
+      } else {
+        console.warn("Paciente no encontrado:", pacienteId);
+      }
     }
-  }, [esAdministrador, idProfesionalLogeado]);
+  }, [
+    searchParams,
+    pacientes,
+    cargarPacientes,
+    idProfesionalLogeado,
+    navigate,
+  ]);
 
-  // MODIFICADO: Filtros que consideran múltiples tratamientos
-  const aplicarFiltrosBusqueda = useCallback((pacientesList) => {
-    return pacientesList
-      .map((paciente) => {
-        let tratamientosFiltrados = paciente.tratamientos || [];
-  
-        // Filtro por profesional (solo si es admin y selecciona uno)
-        if (esAdministrador && filtroProfesional !== "") {
-          tratamientosFiltrados = tratamientosFiltrados.filter(
-            (t) => String(t.Idprof) === String(filtroProfesional)
-          );
-        }
-  
-        // Filtro por estado
-        if (filtroEstado !== "todos") {
-          tratamientosFiltrados = tratamientosFiltrados.filter(
-            (t) => t.Estado?.toLowerCase() === filtroEstado.toLowerCase()
-          );
-        }
-  
-        // Solo dejar pacientes con tratamientos que cumplan filtros
-        if (tratamientosFiltrados.length === 0) return null;
-  
-        // Filtro búsqueda por nombre o CI
-        const cumpleFiltro = `${paciente.Nombre_pac} ${paciente.Appaterno_pac || ""} ${paciente.Apmaterno_pac || ""} ${paciente.Ci_pac}`
-          .toLowerCase()
-          .includes(filtro.toLowerCase());
-  
-        // Filtro discapacidad
-        const cumpleDiscapacidad =
-          filtroDiscapacidad === "todos" ||
-          (filtroDiscapacidad === "si" && paciente.Tienediscapacidad?.toLowerCase() === "sí") ||
-          (filtroDiscapacidad === "no" && paciente.Tienediscapacidad?.toLowerCase() !== "sí");
-  
-        if (!cumpleFiltro || !cumpleDiscapacidad) return null;
-  
-        return {
-          ...paciente,
-          tratamientos: tratamientosFiltrados,
-        };
-      })
-      .filter(Boolean); // elimina los null
-  }, [filtro, filtroDiscapacidad, filtroEstado, filtroProfesional, esAdministrador]);
-  
+  useEffect(() => {
+    if (pacientes.length > 0) {
+      abrirModalDesdeURL();
+    }
+  }, [pacientes, abrirModalDesdeURL]);
 
-  // Cargar datos
+  // Abrir modal tratamiento manualmente
+  const abrirModalTratamiento = useCallback(
+    (tratamiento = null) => {
+      if (tratamiento) {
+        setForm({
+          Idtrat: tratamiento.Idtrat || "",
+          Idpac: tratamiento.Idpac,
+          Idprof: tratamiento.Idprof || idProfesionalLogeado,
+          nombre: tratamiento.nombre || "",
+          diagnostico: tratamiento.diagnostico || "",
+          Fecha_ini: tratamiento.Fecha_ini
+            ? tratamiento.Fecha_ini.split("T")[0]
+            : "",
+          Fecha_fin: tratamiento.Fecha_fin
+            ? tratamiento.Fecha_fin?.split("T")[0] || ""
+            : "",
+          Estado: tratamiento.Estado || "En tratamiento",
+          Razon: tratamiento.Razon || "",
+          Obs: tratamiento.Obs || "",
+        });
+      } else {
+        setForm({
+          Idtrat: "",
+          Idpac: "",
+          Idprof: idProfesionalLogeado,
+          nombre: "",
+          diagnostico: "",
+          Fecha_ini: new Date().toISOString().split("T")[0],
+          Fecha_fin: "",
+          Estado: "En tratamiento",
+          Razon: "",
+          Obs: "",
+        });
+      }
+      setModalTratamientoOpen(true);
+    },
+    [idProfesionalLogeado]
+  );
+
+  // Función para obtener nombre profesional
+  const obtenerNombreProfesional = useCallback(
+    (idProf) => {
+      const profesional = profesionales.find((prof) => prof.Idprof === idProf);
+      return profesional
+        ? `${profesional.Nombre_prof} ${profesional.Appaterno_prof}`
+        : "Profesional no encontrado";
+    },
+    [profesionales]
+  );
+
+  // Función para obtener nombre del paciente
+  const obtenerNombrePaciente = useCallback(
+    (idPac) => {
+      const paciente = pacientes.find((pac) => pac.Idpac === idPac);
+      return paciente
+        ? `${paciente.Nombre_pac} ${paciente.Appaterno_pac} ${paciente.Apmaterno_pac}`
+        : "Paciente no encontrado";
+    },
+    [pacientes]
+  );
+
+  // Función para verificar discapacidad (maneja diferentes tipos de datos)
+  const tieneDiscapacidad = useCallback((paciente) => {
+    if (!paciente || !paciente.Tienediscapacidad) return false;
+
+    const discapacidad = paciente.Tienediscapacidad;
+
+    // Manejar diferentes tipos de datos
+    if (typeof discapacidad === "string") {
+      return (
+        discapacidad.toLowerCase() === "sí" ||
+        discapacidad.toLowerCase() === "si" ||
+        discapacidad === "1" ||
+        discapacidad.toLowerCase() === "true"
+      );
+    } else if (typeof discapacidad === "number") {
+      return discapacidad === 1;
+    } else if (typeof discapacidad === "boolean") {
+      return discapacidad;
+    }
+
+    return false;
+  }, []);
+
+  // Función para aplicar filtros
+  const aplicarFiltros = useCallback(
+    (tratamientosData) => {
+      let tratamientosFiltrados = [...tratamientosData];
+
+      // Si NO es administrador, filtrar por profesional logueado
+      if (!esAdministrador && idProfesionalLogeado) {
+        tratamientosFiltrados = tratamientosFiltrados.filter(
+          (tratamiento) => tratamiento.Idprof === idProfesionalLogeado
+        );
+      }
+
+      // Aplicar filtro de profesional si es admin y seleccionó uno
+      if (esAdministrador && filtroProfesional) {
+        tratamientosFiltrados = tratamientosFiltrados.filter(
+          (tratamiento) => tratamiento.Idprof === parseInt(filtroProfesional)
+        );
+      }
+
+      // Aplicar filtro de estado
+      if (filtroEstado !== "todos") {
+        tratamientosFiltrados = tratamientosFiltrados.filter(
+          (tratamiento) =>
+            tratamiento.Estado?.toLowerCase() === filtroEstado.toLowerCase()
+        );
+      }
+
+      // Aplicar filtro de búsqueda por nombre o CI
+      if (filtro) {
+        tratamientosFiltrados = tratamientosFiltrados.filter((tratamiento) => {
+          const paciente = tratamiento.paciente;
+          const textoBusqueda = `${paciente?.Nombre_pac || ""} ${
+            paciente?.Appaterno_pac || ""
+          } ${paciente?.Apmaterno_pac || ""} ${
+            paciente?.Ci_pac || ""
+          }`.toLowerCase();
+          return textoBusqueda.includes(filtro.toLowerCase());
+        });
+      }
+
+      // Aplicar filtro de discapacidad
+      if (filtroDiscapacidad !== "todos") {
+        tratamientosFiltrados = tratamientosFiltrados.filter((tratamiento) => {
+          const tieneDisc = tieneDiscapacidad(tratamiento.paciente);
+          return filtroDiscapacidad === "si" ? tieneDisc : !tieneDisc;
+        });
+      }
+
+      return tratamientosFiltrados;
+    },
+    [
+      esAdministrador,
+      idProfesionalLogeado,
+      filtroProfesional,
+      filtroEstado,
+      filtro,
+      filtroDiscapacidad,
+      tieneDiscapacidad,
+    ]
+  );
+
+  // Cargar datos inicial
   useEffect(() => {
     const fetchData = async () => {
       try {
         setCargando(true);
-        const [pacientesRes, tratamientosRes, profesionalesRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/paciente/listar"),
+        console.log("Cargando datos iniciales...");
+
+        const [tratamientosRes, profesionalesRes] = await Promise.all([
           axios.get("http://localhost:5000/api/tratamiento/listar"),
-          axios.get("http://localhost:5000/api/prof_salud/listar")
+          axios.get("http://localhost:5000/api/prof_salud/listar"),
         ]);
 
-        console.log("Datos de la API - Tratamientos:", tratamientosRes.data);
-        
+        console.log("Tratamientos recibidos:", tratamientosRes.data);
+
         setProfesionales(profesionalesRes.data);
-        setTodosLosPacientes(pacientesRes.data);
         setTodosLosTratamientos(tratamientosRes.data);
 
-        const pacientesConTratamientos = obtenerPacientesConTratamientos(pacientesRes.data, tratamientosRes.data);
-        const pacientesFiltrados = aplicarFiltrosBusqueda(pacientesConTratamientos);
-        
-        pacientesFiltrados.sort((a, b) => b.Idpac - a.Idpac);
-        setPacientes(pacientesFiltrados);
+        // Aplicar filtros iniciales
+        const tratamientosFiltrados = aplicarFiltros(tratamientosRes.data);
+        setTratamientos(tratamientosFiltrados);
         setCargando(false);
-
-        // Manejar parámetros de URL
-        const params = new URLSearchParams(location.search);
-        const pacienteId = params.get("pacienteId");
-        const abrirModalParam = params.get("abrirModalTratamiento") === "true";
-
-        if (abrirModalParam && pacienteId) {
-          const paciente = pacientesRes.data.find(p => p.Idpac.toString() === pacienteId);
-          if (paciente) abrirModalTratamiento(paciente);
-          navigate(location.pathname, { replace: true });
-        }
       } catch (error) {
         console.error("Error al cargar datos:", error);
         setCargando(false);
       }
     };
+
     fetchData();
-  }, [location.search, location.pathname, navigate, obtenerPacientesConTratamientos, aplicarFiltrosBusqueda, abrirModalTratamiento]);
+  }, [aplicarFiltros]);
 
-  // Recargar cuando cambien los filtros
+  // Cargar pacientes al iniciar
   useEffect(() => {
-    if (todosLosPacientes.length > 0 && todosLosTratamientos.length > 0) {
-      const recargarConFiltros = async () => {
-        try {
-          const pacientesConTratamientos = obtenerPacientesConTratamientos(todosLosPacientes, todosLosTratamientos);
-          const pacientesFiltrados = aplicarFiltrosBusqueda(pacientesConTratamientos);
-          pacientesFiltrados.sort((a, b) => b.Idpac - a.Idpac);
-          setPacientes(pacientesFiltrados);
-        } catch (error) {
-          console.error("Error al aplicar filtros:", error);
-        }
-      };
-      
-      recargarConFiltros();
-    }
-  }, [filtro, filtroDiscapacidad, filtroEstado, filtroProfesional, todosLosPacientes, todosLosTratamientos, obtenerPacientesConTratamientos, aplicarFiltrosBusqueda]);
+    cargarPacientes();
+  }, [cargarPacientes]);
 
-  // NUEVA FUNCIÓN: Mostrar detalles del tratamiento específico
-  const mostrarDetallesTratamiento = (paciente, tratamientoEspecifico) => {
-    setPacienteSeleccionado({
-      ...paciente,
-      discapacidad: paciente.detalleDiscapacidad || null,
-      tratamientoSeleccionado: tratamientoEspecifico // Solo el tratamiento específico
-    });
+  // Efecto para aplicar filtros cuando cambien
+  useEffect(() => {
+    if (todosLosTratamientos.length > 0) {
+      const tratamientosFiltrados = aplicarFiltros(todosLosTratamientos);
+      setTratamientos(tratamientosFiltrados);
+    }
+  }, [
+    filtro,
+    filtroDiscapacidad,
+    filtroEstado,
+    filtroProfesional,
+    todosLosTratamientos,
+    aplicarFiltros,
+  ]);
+
+  const formatDateLocal = (fecha) => {
+    if (!fecha || fecha === "0000-00-00") return "En curso";
+    const [year, month, day] = fecha.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
+  // Mostrar detalles del tratamiento
+  const mostrarDetallesTratamiento = (tratamiento) => {
+    setTratamientoSeleccionado(tratamiento);
     setMostrarModal(true);
   };
 
-  const generarHistorialCompleto = (pacienteId) => navigate(`/historial-clinico/${pacienteId}`);
-  const redirigirSesion = (idPac) => navigate("/sesion", { state: { Idpac: idPac } });
-  const cerrarModalTratamiento = () => setModalTratamientoOpen(false);
+  const generarHistorialCompleto = (pacienteId) =>
+    navigate(`/historial-clinico/${pacienteId}`);
+
+  const redirigirSesion = (idPac) =>
+    navigate("/sesion", { state: { Idpac: idPac } });
+
+  const cerrarModalTratamiento = () => {
+    setModalTratamientoOpen(false);
+    // Limpiar formulario al cerrar
+    setForm({
+      Idtrat: "",
+      Idpac: "",
+      Idprof: idProfesionalLogeado,
+      nombre: "",
+      diagnostico: "",
+      Fecha_ini: new Date().toISOString().split("T")[0],
+      Fecha_fin: "",
+      Estado: "En tratamiento",
+      Razon: "",
+      Obs: "",
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-  };
+  
+    setForm((prev) => {
+      let nuevoForm = { ...prev, [name]: value };
+  
+      if (name === "Estado") {
+        if (value === "En tratamiento") {
+          nuevoForm.Fecha_fin = ""; 
+          nuevoForm.Razon = ""; 
+        } else if (value === "Alta temporal" || value === "Alta definitiva" || value === "Abandono") {
+          const hoy = new Date().toISOString().split("T")[0];
+          nuevoForm.Fecha_fin = hoy;
+        }
 
-  const obtenerNombreProfesional = (idProf) => {
-    const profesional = profesionales.find((prof) => prof.Idprof === idProf);
-    return profesional ? `${profesional.Nombre_prof} ${profesional.Appaterno_prof}` : "Profesional no encontrado";
+        if (value !== "Abandono") {
+          nuevoForm.Razon = "";
+        }
+      }
+      return nuevoForm;
+    });
   };
+  
 
+  // Enviar formulario de tratamiento
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log("Enviando formulario:", form);
+
+      // Validar que se seleccionó paciente
+      if (!form.Idpac) {
+        alert("Por favor seleccione un paciente");
+        return;
+      }
+
       if (form.Idtrat) {
-        await axios.put(`http://localhost:5000/api/tratamiento/actualizar/${form.Idtrat}`, form);
-        alert("Tratamiento actualizado correctamente");
+        await axios.put(
+          `http://localhost:5000/api/tratamiento/actualizar/${form.Idtrat}`,
+          form
+        );
       } else {
         await axios.post("http://localhost:5000/api/tratamiento/crear", form);
-        alert("Tratamiento registrado correctamente");
       }
 
       // Recargar datos
-      const [pacientesRes, tratamientosRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/paciente/listar"),
-        axios.get("http://localhost:5000/api/tratamiento/listar")
-      ]);
-
-      setTodosLosPacientes(pacientesRes.data);
+      setCargando(true);
+      const tratamientosRes = await axios.get(
+        "http://localhost:5000/api/tratamiento/listar"
+      );
       setTodosLosTratamientos(tratamientosRes.data);
-      
-      const pacientesConTratamientos = obtenerPacientesConTratamientos(pacientesRes.data, tratamientosRes.data);
-      const pacientesFiltrados = aplicarFiltrosBusqueda(pacientesConTratamientos);
-      pacientesFiltrados.sort((a, b) => b.Idpac - a.Idpac);
-      setPacientes(pacientesFiltrados);
 
+      const tratamientosFiltrados = aplicarFiltros(tratamientosRes.data);
+      setTratamientos(tratamientosFiltrados);
+      setCargando(false);
       cerrarModalTratamiento();
     } catch (error) {
-      console.error(error);
+      console.error("Error al guardar tratamiento:", error);
       alert("Ocurrió un error al guardar el tratamiento");
+      setCargando(false);
     }
   };
 
@@ -283,7 +435,8 @@ const Profesionales = () => {
     <div className="pacientes-container">
       <div className="header-container">
         <h1>
-          <FaUser /> {esAdministrador ? "Pacientes con Tratamientos" : "Mis Pacientes en Tratamientos"}
+          <FaUser />{" "}
+          {esAdministrador ? "Tratamientos" : "Mis Pacientes en Tratamientos"}
         </h1>
         <div className="header-info">
           <button
@@ -352,48 +505,63 @@ const Profesionales = () => {
       </div>
 
       {cargando ? (
-        <div className="cargando">Cargando pacientes con tratamientos...</div>
+        <div className="cargando">Cargando tratamientos...</div>
       ) : (
         <div className="table-responsive">
-          <table className="pacientes-table">
+          <table className="tratamiento-table">
             <thead>
               <tr>
-                <th><FaUser /> Nombre</th>
-                <th><FaIdCard /> CI</th>
-                <th><FaCalendarAlt /> F Inicio</th>
-                <th><FaClipboardList /> Estado</th>
-                <th><FaCalendarCheck /> F Fin</th>
+                <th>
+                  <FaUser /> Nombre
+                </th>
+                <th>
+                  <FaIdCard /> CI
+                </th>
+                <th>
+                  <FaCalendarAlt /> F Inicio
+                </th>
+                <th>
+                  <FaClipboardList /> Estado
+                </th>
+                <th>
+                  <FaCalendarCheck /> F Fin
+                </th>
                 {esAdministrador && <th>Profesional</th>}
                 <th>PcD</th>
                 <th>Acciones</th>
               </tr>
             </thead>
-            
             <tbody>
-              {pacientes.length > 0 ? (
-                pacientes.map((paciente) => (
-                  paciente.tratamientos.map((tratamiento, index) => (
-                    <tr key={`${paciente.Idpac}-${tratamiento.Idtrat || index}`}>
-                      {/* SOLO nombre del paciente, sin indicador de tratamiento */}
+              {tratamientos.length > 0 ? (
+                tratamientos.map((tratamiento) => {
+                  const paciente = tratamiento.paciente;
+                  const esDiscapacitado = tieneDiscapacidad(paciente);
+
+                  return (
+                    <tr key={tratamiento.Idtrat}>
                       <td>
-                        {`${paciente.Nombre_pac} ${paciente.Appaterno_pac} ${paciente.Apmaterno_pac}`}
+                        {`${paciente?.Nombre_pac || ""} ${
+                          paciente?.Appaterno_pac || ""
+                        } ${paciente?.Apmaterno_pac || ""}`}
                       </td>
-                      <td>{paciente.Ci_pac || "-"}</td>
+                      <td>{paciente?.Ci_pac || "-"}</td>
                       <td>
                         {tratamiento.Fecha_ini
-                          ? new Date(tratamiento.Fecha_ini).toLocaleDateString()
+                          ? formatDateLocal(tratamiento.Fecha_ini)
                           : "-"}
                       </td>
                       <td>
-                        <span className={`badge-estado ${tratamiento.Estado?.replace(/\s+/g, "-").toLowerCase()}`}>
+                        <span
+                          className={`badge-estado ${tratamiento.Estado?.replace(
+                            /\s+/g,
+                            "-"
+                          ).toLowerCase()}`}
+                        >
                           {tratamiento.Estado || "Sin estado"}
                         </span>
                       </td>
-                      <td>
-                        {tratamiento.Fecha_fin
-                          ? new Date(tratamiento.Fecha_fin).toLocaleDateString()
-                          : "En curso"}
-                      </td>
+                      <td>{formatDateLocal(tratamiento.Fecha_fin)}</td>
+
                       {esAdministrador && (
                         <td>
                           {tratamiento.Idprof
@@ -402,38 +570,62 @@ const Profesionales = () => {
                         </td>
                       )}
                       <td>
-                        <span className={`badge ${paciente.Tienediscapacidad?.toLowerCase() === "sí" ? "badge-discapacidad" : "badge-nodiscapacidad"}`}>
-                          {paciente.Tienediscapacidad?.toLowerCase() === "sí" ? "Sí" : "No"}
+                        <span
+                          className={`badge ${
+                            esDiscapacitado
+                              ? "badge-discapacidad"
+                              : "badge-nodiscapacidad"
+                          }`}
+                        >
+                          {esDiscapacitado ? "Sí" : "No"}
                         </span>
                       </td>
                       <td className="acciones">
-                        {/* Botón de detalles que muestra SOLO el tratamiento actual */}
-                        <button className="btn-detalles" title="Ver detalles del tratamiento" 
-                                onClick={() => mostrarDetallesTratamiento(paciente, tratamiento)}>
+                        <button
+                          className="btn-detalles"
+                          title="Ver detalles del tratamiento"
+                          onClick={() =>
+                            mostrarDetallesTratamiento(tratamiento)
+                          }
+                        >
                           <FaEye />
                         </button>
-                        
-                        <button onClick={() => generarHistorialCompleto(paciente.Idpac)} title="Generar historial completo" className="btn-action">
+
+                        <button
+                          onClick={() =>
+                            generarHistorialCompleto(paciente?.Idpac)
+                          }
+                          title="Generar historial completo"
+                          className="btn-action"
+                        >
                           <FaFileMedical />
                         </button>
-                        
-                        <button className="btn-action btn-editar" title="Editar tratamiento" onClick={() => abrirModalTratamiento(paciente, tratamiento)}>
+
+                        <button
+                          className="btn-action btn-editar"
+                          title="Editar tratamiento"
+                          onClick={() => abrirModalTratamiento(tratamiento)}
+                        >
                           <FaEdit />
                         </button>
-                        <button className="btn-action btn-sesion" title="Realizar una sesión" onClick={() => redirigirSesion(paciente.Idpac)}>
+                        <button
+                          className="btn-action btn-sesion"
+                          title="Realizar una sesión"
+                          onClick={() => redirigirSesion(paciente?.Idpac)}
+                        >
                           <FaPlusCircle />
                         </button>
                       </td>
                     </tr>
-                  ))
-                ))
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={esAdministrador ? 8 : 7} className="no-results">
                     <div className="no-results-content">
                       <FaExclamationTriangle />
-                      <p>No se encontraron pacientes con tratamientos</p>
-                      <button 
+                      <p>No se encontraron tratamientos</p>
+                      <button
                         className="btn-nuevo-tratamiento"
                         onClick={() => abrirModalTratamiento()}
                       >
@@ -448,8 +640,8 @@ const Profesionales = () => {
         </div>
       )}
 
-      {/* Modal de detalles del TRATAMIENTO ESPECÍFICO */}
-      {mostrarModal && pacienteSeleccionado && (
+      {/* Modal de detalles del tratamiento */}
+      {mostrarModal && tratamientoSeleccionado && (
         <div className="modal-detalle">
           <div className="modal-contenido">
             <div className="modal-header">
@@ -467,17 +659,22 @@ const Profesionales = () => {
                   <h3>Información del Paciente</h3>
                   <p>
                     <strong>Nombre completo:</strong>{" "}
-                    {pacienteSeleccionado.Nombre_pac}{" "}
-                    {pacienteSeleccionado.Appaterno_pac}{" "}
-                    {pacienteSeleccionado.Apmaterno_pac}
+                    {tratamientoSeleccionado.paciente?.Nombre_pac}{" "}
+                    {tratamientoSeleccionado.paciente?.Appaterno_pac}{" "}
+                    {tratamientoSeleccionado.paciente?.Apmaterno_pac}
                   </p>
                   <p>
                     <strong>CI:</strong>{" "}
-                    {pacienteSeleccionado.Ci_pac || "No especificado"}
+                    {tratamientoSeleccionado.paciente?.Ci_pac ||
+                      "No especificado"}
                   </p>
                   <p>
                     <strong>Edad:</strong>{" "}
-                    {calcularEdadCompleta(pacienteSeleccionado.Fnaci_pac).texto}
+                    {
+                      calcularEdadCompleta(
+                        tratamientoSeleccionado.paciente?.Fnaci_pac
+                      ).texto
+                    }
                   </p>
                 </div>
 
@@ -485,32 +682,57 @@ const Profesionales = () => {
                   <h3>Información de Contacto</h3>
                   <p>
                     <strong>Teléfono:</strong>{" "}
-                    {pacienteSeleccionado.Telefono_pac || "No especificado"}
+                    {tratamientoSeleccionado.paciente?.Telefono_pac ||
+                      "No especificado"}
                   </p>
                   <p>
                     <strong>Dirección:</strong>{" "}
-                    {pacienteSeleccionado.Direccion_pac || "No especificado"}
+                    {tratamientoSeleccionado.paciente?.Direccion_pac ||
+                      "No especificado"}
                   </p>
                 </div>
               </div>
 
-              {/* Sección de TRATAMIENTO ESPECÍFICO */}
+              {/* Sección del TRATAMIENTO */}
               <div className="detalle-row">
                 <div className="detalle-col-full">
                   <h3>Detalles del Tratamiento</h3>
-                  {pacienteSeleccionado.tratamientoSeleccionado ? (
-                    <div className="tratamiento-item">
-                      <p><strong>Nombre:</strong> {pacienteSeleccionado.tratamientoSeleccionado.nombre || "No especificado"}</p>
-                      <p><strong>Profesional:</strong> {obtenerNombreProfesional(pacienteSeleccionado.tratamientoSeleccionado.Idprof)}</p>
-                      <p><strong>Estado:</strong> {pacienteSeleccionado.tratamientoSeleccionado.Estado || "No especificado"}</p>
-                      <p><strong>Fecha de inicio:</strong> {new Date(pacienteSeleccionado.tratamientoSeleccionado.Fecha_ini).toLocaleDateString()}</p>
-                      <p><strong>Fecha de fin:</strong> {pacienteSeleccionado.tratamientoSeleccionado.Fecha_fin ? new Date(pacienteSeleccionado.tratamientoSeleccionado.Fecha_fin).toLocaleDateString() : "En curso"}</p>
-                      <p><strong>Diagnóstico:</strong> {pacienteSeleccionado.tratamientoSeleccionado.diagnostico || "No especificado"}</p>
-                      <p><strong>Observaciones:</strong> {pacienteSeleccionado.tratamientoSeleccionado.Obs || "No especificado"}</p>
-                    </div>
-                  ) : (
-                    <p>No hay información del tratamiento.</p>
-                  )}
+                  <div className="tratamiento-item">
+                    <p>
+                      <strong>Nombre:</strong>{" "}
+                      {tratamientoSeleccionado.nombre || "No especificado"}
+                    </p>
+                    <p>
+                      <strong>Profesional:</strong>{" "}
+                      {obtenerNombreProfesional(tratamientoSeleccionado.Idprof)}
+                    </p>
+                    <p>
+                      <strong>Estado:</strong>{" "}
+                      {tratamientoSeleccionado.Estado || "No especificado"}
+                    </p>
+                    <p>
+                      <strong>Fecha de inicio:</strong>{" "}
+                      {new Date(
+                        tratamientoSeleccionado.Fecha_ini
+                      ).toLocaleDateString()}
+                    </p>
+                    <p>
+                      <strong>Fecha de fin:</strong>{" "}
+                      {tratamientoSeleccionado.Fecha_fin
+                        ? new Date(
+                            tratamientoSeleccionado.Fecha_fin
+                          ).toLocaleDateString()
+                        : "En curso"}
+                    </p>
+                    <p>
+                      <strong>Diagnóstico:</strong>{" "}
+                      {tratamientoSeleccionado.diagnostico || "No especificado"}
+                    </p>
+                    <p>
+                      <strong>Observaciones:</strong>{" "}
+                      {tratamientoSeleccionado.Obs || "No especificado"}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -520,32 +742,20 @@ const Profesionales = () => {
                   <h3>Información de Discapacidad</h3>
                   <p>
                     <strong>Discapacidad:</strong>
-                    <span className={`badge ${pacienteSeleccionado.Tienediscapacidad?.toLowerCase() === "sí" ? "badge-discapacidad" : "badge-nodiscapacidad"}`}>
-                      {pacienteSeleccionado.Tienediscapacidad?.toLowerCase() === "sí" ? "Sí" : "No"}
+                    <span
+                      className={`badge ${
+                        tieneDiscapacidad(tratamientoSeleccionado.paciente)
+                          ? "badge-discapacidad"
+                          : "badge-nodiscapacidad"
+                      }`}
+                    >
+                      {tieneDiscapacidad(tratamientoSeleccionado.paciente)
+                        ? "Sí"
+                        : "No"}
                     </span>
                   </p>
-
-                  {pacienteSeleccionado.Tienediscapacidad?.toLowerCase() === "sí" && pacienteSeleccionado.discapacidad && (
-                    <>
-                      <p><strong>Tipo:</strong> {pacienteSeleccionado.discapacidad.Tipo_disc || "No especificado"}</p>
-                      <p><strong>Grado:</strong> {pacienteSeleccionado.discapacidad.Grado_disc || "No especificado"}</p>
-                      <p><strong>Observaciones:</strong> {pacienteSeleccionado.discapacidad.Obs || "No especificado"}</p>
-                    </>
-                  )}
                 </div>
               </div>
-            </div>
-
-            <div className="modal-footer">
-              <button 
-                className="btn-nuevo-tratamiento"
-                onClick={() => {
-                  setMostrarModal(false);
-                  abrirModalTratamiento(pacienteSeleccionado);
-                }}
-              >
-                <FaPlus /> Nuevo Tratamiento
-              </button>
             </div>
           </div>
         </div>
@@ -561,33 +771,48 @@ const Profesionales = () => {
             <h3>{form.Idtrat ? "Editar Tratamiento" : "Nuevo Tratamiento"}</h3>
             <div className="modal-body">
               <form onSubmit={handleSubmit}>
+                {!form.Idtrat ? (
+                  // Para nuevos tratamientos: selector de pacientes
+                  <div className="form-group">
+                    <label>Paciente: *</label>
+                    <select
+                      name="Idpac"
+                      value={form.Idpac}
+                      onChange={handleChange}
+                      className="form-control"
+                      required
+                    >
+                      <option value="">Seleccione un paciente</option>
+                      {pacientes.map((pac) => (
+                        <option key={pac.Idpac} value={pac.Idpac}>
+                          {pac.Nombre_pac} {pac.Appaterno_pac}{" "}
+                          {pac.Apmaterno_pac} - {pac.Ci_pac}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  // Para editar: mostrar nombre del paciente (no editable)
+                  <div className="form-group">
+                    <label>Paciente:</label>
+                    <input
+                      type="text"
+                      value={obtenerNombrePaciente(form.Idpac)}
+                      readOnly
+                      className="readonly-input"
+                    />
+                  </div>
+                )}
+
                 <div className="form-group">
-                  <label>Paciente:</label>
-                  <select
-                    name="Idpac"
-                    value={form.Idpac}
-                    onChange={handleChange}
-                    className="form-control"
-                    required
-                    disabled={!!form.Idtrat}
-                  >
-                    <option value="">Seleccione un paciente</option>
-                    {todosLosPacientes.map((p) => (
-                      <option key={p.Idpac} value={p.Idpac}>
-                        {p.Nombre_pac} {p.Appaterno_pac} {p.Apmaterno_pac} - CI: {p.Ci_pac}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Descripción:</label>
+                  <label>Nombre del tratamiento: *</label>
                   <textarea
                     name="nombre"
                     value={form.nombre}
                     onChange={handleChange}
                     rows="2"
                     className="form-control"
-                    placeholder="Ingrese descripción del tratamiento"
+                    placeholder="Ingrese un nombre para el tratamiento"
                     required
                   />
                 </div>
@@ -634,6 +859,7 @@ const Profesionales = () => {
                     value={form.Fecha_fin}
                     onChange={handleChange}
                     className="form-control"
+                    disabled={form.Estado === "En tratamiento"} 
                   />
                 </div>
 

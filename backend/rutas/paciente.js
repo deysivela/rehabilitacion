@@ -22,7 +22,6 @@ router.post('/registrar', ValidarPac, async (req, res) => {
     });
     res.status(201).json({ paciente });
   } catch (error) {
-    console.error(error.errors); 
     res.status(400).json({ error: error.errors });
   }
 });
@@ -44,12 +43,10 @@ router.get('/buscar', async (req, res) => {
         Appaterno_pac: paciente.Appaterno_pac,
         Apmaterno_pac: paciente.Apmaterno_pac,
       });
-      
     } else {
       return res.status(404).json({ mensaje: 'Paciente no encontrado' });
     }
   } catch (error) {
-    console.error('Error al buscar paciente:', error);
     res.status(500).json({ mensaje: 'Error en el servidor' });
   }
 });
@@ -63,8 +60,8 @@ router.get('/listar', async (req, res) => {
         as: 'detalleDiscapacidad',
         required: false
       },
-      raw: true, // Obtener datos como objetos planos
-      nest: true // Mantener la estructura anidada
+      raw: true,
+      nest: true
     });
 
     const pacientesModificados = pacientes.map(paciente => {
@@ -76,7 +73,6 @@ router.get('/listar', async (req, res) => {
 
     res.json(pacientesModificados);
   } catch (error) {
-    console.error('Error al listar pacientes:', error);
     res.status(500).json({ 
       success: false,
       message: 'Error al obtener la lista de pacientes',
@@ -85,6 +81,7 @@ router.get('/listar', async (req, res) => {
   }
 });
 
+// Obtener paciente por ID
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -93,7 +90,7 @@ router.get('/:id', async (req, res) => {
       where: { Idpac: id },
       include: {
         model: Discapacidad,
-        as: 'detalleDiscapacidad', // Mantenemos el alias original
+        as: 'detalleDiscapacidad',
         required: false
       }
     });
@@ -105,19 +102,16 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    // Estructura de respuesta consistente
     const response = {
       success: true,
       data: {
         ...paciente.get({ plain: true }),
-        // Aseguramos que detalleDiscapacidad esté presente incluso si es null
         detalleDiscapacidad: paciente.detalleDiscapacidad || null
       }
     };
 
     res.json(response);
   } catch (error) {
-    console.error('Error al obtener paciente:', error);
     res.status(500).json({ 
       success: false,
       message: 'Error al obtener paciente'
@@ -125,25 +119,24 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Diagnósticos del paciente
+// Diagnósticos del paciente (esta ruta parece tener un error con 'db' no definido)
 router.get('/paciente/:idpac', async (req, res) => {
   const { idpac } = req.params;
   try {
-    const [rows] = await db.query('SELECT * FROM diagnostico WHERE idpac = ?', [idpac]);
-    res.json(rows);
+    res.status(501).json({ message: 'Esta funcionalidad no está implementada' });
   } catch (error) {
-    console.error("Error al obtener diagnósticos del paciente:", error);
     res.status(500).send("Error interno del servidor");
   }
 });
 
+// ACTUALIZAR PACIENTE - SOLO UNA RUTA PUT
 router.put('/editar/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const {
       Nombre_pac, Appaterno_pac, Apmaterno_pac, Fnaci_pac, Genero_pac,
       Ci_pac, Telefono_pac, Direccion_pac, Seguro, Diagnostico,
-      Tienediscapacidad, Tipo_disc, Grado_disc, Obs
+      Tienediscapacidad, Tipo_disc, Grado_disc, Obs, Iddisc
     } = req.body;
 
     const paciente = await Paciente.findByPk(id, {
@@ -152,39 +145,80 @@ router.put('/editar/:id', async (req, res) => {
 
     if (!paciente) return res.status(404).json({ error: 'Paciente no encontrado' });
 
-    // Actualiza paciente
-    await paciente.update({ Nombre_pac, Appaterno_pac, Apmaterno_pac, Fnaci_pac, Genero_pac, Ci_pac, Telefono_pac, Direccion_pac, Seguro, Diagnostico });
+    if (!Nombre_pac || !Fnaci_pac || !Genero_pac || !Ci_pac) {
+      return res.status(400).json({ error: 'Campos obligatorios del paciente faltantes' });
+    }
+
+    // Actualizar datos básicos del paciente
+    await paciente.update({ 
+      Nombre_pac, Appaterno_pac, Apmaterno_pac, Fnaci_pac, Genero_pac, 
+      Ci_pac, Telefono_pac, Direccion_pac, Seguro, Diagnostico 
+    });
 
     const tieneDisc = Tienediscapacidad === "true" || Tienediscapacidad === true;
 
     if (tieneDisc) {
+      // Validar que los campos de discapacidad estén presentes
+      if (!Tipo_disc || !Grado_disc) {
+        return res.status(400).json({ 
+          error: 'Cuando el paciente tiene discapacidad, Tipo y Grado son obligatorios' 
+        });
+      }
+
       if (paciente.detalleDiscapacidad) {
-        // Actualiza la discapacidad existente
-        await paciente.detalleDiscapacidad.update({ Tipo_disc, Grado_disc, Obs });
+        // Actualizar discapacidad existente
+        await paciente.detalleDiscapacidad.update({ 
+          Tipo_disc, 
+          Grado_disc, 
+          Obs: Obs || "" 
+        });
       } else {
-        // Crea una nueva discapacidad si no existe
-        const nuevaDiscapacidad = await Discapacidad.create({ Tipo_disc, Grado_disc, Obs });
+        // Crear nueva discapacidad solo si no existe
+        const nuevaDiscapacidad = await Discapacidad.create({ 
+          Tipo_disc, 
+          Grado_disc, 
+          Obs: Obs || "" 
+        });
         await paciente.update({ Iddisc: nuevaDiscapacidad.Iddisc });
       }
       await paciente.update({ Tienediscapacidad: 1 });
     } else {
+      // PACIENTE SIN DISCAPACIDAD
       if (paciente.detalleDiscapacidad) {
-        await paciente.update({ Iddisc: null });
+        // Desvincular primero
+        await paciente.update({
+          Iddisc: null,
+          Tienediscapacidad: 0
+        });
+    
+        // Ahora sí eliminar la discapacidad
+        await paciente.detalleDiscapacidad.destroy();
+      } else {
+        await paciente.update({ 
+          Iddisc: null,
+          Tienediscapacidad: 0 
+        });
       }
-      await paciente.update({ Tienediscapacidad: 0 });
     }
+    
 
     const pacienteActualizado = await Paciente.findByPk(id, {
       include: { model: Discapacidad, as: 'detalleDiscapacidad' }
     });
 
-    res.json(pacienteActualizado);
+    res.json({
+      success: true,
+      message: 'Paciente actualizado correctamente',
+      data: pacienteActualizado
+    });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+    console.error('Error al actualizar paciente:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message,
+      details: error.errors ? error.errors.map(err => err.message) : []
+    });
   }
 });
-
-
 module.exports = router;

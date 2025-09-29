@@ -35,23 +35,34 @@ router.get('/listar', async (req, res) => {
   }
 });
 
-// Eliminar un área por ID
+// Eliminar área
 router.delete('/eliminar/:id', async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const area = await Area.findByPk(id);
-    if (!area) {
-      return res.status(404).json({ message: 'Área no encontrada' });
+    const { id } = req.params;
+    const deleted = await Area.destroy({ where: { Idarea: id } });
+
+    if (!deleted) {
+      return res.status(404).json({ error: "El área no existe." });
     }
 
-    await area.destroy();
-    res.status(200).json({ message: 'Área eliminada exitosamente' });
+    res.json({ message: "Área eliminada correctamente." });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error al eliminar el área', error });
+
+    // Si el error es por la FK
+    if (error.name === "SequelizeForeignKeyConstraintError") {
+      return res.status(400).json({ 
+        error: "No se puede eliminar el área porque tiene profesionales de salud asociados." 
+      });
+    }
+
+    // Cualquier otro error
+    res.status(500).json({ 
+      error: `Hubo un problema al eliminar el área: ${error.message}` 
+    });
   }
 });
+
 // Actualizar
 router.put('/actualizar/:id', async (req, res) => {
     try {

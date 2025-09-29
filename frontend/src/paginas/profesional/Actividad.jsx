@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import "./Actividad.css";
+import Swal from "sweetalert2";
 
 const Actividad = () => {
   const [actividades, setActividades] = useState([]);
@@ -112,16 +113,34 @@ const Actividad = () => {
       console.error("Error al guardar actividad", err);
     }
   };
-
+  
   const eliminarActividad = async (id) => {
-    if (!window.confirm("¿Seguro que deseas eliminar esta actividad?")) return;
-    try {
-      await axios.delete(`http://localhost:5000/api/actividad/eliminar/${id}`);
-      obtenerActividades();
-    } catch (err) {
-      console.error("Error al eliminar actividad", err);
+    const result = await Swal.fire({
+      title: "¿Está seguro de eliminar esta actividad?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+  
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`http://localhost:5000/api/actividad/eliminar/${id}`);
+        obtenerActividades();
+        Swal.fire("Eliminada", "La actividad se eliminó correctamente.", "success");
+      } catch (err) {
+        console.error("Error al eliminar actividad:", err);
+  
+        // Mostrar mensaje del backend si existe
+        const errorMsg = err.response?.data?.error || "Hubo un problema al eliminar la actividad.";
+        Swal.fire("Error", errorMsg, "error");
+      }
     }
   };
+  
   // Lista de opciones sin numeración
   const opcionesTipo = [
     "N° de CAI de establecimiento",

@@ -6,7 +6,7 @@ import {
   Navigate,
   Outlet,
 } from "react-router-dom";
-import { NotificationProvider } from "./componentes/NotificationContext"; // Importar el provider
+import { NotificationProvider } from "./componentes/NotificationContext"; 
 import Sidebar from "./componentes/Sidebar";
 import Pacientes from "./paginas/pacientes/Pacientes";
 import RegistrarPaciente from "./paginas/pacientes/RegistrarPaciente";

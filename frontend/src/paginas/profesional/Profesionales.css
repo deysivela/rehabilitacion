@@ -137,19 +137,19 @@ h1 {
   margin-bottom: 20px;
 }
 
-.pacientes-table {
+.tratamiento-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.pacientes-table th, 
-.pacientes-table td {
+.tratamiento-table th, 
+.tratamiento-table td {
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #ecf0f1;
 }
 
-.pacientes-table th {
+.tratamiento-table th {
   background-color: #3498db;
   color: white;
   font-weight: 500;
@@ -158,11 +158,11 @@ h1 {
   top: 0;
 }
 
-.pacientes-table th svg {
+.tratamiento-table th svg {
   margin-right: 5px;
 }
 
-.pacientes-table tr:hover {
+.tratamiento-table tr:hover {
   background-color: #f8f9fa;
 }
 
@@ -479,43 +479,6 @@ textarea.form-control {
   background-color: #7f8c8d;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .header-container {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .filtros-container {
-    flex-direction: column;
-  }
-  
-  .filtro-group {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .filtro-group input, 
-  .filtro-group select {
-    width: 100%;
-  }
-  
-  .acciones {
-    flex-direction: column;
-  }
-  
-  .detalle-row {
-    flex-direction: column;
-  }
-  
-  .detalle-col {
-    min-width: 100%;
-  }
-  
-  .botones-modal {
-    flex-direction: column;
-  }
-}
 
 /* Detalles grid para información del paciente */
 .detalles-grid {
@@ -571,4 +534,102 @@ textarea.form-control {
 .tabla-sesiones td {
   padding: 10px;
   border-bottom: 1px solid #eee;
+}
+/* Responsive completo para móviles: tabla tipo tarjeta */
+@media (max-width: 768px) {
+
+  /* Separar tabla del borde de la pantalla */
+  .table-responsive {
+    padding: 0 10px;
+  }
+
+  /* Convertir tabla en tarjetas verticales */
+  .tratamiento-table,
+  .tratamiento-table tbody,
+  .tratamiento-table tr,
+  .tratamiento-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .tratamiento-table thead {
+    display: none; /* ocultar encabezados */
+  }
+
+  /* Cada fila como tarjeta */
+  .tratamiento-table tr {
+    background: #fff; /* mantener fondo blanco */
+    border-radius: 8px;
+    margin-bottom: 15px;
+    padding: 12px 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    position: relative;
+  }
+
+  /* Cada celda como línea dentro de la tarjeta */
+  .tratamiento-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border: none;
+    font-weight: bold; 
+    color: #000;
+  }
+
+  /* Etiqueta antes de cada valor */
+  .tratamiento-table td::before {
+    font-weight: bold;
+    margin-right: 10px;
+    flex-shrink: 0;
+    color: #3498db;
+  }
+
+  /* Definir etiquetas para cada campo */
+  .tratamiento-table td:nth-of-type(1)::before { content: "Nombre"; }
+  .tratamiento-table td:nth-of-type(2)::before { content: "CI"; }
+  .tratamiento-table td:nth-of-type(3)::before { content: "F inicio"; }
+  .tratamiento-table td:nth-of-type(4)::before { content: "Estado"; }
+  .tratamiento-table td:nth-of-type(5)::before { content: "F fin"; }
+  .tratamiento-table td:nth-of-type(6)::before { content: "PcD"; }
+  .tratamiento-table td:nth-of-type(7)::before { content: "Acciones"; }
+
+  /* Acciones: horizontal al inicio de la tarjeta */
+  .tratamiento-table td.acciones {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start; 
+    gap: 10px; 
+    padding-left: 0;
+    margin-bottom: 8px;
+    color: #3498db;
+  }
+
+  .tratamiento-table td.acciones .btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 35px;
+    height: 35px;
+  }
+
+  /* Separación de cada línea dentro de la tarjeta */
+  .tratamiento-table td:not(.acciones) {
+    margin-bottom: 6px;
+  }
+}
+
+/* Pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .table-responsive {
+    padding: 0 8px;
+  }
+
+  .tratamiento-table td {
+    font-size: 0.85rem;
+  }
+
+  .tratamiento-table td.acciones .btn-action {
+    min-width: 30px;
+    height: 30px;
+  }
 }

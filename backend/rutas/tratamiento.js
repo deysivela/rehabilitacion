@@ -7,6 +7,7 @@ router.get('/listar', async (req, res) => {
   try {
     const tratamientos = await Tratamiento.findAll({
       include: { model: Paciente, as: 'paciente' },
+      order: [['Fecha_ini', 'DESC']] 
     });
     res.json(tratamientos);
   } catch (error) {
@@ -66,7 +67,7 @@ router.post('/crear', async (req, res) => {
 });
 
 // Actualizar tratamiento
-router.put('/:id', async (req, res) => {
+router.put('/actualizar/:id', async (req, res) => {
   try {
     const tratamiento = await Tratamiento.findByPk(req.params.id);
     if (!tratamiento) {

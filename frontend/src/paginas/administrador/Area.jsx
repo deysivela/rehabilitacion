@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Area.css';
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import Swal from "sweetalert2";
+
 
 const Area = () => {
   const [lista, setLista] = useState([]);
@@ -49,16 +51,34 @@ const Area = () => {
     }
   };
 
-  const handleDelete = async id => {
-    if (window.confirm('¿Seguro que deseas eliminar esta área?')) {
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: "¿Está seguro de eliminar esta área?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+  
+    if (result.isConfirmed) {
       try {
         await axios.delete(`http://localhost:5000/api/area/eliminar/${id}`);
         fetchAreas();
+        Swal.fire("Eliminada", "El área se eliminó correctamente.", "success");
       } catch (err) {
-        console.error('Error al eliminar área:', err);
+        console.error("Error al eliminar área:", err);
+  
+        // Si el backend mandó un mensaje específico, lo mostramos
+        const errorMsg = err.response?.data?.error || "Hubo un problema al eliminar el área.";
+        Swal.fire("Error", errorMsg, "error");
       }
     }
   };
+  
+  
 
   return (
     <div className="area-container">
@@ -95,7 +115,6 @@ const Area = () => {
         </tbody>
       </table>
 
-      {/* Modal Formulario */}
 {/* Modal Formulario */}
 {modalOpen && (
   <div className="modal">

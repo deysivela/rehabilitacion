@@ -5,11 +5,15 @@ const { Discapacidad, Paciente } = require('../modelos');
 // Ruta para registrar discapacidad
 router.post('/registrar', async (req, res) => {
   try {
+    
     const { Tipo_disc, Grado_disc, Obs } = req.body;
 
-    const discapacidad = await Discapacidad.create({ Tipo_disc, Grado_disc, Obs });
+    const discapacidad = await Discapacidad.create({ 
+      Tipo_disc: Tipo_disc || '', 
+      Grado_disc: Grado_disc || '', 
+      Obs: Obs || '' 
+    });
 
-    // Retornar solo el ID y los datos relevantes
     res.status(201).json({
       Iddisc: discapacidad.Iddisc,
       Tipo_disc: discapacidad.Tipo_disc,
@@ -17,17 +21,15 @@ router.post('/registrar', async (req, res) => {
       Obs: discapacidad.Obs
     });
   } catch (error) {
-    console.error("Error al registrar discapacidad:", error.message);
     res.status(400).json({ error: error.message });
   }
 });
 
-// Obtener discapacidad por paciente (versión mejorada)
+// Obtener discapacidad por paciente
 router.get('/paciente/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Validación más robusta
     if (!id || isNaN(id)) {
       return res.status(400).json({
         success: false,
@@ -42,7 +44,7 @@ router.get('/paciente/:id', async (req, res) => {
         model: Discapacidad,
         as: 'detalleDiscapacidad',
         required: false,
-        attributes: ['Iddisc', 'Tipo_disc', 'Grado_disc', 'Obs'] // Especificar campos
+        attributes: ['Iddisc', 'Tipo_disc', 'Grado_disc', 'Obs']
       }
     });
 
@@ -53,7 +55,6 @@ router.get('/paciente/:id', async (req, res) => {
       });
     }
 
-    // Manejar diferentes formatos de Tienediscapacidad
     const tieneDisc = paciente.Tienediscapacidad === true || 
                      paciente.Tienediscapacidad === 1 || 
                      paciente.Tienediscapacidad === '1' || 
@@ -67,7 +68,6 @@ router.get('/paciente/:id', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error en GET /api/discapacidad/paciente/:id:', error);
     res.status(500).json({
       success: false,
       message: 'Error del servidor',
@@ -110,6 +110,23 @@ router.put('/editar/:id', async (req, res) => {
   }
 });
 
+// Ruta para eliminar una discapacidad
+router.delete('/eliminar/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    const discapacidad = await Discapacidad.findByPk(id);
+
+    if (!discapacidad) {
+      return res.status(404).json({ error: 'Discapacidad no encontrada' });
+    }
+
+    await discapacidad.destroy();
+
+    res.json({ message: 'Discapacidad eliminada correctamente' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;
