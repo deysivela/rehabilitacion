@@ -13,7 +13,7 @@ db.CitaMedica = require("./CitaMedica");
 db.Sesion = require("./Sesion");
 db.Tratamiento = require("./Tratamiento");
 db.Tecnica = require("./Tecnica");
-db.Area = require("./Area");
+db.Area = require("./area");
 db.Sesion_Tecnica = require("./SesionTecnica");
 db.Actividad = require("./Actividad");
 
@@ -60,8 +60,6 @@ db.Discapacidad.hasOne(db.Paciente, {
   foreignKey: "Iddisc",
   as: "paciente"
 });
-
-
 
 // Un Profesional de salud pertenece a un Área
 db.ProfSalud.belongsTo(db.Area, { foreignKey: "Idarea", as: "area" });
