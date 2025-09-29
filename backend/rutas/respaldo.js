@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
         host: 'localhost',
         user: 'root',
         password: '',
-        database: 'rehab',
+        database: 'rehabilitacion',
       },
       dumpToFile: backupFile,
     });
