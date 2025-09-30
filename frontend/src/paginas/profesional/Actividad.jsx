@@ -3,7 +3,7 @@ import axios from "axios";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import "./Actividad.css";
 import Swal from "sweetalert2";
-import { API_URL } from '../../config';
+import { API_URL } from '../config';
 const Actividad = () => {
   const [actividades, setActividades] = useState([]);
   const [actividadesFiltradas, setActividadesFiltradas] = useState([]);

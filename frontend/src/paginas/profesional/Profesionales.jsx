@@ -18,7 +18,7 @@ import {
   FaExclamationTriangle,
 } from "react-icons/fa";
 import "./Profesionales.css";
-import { API_URL } from '../../config';
+import { API_URL } from '../config';
 const Profesionales = () => {
   const [tratamientos, setTratamientos] = useState([]);
   const [filtro, setFiltro] = useState("");

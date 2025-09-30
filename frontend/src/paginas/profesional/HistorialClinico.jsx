@@ -4,7 +4,7 @@ import axios from "axios";
 import { jsPDF } from "jspdf";
 import "./HistorialClinico.css";
 import logo from '../../assets/logo.png';
-import { API_URL } from '../../config';
+import { API_URL } from '../config';
 const HistorialClinico = () => {
   const { id } = useParams();
   const [paciente, setPaciente] = useState(null);

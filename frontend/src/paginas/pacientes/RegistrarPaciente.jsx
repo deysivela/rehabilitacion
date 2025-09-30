@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./RegistrarPaciente.css";
-import { API_URL } from '../../config';
+import { API_URL } from '../config';
 const RegistrarPaciente = () => {
   const navigate = useNavigate();
   const [nuevoPaciente, setNuevoPaciente] = useState({

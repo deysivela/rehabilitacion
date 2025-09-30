@@ -17,7 +17,7 @@ import {
   FaPlusCircle,
 } from "react-icons/fa";
 import "./Pacientes.css";
-import { API_URL } from '../../config';
+import { API_URL } from '../config';
 const Pacientes = () => {
   const [pacientes, setPacientes] = useState([]);
   const [filtro, setFiltro] = useState("");

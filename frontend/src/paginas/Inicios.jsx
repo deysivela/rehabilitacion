@@ -6,7 +6,7 @@ import {
 } from "react-icons/fi";
 import "./Inicio.css";
 import Footer from "../componentes/Footer";
-import { API_URL } from '../../config';
+import { API_URL } from '../paginas/config';
 
 const Inicio = () => {
   const [indicadores, setIndicadores] = useState({

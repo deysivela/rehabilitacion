@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './EditarPaciente.css';
-import { API_URL } from '../../config';
+import { API_URL } from '../config';
 const EditarPaciente = () => {
   const { id } = useParams();
   const navigate = useNavigate();

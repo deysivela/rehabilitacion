@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./Profesional.css";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
-import { API_URL } from '../../config';
+import { API_URL } from '../config';
 const Profesional = () => {
   const [lista, setLista] = useState([]);
   const [areas, setAreas] = useState([]);

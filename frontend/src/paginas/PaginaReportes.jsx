@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import './reportes.css';
-import { API_URL } from '../../config';
+import { API_URL } from '../paginas/config';
 
 // Función para generar el reporte (apiReportes)
 const generarReporte = async (filtros) => {

@@ -3,7 +3,7 @@ import axios from 'axios';
 import './Area.css';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import Swal from "sweetalert2";
-import { API_URL } from '../../config';
+import { API_URL } from '../config';
 
 const Area = () => {
   const [lista, setLista] = useState([]);

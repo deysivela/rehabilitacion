@@ -10,7 +10,7 @@ import {
   FiRefreshCw,
   FiDatabase,
 } from "react-icons/fi";
-import { API_URL } from '../../config';
+import { API_URL } from '../config';
 
 const Administrador = () => {
   const [stats, setStats] = useState({
