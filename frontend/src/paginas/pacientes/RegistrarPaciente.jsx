@@ -32,7 +32,7 @@ const RegistrarPaciente = () => {
       [name]: type === "checkbox" ? checked : value,
     });
   };
-
+  const API_URL = process.env.REACT_APP_API_URL;
   const registrar = async (e) => {
     e.preventDefault();
     setErrores([]);
@@ -41,7 +41,7 @@ const RegistrarPaciente = () => {
     try {
       let idDiscapacidad = null;
       if (nuevoPaciente.Tienediscapacidad) {
-        const discResponse = await axios.post("http://localhost:5000/api/discapacidad/registrar", {
+        const discResponse = await axios.post(`${API_URL}/discapacidad/registrar`, {
           Tipo_disc: nuevoPaciente.Tipo_disc,
           Grado_disc: nuevoPaciente.Grado_disc,
           Obs: nuevoPaciente.Obs,
@@ -69,7 +69,7 @@ const RegistrarPaciente = () => {
         } : null
       };
 
-      await axios.post("http://localhost:5000/api/paciente/registrar", datosPaciente);
+      await axios.post(`${API_URL}/paciente/registrar`, datosPaciente);
       navigate("/pacientes");
     } catch (error) {
       if (error.response?.data?.errors) {

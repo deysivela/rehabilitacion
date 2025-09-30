@@ -20,13 +20,13 @@ const Tecnica = () => {
   useEffect(() => {
     cargarDatos();
   }, []);
-
+  const API_URL = process.env.REACT_APP_API_URL;
   const cargarDatos = async () => {
     try {
       setCargando(true);
       const [tecnicasRes, areasRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/tecnica/listar"),
-        axios.get("http://localhost:5000/api/area/listar"),
+        axios.get(`${API_URL}/tecnica/listar`),
+        axios.get(`${API_URL}/area/listar`),
       ]);
       setTecnicas(tecnicasRes.data);
       setAreas(areasRes.data);
@@ -69,14 +69,14 @@ const Tecnica = () => {
     try {
       if (form.Idtec) {
         await axios.put(
-          `http://localhost:5000/api/tecnica/editar/${form.Idtec}`,
+          `${API_URL}/tecnica/editar/${form.Idtec}`,
           {
             Descripcion: form.Descripcion,
             Idarea: form.Idarea || null,
           }
         );
       } else {
-        await axios.post("http://localhost:5000/api/tecnica/crear", {
+        await axios.post(`${API_URL}/tecnica/crear`, {
           Descripcion: form.Descripcion,
           Idarea: form.Idarea || null,
         });

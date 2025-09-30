@@ -35,7 +35,7 @@ const Administrador = () => {
       minute: "2-digit",
     }).format(date);
   };
-
+  const API_URL = process.env.REACT_APP_API_URL;
   // Función para cargar estadísticas
   const fetchStats = useCallback(async (isRefreshing = false) => {
     try {
@@ -45,7 +45,7 @@ const Administrador = () => {
         setStats((prev) => ({ ...prev, loading: true }));
       }
 
-      const response = await fetch("http://localhost:5000/api/estadisticas");
+      const response = await fetch(`${API_URL}/estadisticas`);
       const data = await response.json();
 
       setStats({
@@ -136,7 +136,7 @@ const Administrador = () => {
             <button
               className="backup-btn"
               onClick={() => {
-                fetch("http://localhost:5000/api/respaldo")
+                fetch(`${API_URL}/respaldo`)
                   .then((response) => {
                     if (!response.ok) throw new Error("Error en la descarga");
                     return response.blob();

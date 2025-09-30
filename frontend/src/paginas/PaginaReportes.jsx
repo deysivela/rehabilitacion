@@ -5,7 +5,7 @@ import './reportes.css';
 
 // Función para generar el reporte (apiReportes)
 const generarReporte = async (filtros) => {
-  const respuesta = await fetch('http://localhost:5000/api/reportes/generar', {
+  const respuesta = await fetch('${API_URL}/reportes/generar', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -29,11 +29,11 @@ const FiltrosReporte = ({ onGenerar }) => {
 
   const [areas, setAreas] = useState([]);
   const [profesionales, setProfesionales] = useState([]);
-
+  const API_URL = process.env.REACT_APP_API_URL;
   // Cargar áreas
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/area/listar")
+      .get(`${API_URL}/area/listar`)
       .then((response) => {
         setAreas(response.data);
       })
@@ -45,7 +45,7 @@ const FiltrosReporte = ({ onGenerar }) => {
   // Cargar profesionales
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/prof_salud/listar")
+      .get(`${API_URL}/prof_salud/listar`)
       .then((response) => {
         setProfesionales(response.data);
       })

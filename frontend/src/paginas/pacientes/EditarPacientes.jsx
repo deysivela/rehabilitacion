@@ -26,12 +26,12 @@ const EditarPaciente = () => {
   const [errores, setErrores] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
+  const API_URL = process.env.REACT_APP_API_URL;
   useEffect(() => {
     const fetchPaciente = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/paciente/${id}`);
+        const response = await axios.get(`${API_URL}/paciente/${id}`);
         const pacienteData = response.data.data;
         
         const fechaNacimiento = pacienteData.Fnaci_pac 
@@ -101,7 +101,7 @@ const EditarPaciente = () => {
         if (paciente.Tipo_disc && paciente.Grado_disc) {
           if (paciente.Iddisc) {
             // Actualizar discapacidad existente
-            await axios.put(`http://localhost:5000/api/discapacidad/editar/${paciente.Iddisc}`, {
+            await axios.put(`${API_URL}/discapacidad/editar/${paciente.Iddisc}`, {
               Tipo_disc: paciente.Tipo_disc,
               Grado_disc: paciente.Grado_disc,
               Obs: paciente.Obs
@@ -113,7 +113,7 @@ const EditarPaciente = () => {
         idDiscapacidad = null;
         if (paciente.Iddisc) {
           try {
-            await axios.delete(`http://localhost:5000/api/discapacidad/eliminar/${paciente.Iddisc}`);
+            await axios.delete(`${API_URL}/discapacidad/eliminar/${paciente.Iddisc}`);
           } catch (deleteError) {
             console.warn("No se pudo eliminar la discapacidad:", deleteError);
           }
@@ -150,7 +150,7 @@ const EditarPaciente = () => {
         })
       };
   
-      await axios.put(`http://localhost:5000/api/paciente/editar/${id}`, datosActualizacion);
+      await axios.put(`${API_URL}/paciente/editar/${id}`, datosActualizacion);
       navigate("/pacientes", { state: { success: "Paciente actualizado correctamente" } });
     } catch (error) {
       console.error("Error al actualizar paciente:", error);

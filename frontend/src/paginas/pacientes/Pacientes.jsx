@@ -70,12 +70,12 @@ const Pacientes = () => {
       return { años: "-", meses: "-", texto: "-" };
     }
   };
-
+  const API_URL = process.env.REACT_APP_API_URL;
   // Obtener la lista de pacientes y discapacidades (orden descendente por ID)
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const pacientesRes = await axios.get("http://localhost:5000/api/paciente/listar");
+        const pacientesRes = await axios.get(`${API_URL}/paciente/listar`);
         
         // Ordenar pacientes por ID de forma descendente
         const pacientesOrdenados = pacientesRes.data.sort(
@@ -109,7 +109,7 @@ const Pacientes = () => {
   const obtenerTratamientosPorPaciente = async (idpac) => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/tratamiento/listar"
+        `${API_URL}/tratamiento/listar`
       );
       const tratamientosFiltrados = res.data.filter((t) => t.Idpac === idpac);
       setTratamientos(tratamientosFiltrados);

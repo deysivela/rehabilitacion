@@ -20,7 +20,7 @@ const Inicio = () => {
     loading: true
   });
   const [userRole, setUserRole] = useState('');
-
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const fetchData = useCallback(async () => {
     const user = JSON.parse(sessionStorage.getItem("usuario"));
@@ -28,7 +28,7 @@ const Inicio = () => {
     
     try {
       setIndicadores(prev => ({...prev, loading: true}));
-      const response = await fetch("http://localhost:5000/api/indicadores", {
+      const response = await fetch(`${API_URL}/indicadores`, {
         headers: {
           "Content-Type": "application/json",
           "x-user-id": user?.id,

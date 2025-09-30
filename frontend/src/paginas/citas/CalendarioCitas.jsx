@@ -65,7 +65,7 @@ const CalendarioCitas = () => {
   const cargarCitas = useCallback(async () => {
     setCargando(true);
     try {
-      const res = await fetch("http://localhost:5000/api/cita/listar");
+      const res = await fetch(`${API_URL}/cita/listar`);
       if (!res.ok) throw new Error("Error al cargar citas");
       const data = await res.json();
 
@@ -115,7 +115,7 @@ const CalendarioCitas = () => {
   // Cargar profesionales
   const cargarProfesionales = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/prof_salud/listar");
+      const res = await fetch(`${API_URL}/prof_salud/listar`);
       if (!res.ok) throw new Error("Error al obtener profesionales");
       const data = await res.json();
 
@@ -183,7 +183,7 @@ const CalendarioCitas = () => {
   const finalizarCita = async (idCita) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/cita/editar/${idCita}`,
+        `${API_URL}/cita/editar/${idCita}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -220,7 +220,7 @@ const CalendarioCitas = () => {
 
     // Buscar paciente por CI en tiempo real y mostrar nombre
     if (name === "Ci_pac" && value.trim().length > 0) {
-      fetch(`http://localhost:5000/api/paciente/buscar?ci=${value}`)
+      fetch(`${API_URL}/paciente/buscar?ci=${value}`)
         .then((res) => res.json())
         .then((data) =>
           setNombrePaciente(
@@ -259,7 +259,7 @@ const CalendarioCitas = () => {
       // Si no hay Idpac, buscar por CI
       if (!idpacFinal && formularioCita.Ci_pac) {
         const resPac = await fetch(
-          `http://localhost:5000/api/paciente/buscar?ci=${formularioCita.Ci_pac}`
+          `${API_URL}/paciente/buscar?ci=${formularioCita.Ci_pac}`
         );
         if (!resPac.ok)
           throw new Error("Paciente no encontrado. Verifique el CI.");
@@ -273,8 +273,8 @@ const CalendarioCitas = () => {
           : { ...formularioCita, Idpac: idpacFinal };
 
       const url = modoEdicion
-        ? `http://localhost:5000/api/cita/editar/${citaSeleccionada.id}`
-        : "http://localhost:5000/api/cita/crear";
+        ? `${API_URL}/cita/editar/${citaSeleccionada.id}`
+        : `${API_URL}/cita/crear`;
       const method = modoEdicion ? "PUT" : "POST";
 
       const res = await fetch(url, {

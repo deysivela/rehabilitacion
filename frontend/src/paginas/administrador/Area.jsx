@@ -14,7 +14,7 @@ const Area = () => {
 
   const fetchAreas = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/area/listar');
+      const { data } = await axios.get('${API_URL}/area/listar');
       setLista(data);
     } catch (err) { console.error('Error al listar áreas:', err); }
   };
@@ -29,18 +29,18 @@ const Area = () => {
     else setForm({ Idarea: null, Nombre: '', Descripcion: '' });
     setModalOpen(true);
   };
-
+  const API_URL = process.env.REACT_APP_API_URL;
   const handleSubmit = async e => {
     e.preventDefault();
     try {
       if (form.Idarea) {
         await axios.put(
-          `http://localhost:5000/api/area/actualizar/${form.Idarea}`,
+          `${API_URL}/area/actualizar/${form.Idarea}`,
           { Nombre: form.Nombre, Descripcion: form.Descripcion }
         );
       } else {
         await axios.post(
-          'http://localhost:5000/api/area/crear',
+          '${API_URL}/area/crear',
           { Nombre: form.Nombre, Descripcion: form.Descripcion }
         );
       }
@@ -65,7 +65,7 @@ const Area = () => {
   
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/api/area/eliminar/${id}`);
+        await axios.delete(`${API_URL}/area/eliminar/${id}`);
         fetchAreas();
         Swal.fire("Eliminada", "El área se eliminó correctamente.", "success");
       } catch (err) {

@@ -37,11 +37,11 @@ const Profesional = () => {
     fetchProfesionales();
     fetchAreas();
   }, []);
-
+  const API_URL = process.env.REACT_APP_API_URL;
   const fetchProfesionales = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/prof_salud/listar"
+        `${API_URL}/prof_salud/listar`
       );
       setLista(response.data);
     } catch (error) {
@@ -51,7 +51,7 @@ const Profesional = () => {
 
   const fetchAreas = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/area/listar");
+      const res = await axios.get(`${API_URL}/area/listar`);
       setAreas(res.data);
     } catch (err) {
       console.error("Error al cargar áreas:", err);
@@ -91,11 +91,11 @@ const Profesional = () => {
     try {
       if (form.Idprof) {
         await axios.put(
-          `http://localhost:5000/api/prof_salud/actualizar/${form.Idprof}`,
+          `${API_URL}/prof_salud/actualizar/${form.Idprof}`,
           form
         );
       } else {
-        await axios.post("http://localhost:5000/api/prof_salud/crear", form);
+        await axios.post(`${API_URL}/prof_salud/crear`, form);
       }
       setModalOpen(false);
       fetchProfesionales();
@@ -108,7 +108,7 @@ const Profesional = () => {
     if (window.confirm("¿Estás seguro que deseas eliminar este profesional?")) {
       try {
         await axios.delete(
-          `http://localhost:5000/api/prof_salud/eliminar/${id}`
+          `${API_URL}/prof_salud/eliminar/${id}`
         );
         fetchProfesionales();
       } catch (error) {

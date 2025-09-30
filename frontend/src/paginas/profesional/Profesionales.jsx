@@ -79,11 +79,11 @@ const Profesionales = () => {
       return { años: "-", meses: "-", texto: "-" };
     }
   }, []);
-
+  const API_URL = process.env.REACT_APP_API_URL;
   // Función para cargar pacientes
   const cargarPacientes = useCallback(async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/paciente/listar");
+      const res = await axios.get(`${API_URL}/paciente/listar`);
       setPacientes(res.data);
       console.log("Pacientes cargados:", res.data);
     } catch (error) {
@@ -291,8 +291,8 @@ const Profesionales = () => {
         console.log("Cargando datos iniciales...");
 
         const [tratamientosRes, profesionalesRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/tratamiento/listar"),
-          axios.get("http://localhost:5000/api/prof_salud/listar"),
+          axios.get(`${API_URL}/tratamiento/listar`),
+          axios.get(`${API_URL}/prof_salud/listar`),
         ]);
 
         console.log("Tratamientos recibidos:", tratamientosRes.data);
@@ -406,17 +406,17 @@ const Profesionales = () => {
 
       if (form.Idtrat) {
         await axios.put(
-          `http://localhost:5000/api/tratamiento/actualizar/${form.Idtrat}`,
+          `${API_URL}/tratamiento/actualizar/${form.Idtrat}`,
           form
         );
       } else {
-        await axios.post("http://localhost:5000/api/tratamiento/crear", form);
+        await axios.post(`${API_URL}/tratamiento/crear`, form);
       }
 
       // Recargar datos
       setCargando(true);
       const tratamientosRes = await axios.get(
-        "http://localhost:5000/api/tratamiento/listar"
+        `${API_URL}/tratamiento/listar`
       );
       setTodosLosTratamientos(tratamientosRes.data);
 

@@ -109,7 +109,7 @@ const Sesion = () => {
       Idtec: [],
     });
   };
-
+  const API_URL = process.env.REACT_APP_API_URL;
   // Cargar datos iniciales
   useEffect(() => {
     const cargarDatos = async () => {
@@ -123,14 +123,14 @@ const Sesion = () => {
         // Endpoint para sesiones dependiendo del rol
         const urlSesiones =
           rol === "Administrador"
-            ? "http://localhost:5000/api/sesion/listar?include=tecnicas,tratamiento.paciente,prof_salud"
-            : `http://localhost:5000/api/sesion/listar?include=tecnicas,tratamiento.paciente,prof_salud&Idprof=${idProf}`;
+            ? `${API_URL}/sesion/listar?include=tecnicas,tratamiento.paciente,prof_salud`
+            : `${API_URL}/sesion/listar?include=tecnicas,tratamiento.paciente,prof_salud&Idprof=${idProf}`;
   
         // Pacientes: si es admin puedes traer todos, si es médico solo los suyos
         const urlPacientes =
           rol === "Administrador"
-            ? "http://localhost:5000/api/paciente/listar"
-            : `http://localhost:5000/api/tratamiento/pacientes/${idProf}`;
+            ? `${API_URL}/paciente/listar`
+            : `${API_URL}/tratamiento/pacientes/${idProf}`;
   
         const [resSesiones, resPacientes, resTratamientos, resProfesionales, resTecnicas] =
           await Promise.all([
@@ -138,11 +138,11 @@ const Sesion = () => {
             axios.get(urlPacientes),
             axios.get(
               rol === "Administrador"
-                ? "http://localhost:5000/api/tratamiento/listar"
-                : `http://localhost:5000/api/tratamiento/listar?Idprof=${idProf}`
+                ? `${API_URL}/tratamiento/listar`
+                : `${API_URL}/tratamiento/listar?Idprof=${idProf}`
             ),
-            axios.get("http://localhost:5000/api/prof_salud/listar"),
-            axios.get("http://localhost:5000/api/tecnica/listar"),
+            axios.get(`${API_URL}/prof_salud/listar`),
+            axios.get(`${API_URL}/tecnica/listar`),
           ]);
   
         setSesiones(
@@ -211,8 +211,8 @@ const Sesion = () => {
     const cargarAreasYTecnicas = async () => {
       try {
         const [resAreas, resTecnicas] = await Promise.all([
-          axios.get("http://localhost:5000/api/area/listar"),
-          axios.get("http://localhost:5000/api/tecnica/listar"),
+          axios.get(`${API_URL}/area/listar`),
+          axios.get(`${API_URL}/tecnica/listar`),
         ]);
 
         setAreas(resAreas.data);
@@ -307,19 +307,19 @@ const Sesion = () => {
 
       if (modoEdicion) {
         await axios.put(
-          `http://localhost:5000/api/sesion/editar/${idSesionEditar}`,
+          `${API_URL}/sesion/editar/${idSesionEditar}`,
           datosParaEnviar
         );
 
         await axios.post(
-          `http://localhost:5000/api/sesion/editar/${idSesionEditar}/tecnicas`,
+          `${API_URL}/sesion/editar/${idSesionEditar}/tecnicas`,
           { Idtec: formulario.Idtec }
         );
 
         addNotification("success", "Sesión actualizada correctamente");
       } else {
         await axios.post(
-          "http://localhost:5000/api/sesion/crear",
+          `${API_URL}/sesion/crear`,
           datosParaEnviar
         );
         addNotification("success", "Sesión creada correctamente");
@@ -327,7 +327,7 @@ const Sesion = () => {
 
       // Recargar datos
       const resSesiones = await axios.get(
-        "http://localhost:5000/api/sesion/listar?include=tecnicas,tratamiento.paciente,profesional"
+        `${API_URL}/sesion/listar?include=tecnicas,tratamiento.paciente,profesional`
       );
       setSesiones(
         Array.isArray(resSesiones.data.data) ? resSesiones.data.data : []
@@ -364,7 +364,7 @@ const Sesion = () => {
 
     try {
       setCargando(true);
-      await axios.delete(`http://localhost:5000/api/sesion/eliminar/${id}`);
+      await axios.delete(`${API_URL}/sesion/eliminar/${id}`);
       setSesiones((prev) => prev.filter((s) => s.Idsesion !== id));
       addNotification("success", "Sesión eliminada correctamente");
     } catch (err) {

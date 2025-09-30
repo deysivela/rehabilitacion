@@ -15,7 +15,7 @@ const HistorialClinico = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [generatingPDF, setGeneratingPDF] = useState(false);
-
+  const API_URL = process.env.REACT_APP_API_URL;
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -29,18 +29,18 @@ const HistorialClinico = () => {
           { data: discapacidadRes },
           { data: profesionalesRes },
         ] = await Promise.all([
-          axios.get(`http://localhost:5000/api/paciente/${id}`),
+          axios.get(`${API_URL}/paciente/${id}`),
           axios
-            .get(`http://localhost:5000/api/tratamiento/paciente/${id}`)
+            .get(`${API_URL}/tratamiento/paciente/${id}`)
             .catch(() => ({ data: [] })),
           axios
-            .get(`http://localhost:5000/api/sesion/paciente/${id}`)
+            .get(`${API_URL}/sesion/paciente/${id}`)
             .catch(() => ({ data: [] })),
           axios
-            .get(`http://localhost:5000/api/discapacidad/paciente/${id}`)
+            .get(`${API_URL}/discapacidad/paciente/${id}`)
             .catch(() => ({ data: null })),
           axios
-            .get("http://localhost:5000/api/prof_salud/listar")
+            .get(`${API_URL}/prof_salud/listar`)
             .catch(() => ({ data: [] })),
         ]);
 

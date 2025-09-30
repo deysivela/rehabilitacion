@@ -25,12 +25,12 @@ const Usuario = () => {
   }, []);
 
   const fetchUsuarios = async () => {
-    const { data } = await axios.get('http://localhost:5000/api/usuario/listar');
+    const { data } = await axios.get('${API_URL}/usuario/listar');
     setLista(data);
   };
 
   const fetchProfesionales = async () => {
-    const { data } = await axios.get('http://localhost:5000/api/prof_salud/listar');
+    const { data } = await axios.get('${API_URL}/prof_salud/listar');
     setProfesionales(data);
   };
 
@@ -75,7 +75,7 @@ const Usuario = () => {
       [name]: type === 'checkbox' ? checked : value
     }));
   };
-
+  const API_URL = process.env.REACT_APP_API_URL;
   const handleSubmit = async e => {
     e.preventDefault();
 
@@ -94,9 +94,9 @@ const Usuario = () => {
     };
 
     if (form.Iduser) {
-      await axios.put(`http://localhost:5000/api/usuario/actualizar/${form.Iduser}`, payload);
+      await axios.put(`${API_URL}/usuario/actualizar/${form.Iduser}`, payload);
     } else {
-      await axios.post('http://localhost:5000/api/usuario/crear', payload);
+      await axios.post('${API_URL}/usuario/crear', payload);
     }
     setModalOpen(false);
     fetchUsuarios();

@@ -20,7 +20,7 @@ const Actividad = () => {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [modalDetalle, setModalDetalle] = useState(false);
-
+  const API_URL = process.env.REACT_APP_API_URL;
   // Obtener ID del profesional logueado
   const usuario = JSON.parse(sessionStorage.getItem("usuario"));
   const idProfesionalLogeado = usuario?.idprof;
@@ -40,7 +40,7 @@ const Actividad = () => {
 
   const obtenerActividades = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/actividad/listar");
+      const res = await axios.get(`${API_URL}/actividad/listar`);
       setActividades(res.data);
     } catch (err) {
       console.error("Error al obtener actividades", err);
@@ -98,12 +98,12 @@ const Actividad = () => {
     try {
       if (modoEdicion) {
         await axios.put(
-          `http://localhost:5000/api/actividad/actualizar/${actividadActual.Idact}`,
+          `${API_URL}/actividad/actualizar/${actividadActual.Idact}`,
           actividadActual
         );
       } else {
         await axios.post(
-          "http://localhost:5000/api/actividad/crear",
+          `${API_URL}/actividad/crear`,
           actividadActual
         );
       }
@@ -128,7 +128,7 @@ const Actividad = () => {
   
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/api/actividad/eliminar/${id}`);
+        await axios.delete(`${API_URL}/actividad/eliminar/${id}`);
         obtenerActividades();
         Swal.fire("Eliminada", "La actividad se eliminó correctamente.", "success");
       } catch (err) {
