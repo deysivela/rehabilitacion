@@ -29,6 +29,8 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id', 'x-user-rol']
 }));
+
+
 // Rutas principales
 app.use('/api/auth', authRutas);
 app.use('/api/usuario', usuarioRutas);
@@ -47,6 +49,9 @@ app.use('/api/indicadores',indicadoresRutas);
 app.use('/api/reportes',reportesRutas);
 app.use('/api/respaldo',respaldoRutas);
 
+app.get('/', (req, res) => {
+  res.send(' API de Rehabilitación corriendo correctamente');
+});
 // Conexión a la base de datos
 const PORT = process.env.PORT || 5000;
 
