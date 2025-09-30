@@ -49,9 +49,10 @@ app.use('/api/indicadores',indicadoresRutas);
 app.use('/api/reportes',reportesRutas);
 app.use('/api/respaldo',respaldoRutas);
 
-app.get('/', (req, res) => {
-  res.send(' API de Rehabilitación corriendo correctamente');
+app.get('/api', (req, res) => {
+  res.send('API de Rehabilitación: usa /api/auth, /api/paciente, etc.');
 });
+
 // Conexión a la base de datos
 const PORT = process.env.PORT || 5000;
 
