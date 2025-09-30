@@ -10,6 +10,7 @@ import {
   FiRefreshCw,
   FiDatabase,
 } from "react-icons/fi";
+import { API_URL } from '../../config';
 
 const Administrador = () => {
   const [stats, setStats] = useState({
@@ -35,7 +36,7 @@ const Administrador = () => {
       minute: "2-digit",
     }).format(date);
   };
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   // Función para cargar estadísticas
   const fetchStats = useCallback(async (isRefreshing = false) => {
     try {

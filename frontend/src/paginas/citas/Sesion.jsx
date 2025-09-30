@@ -5,7 +5,7 @@ import { FaEdit, FaTrash, FaEye, FaPlus } from "react-icons/fa";
 import { NotificationContext } from "../../componentes/NotificationContext";
 import Swal from "sweetalert2";
 import "./Sesion.css";
-
+import { API_URL } from '../../config';
 const Sesion = () => {
   const location = useLocation();
   const { addNotification } = useContext(NotificationContext);
@@ -109,7 +109,7 @@ const Sesion = () => {
       Idtec: [],
     });
   };
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   // Cargar datos iniciales
   useEffect(() => {
     const cargarDatos = async () => {

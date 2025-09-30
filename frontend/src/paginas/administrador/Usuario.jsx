@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Usuario.css';
 import { FaEdit, FaEye } from 'react-icons/fa'; 
-
+import { API_URL } from '../../config';
 const Usuario = () => {
   const [lista, setLista] = useState([]);
   const [profesionales, setProfesionales] = useState([]);
@@ -75,7 +75,7 @@ const Usuario = () => {
       [name]: type === 'checkbox' ? checked : value
     }));
   };
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   const handleSubmit = async e => {
     e.preventDefault();
 

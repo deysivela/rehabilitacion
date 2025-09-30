@@ -3,7 +3,7 @@ import axios from "axios";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import "./Actividad.css";
 import Swal from "sweetalert2";
-
+import { API_URL } from '../../config';
 const Actividad = () => {
   const [actividades, setActividades] = useState([]);
   const [actividadesFiltradas, setActividadesFiltradas] = useState([]);
@@ -20,7 +20,7 @@ const Actividad = () => {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [modalDetalle, setModalDetalle] = useState(false);
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   // Obtener ID del profesional logueado
   const usuario = JSON.parse(sessionStorage.getItem("usuario"));
   const idProfesionalLogeado = usuario?.idprof;

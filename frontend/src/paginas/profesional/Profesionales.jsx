@@ -18,7 +18,7 @@ import {
   FaExclamationTriangle,
 } from "react-icons/fa";
 import "./Profesionales.css";
-
+import { API_URL } from '../../config';
 const Profesionales = () => {
   const [tratamientos, setTratamientos] = useState([]);
   const [filtro, setFiltro] = useState("");
@@ -79,7 +79,7 @@ const Profesionales = () => {
       return { años: "-", meses: "-", texto: "-" };
     }
   }, []);
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   // Función para cargar pacientes
   const cargarPacientes = useCallback(async () => {
     try {

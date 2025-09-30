@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./RegistrarPaciente.css";
-
+import { API_URL } from '../../config';
 const RegistrarPaciente = () => {
   const navigate = useNavigate();
   const [nuevoPaciente, setNuevoPaciente] = useState({
@@ -32,7 +32,7 @@ const RegistrarPaciente = () => {
       [name]: type === "checkbox" ? checked : value,
     });
   };
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   const registrar = async (e) => {
     e.preventDefault();
     setErrores([]);

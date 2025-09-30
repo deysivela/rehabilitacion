@@ -17,7 +17,7 @@ import {
   FaPlusCircle,
 } from "react-icons/fa";
 import "./Pacientes.css";
-
+import { API_URL } from '../../config';
 const Pacientes = () => {
   const [pacientes, setPacientes] = useState([]);
   const [filtro, setFiltro] = useState("");
@@ -70,7 +70,7 @@ const Pacientes = () => {
       return { años: "-", meses: "-", texto: "-" };
     }
   };
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   // Obtener la lista de pacientes y discapacidades (orden descendente por ID)
   useEffect(() => {
     const fetchData = async () => {

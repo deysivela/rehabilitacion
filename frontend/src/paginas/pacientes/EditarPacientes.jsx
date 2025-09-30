@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './EditarPaciente.css';
-
+import { API_URL } from '../../config';
 const EditarPaciente = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ const EditarPaciente = () => {
   const [errores, setErrores] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   useEffect(() => {
     const fetchPaciente = async () => {
       try {

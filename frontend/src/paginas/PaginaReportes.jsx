@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import './reportes.css';
+import { API_URL } from '../../config';
 
 // Función para generar el reporte (apiReportes)
 const generarReporte = async (filtros) => {
@@ -29,7 +30,7 @@ const FiltrosReporte = ({ onGenerar }) => {
 
   const [areas, setAreas] = useState([]);
   const [profesionales, setProfesionales] = useState([]);
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   // Cargar áreas
   useEffect(() => {
     axios

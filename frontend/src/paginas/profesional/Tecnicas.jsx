@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaEdit, FaTimes, FaEye } from "react-icons/fa";
 import "./Tecnicas.css";
-
+import { API_URL } from '../../config';
 const Tecnica = () => {
   const [tecnicas, setTecnicas] = useState([]);
   const [areas, setAreas] = useState([]);
@@ -20,7 +20,7 @@ const Tecnica = () => {
   useEffect(() => {
     cargarDatos();
   }, []);
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   const cargarDatos = async () => {
     try {
       setCargando(true);

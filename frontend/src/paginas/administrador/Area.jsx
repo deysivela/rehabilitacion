@@ -3,7 +3,7 @@ import axios from 'axios';
 import './Area.css';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import Swal from "sweetalert2";
-
+import { API_URL } from '../../config';
 
 const Area = () => {
   const [lista, setLista] = useState([]);
@@ -29,7 +29,7 @@ const Area = () => {
     else setForm({ Idarea: null, Nombre: '', Descripcion: '' });
     setModalOpen(true);
   };
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   const handleSubmit = async e => {
     e.preventDefault();
     try {

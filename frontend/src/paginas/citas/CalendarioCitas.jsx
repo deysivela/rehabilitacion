@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 import Modal from "react-modal";
 import { toast } from "react-toastify";
 import "./CalendarioCitas.css";
-
+import { API_URL } from '../config';
 // Configuración de localización
 const locales = { es };
 

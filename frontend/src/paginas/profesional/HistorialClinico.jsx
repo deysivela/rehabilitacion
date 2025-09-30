@@ -4,7 +4,7 @@ import axios from "axios";
 import { jsPDF } from "jspdf";
 import "./HistorialClinico.css";
 import logo from '../../assets/logo.png';
-
+import { API_URL } from '../../config';
 const HistorialClinico = () => {
   const { id } = useParams();
   const [paciente, setPaciente] = useState(null);
@@ -15,7 +15,7 @@ const HistorialClinico = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [generatingPDF, setGeneratingPDF] = useState(false);
-  const API_URL = process.env.REACT_APP_API_URL;
+  
   useEffect(() => {
     const fetchData = async () => {
       try {

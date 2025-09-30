@@ -6,6 +6,7 @@ import {
 } from "react-icons/fi";
 import "./Inicio.css";
 import Footer from "../componentes/Footer";
+import { API_URL } from '../../config';
 
 const Inicio = () => {
   const [indicadores, setIndicadores] = useState({
@@ -20,7 +21,7 @@ const Inicio = () => {
     loading: true
   });
   const [userRole, setUserRole] = useState('');
-  const API_URL = process.env.REACT_APP_API_URL;
+  
 
   const fetchData = useCallback(async () => {
     const user = JSON.parse(sessionStorage.getItem("usuario"));
