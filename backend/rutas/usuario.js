@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 //const bcrypt = require('bcrypt');
 const bcrypt = require('bcryptjs');
-const Usuario = require('../modelos/usuario');
+const Usuario = require('../modelos/Usuario');
 
 // Listar usuarios
 router.get('/listar', async (req, res) => {
