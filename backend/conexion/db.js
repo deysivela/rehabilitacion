@@ -1,33 +1,18 @@
 const { Sequelize } = require('sequelize');
 
-// Usar PostgreSQL en producción, MySQL en desarrollo
-const sequelize = process.env.NODE_ENV === 'production' 
-  ? new Sequelize(process.env.DATABASE_URL, {
-      dialect: 'postgres',
-      dialectOptions: {
-        ssl: {
-          require: true,
-          rejectUnauthorized: false
-        }
-      },
-      logging: false
-    })
-  : new Sequelize(
-      process.env.DB_NAME || 'defaultdb',
-      process.env.DB_USER || 'avnadmin',
-      process.env.DB_PASSWORD,
-      {
-        host: process.env.DB_HOST,
-        port: process.env.DB_PORT,
-        dialect: 'mysql',
-        dialectOptions: {
-          ssl: {
-            rejectUnauthorized: true
-          }
-        },
-        logging: false
+const sequelize = new Sequelize(
+  process.env.DATABASE_URL || `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
+  {
+    dialect: 'postgres',
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
       }
-    );
+    },
+    logging: false
+  }
+);
 
 sequelize.authenticate()
   .then(() => console.log('✅ Conexión establecida con la base de datos'))
