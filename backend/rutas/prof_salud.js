@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ProfSalud = require('../modelos/ProfSalud');
 
-// GET /api/prof_salud/listar
+// GET /prof_salud/listar
 router.get('/listar', async (req, res) => {
   try {
     const lista = await ProfSalud.findAll();
@@ -13,7 +13,7 @@ router.get('/listar', async (req, res) => {
   }
 });
 
-// POST /api/prof_salud/crear
+// POST /prof_salud/crear
 router.post('/crear', async (req, res) => {
   try {
     const nuevo = await ProfSalud.create(req.body);
@@ -25,7 +25,7 @@ router.post('/crear', async (req, res) => {
   }
 });
 
-// PUT /api/prof_salud/actualizar/:id
+// PUT /prof_salud/actualizar/:id
 router.put('/actualizar/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -38,7 +38,7 @@ router.put('/actualizar/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/prof_salud/eliminar/:id
+// DELETE /prof_salud/eliminar/:id
 router.delete('/eliminar/:id', async (req, res) => {
   try {
     const { id } = req.params;

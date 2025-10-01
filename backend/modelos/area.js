@@ -17,7 +17,7 @@ const sequelize = require('../conexion/db');
         allowNull: true
       }
     }, {
-      tableName: 'Area',
+      tableName: 'area',
       timestamps: false
     });
   
