@@ -1,30 +1,28 @@
 const { Sequelize } = require('sequelize');
 
-// CONEXIÓN MÍNIMA PARA PRUEBAS - elimina SSL temporalmente
+// CONEXIÓN SUPER SIMPLIFICADA - elimina SSL temporalmente
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: 'mysql',
-  logging: console.log,
-  // Quitamos dialectModule temporalmente
-  // dialectModule: require('mysql2'),
-  dialectOptions: {
-    // SSL simplificado
-    ssl: process.env.NODE_ENV === 'production' ? {
-      rejectUnauthorized: false
-    } : false
-  },
-  retry: {
-    max: 3
-  }
+  logging: true
 });
 
-// O versión MÁS simple sin SSL:
+// O si necesitas SSL básico:
 // const sequelize = new Sequelize(process.env.DATABASE_URL, {
 //   dialect: 'mysql',
-//   logging: console.log
+//   logging: true,
+//   dialectOptions: {
+//     ssl: {
+//       rejectUnauthorized: false
+//     }
+//   }
 // });
 
 sequelize.authenticate()
-  .then(() => console.log('✅ Conexión establecida con MySQL'))
-  .catch((error) => console.error('❌ Error conectando a MySQL:', error));
+  .then(() => {
+    console.log('✅ Conexión EXITOSA con MySQL Aiven');
+  })
+  .catch((error) => {
+    console.error('❌ Error de conexión:', error.message);
+  });
 
 module.exports = sequelize;
