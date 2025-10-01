@@ -6,7 +6,7 @@ import { API_URL } from '../paginas/config';
 
 // Función para generar el reporte (apiReportes)
 const generarReporte = async (filtros) => {
-  const respuesta = await fetch('${API_URL}/reportes/generar', {
+  const respuesta = await fetch(`${API_URL}/reportes/generar`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

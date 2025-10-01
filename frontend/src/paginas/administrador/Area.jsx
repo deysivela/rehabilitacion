@@ -14,7 +14,7 @@ const Area = () => {
 
   const fetchAreas = async () => {
     try {
-      const { data } = await axios.get('${API_URL}/area/listar');
+      const { data } = await axios.get(`${API_URL}/area/listar`);
       setLista(data);
     } catch (err) { console.error('Error al listar áreas:', err); }
   };
@@ -40,7 +40,7 @@ const Area = () => {
         );
       } else {
         await axios.post(
-          '${API_URL}/area/crear',
+          `${API_URL}/area/crear`,
           { Nombre: form.Nombre, Descripcion: form.Descripcion }
         );
       }

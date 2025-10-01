@@ -1,21 +1,9 @@
 const { Sequelize } = require('sequelize');
 
-// CONEXIÓN SUPER SIMPLIFICADA - elimina SSL temporalmente
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: 'mysql',
   logging: true
 });
-
-// O si necesitas SSL básico:
-// const sequelize = new Sequelize(process.env.DATABASE_URL, {
-//   dialect: 'mysql',
-//   logging: true,
-//   dialectOptions: {
-//     ssl: {
-//       rejectUnauthorized: false
-//     }
-//   }
-// });
 
 sequelize.authenticate()
   .then(() => {

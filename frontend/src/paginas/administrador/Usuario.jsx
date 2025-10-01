@@ -25,12 +25,12 @@ const Usuario = () => {
   }, []);
 
   const fetchUsuarios = async () => {
-    const { data } = await axios.get('${API_URL}/usuario/listar');
+    const { data } = await axios.get(`${API_URL}/usuario/listar`);
     setLista(data);
   };
 
   const fetchProfesionales = async () => {
-    const { data } = await axios.get('${API_URL}/prof_salud/listar');
+    const { data } = await axios.get(`${API_URL}/prof_salud/listar`);
     setProfesionales(data);
   };
 
@@ -96,7 +96,7 @@ const Usuario = () => {
     if (form.Iduser) {
       await axios.put(`${API_URL}/usuario/actualizar/${form.Iduser}`, payload);
     } else {
-      await axios.post('${API_URL}/usuario/crear', payload);
+      await axios.post(`${API_URL}/usuario/crear`, payload);
     }
     setModalOpen(false);
     fetchUsuarios();

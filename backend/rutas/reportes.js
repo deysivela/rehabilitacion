@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-//const { generarExcelReporte } = require("../servicios/excel");
+const { generarExcelReporte } = require("../servicios/excel");
 const db = require("../modelos");
 const { Op } = require("sequelize");
 
@@ -640,7 +640,7 @@ router.post("/generar", validarParametros, async (req, res) => {
       tipoReporte
     );
 
-/*     const libroExcel = await generarExcelReporte(datosConActividades, {
+    const libroExcel = await generarExcelReporte(datosConActividades, {
       tipoReporte,
       areaSeleccionada:
         tipoReporte === "por-area"
@@ -651,7 +651,7 @@ router.post("/generar", validarParametros, async (req, res) => {
       patologias: PATOLOGIAS,
       razonesAbandono: RAZONES_ABANDONO,
       todasTecnicas: TODAS_TECNICAS,
-    }); */
+    });
     
 
     res.setHeader(
