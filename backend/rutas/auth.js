@@ -5,6 +5,7 @@ const { Usuario, ProfSalud } = require('../modelos');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'secreto';
+console.log("Login request body:", req.body);
 
 router.post('/login', async (req, res) => {
   const { Usuario: username, Pass: password } = req.body;
