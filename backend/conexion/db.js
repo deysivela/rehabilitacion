@@ -4,6 +4,7 @@ const path = require('path');
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: 'mysql',
+  dialectModule: require('mysql2'), // ← agregado aquí
   dialectOptions: {
     ssl: {
       ca: fs.readFileSync(path.resolve(__dirname, 'ca.pem'))
