@@ -5,11 +5,11 @@ const { Usuario, ProfSalud } = require('../modelos');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'secreto';
-console.log("Login request body:", req.body);
+
 
 router.post('/login', async (req, res) => {
   const { Usuario: username, Pass: password } = req.body;
-
+  console.log("Login request body:", req.body);
   try {
     if (!username || !password) {
       return res.status(400).json({ message: 'Usuario y contraseña son obligatorios' });
