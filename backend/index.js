@@ -32,25 +32,25 @@ app.use(cors({
 
 
 // Rutas principales
-app.use('/api/auth', authRutas);
-app.use('/api/usuario', usuarioRutas);
-app.use('/api/paciente', pacienteRutas);
-app.use('/api/discapacidad', discapacidadRutas);
-app.use('/api/prof_salud', profesionalRutas);
-app.use('/api/cita', citaRutas);
-app.use('/api/sesion', sesionRutas);
-app.use('/api/tratamiento', tratamientoRutas);
-app.use('/api/area', areaRutas);
-app.use('/api/estadisticas', estadisticasRutas);
-app.use('/api/tecnica', tecnicaRutas);
-app.use('/api/sesion_tecnica',sesion_tecnicasRutas);
-app.use('/api/actividad',actividadRutas);
-app.use('/api/indicadores',indicadoresRutas);
-app.use('/api/reportes',reportesRutas);
-app.use('/api/respaldo',respaldoRutas);
+app.use('/auth', authRutas);
+app.use('/usuario', usuarioRutas);
+app.use('/paciente', pacienteRutas);
+app.use('/discapacidad', discapacidadRutas);
+app.use('/prof_salud', profesionalRutas);
+app.use('/cita', citaRutas);
+app.use('/sesion', sesionRutas);
+app.use('/tratamiento', tratamientoRutas);
+app.use('/area', areaRutas);
+app.use('/estadisticas', estadisticasRutas);
+app.use('/tecnica', tecnicaRutas);
+app.use('/sesion_tecnica',sesion_tecnicasRutas);
+app.use('/actividad',actividadRutas);
+app.use('/indicadores',indicadoresRutas);
+app.use('/reportes',reportesRutas);
+app.use('/respaldo',respaldoRutas);
 
-app.get('/api', (req, res) => {
-  res.send('API de Rehabilitación: usa /api/auth, /api/paciente, etc.');
+app.get('/', (req, res) => {
+  res.send('API de Rehabilitación: usa /auth, /paciente, etc.');
 });
 
 // Conexión a la base de datos
