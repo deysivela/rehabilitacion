@@ -29,7 +29,7 @@ const Login = () => {
       }
     }
   }, [navigate, location]);
-
+  console.log(API_URL);
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
