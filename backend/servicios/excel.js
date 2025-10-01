@@ -94,7 +94,7 @@ async function generarExcelReporte(datos, config) {
 try {
   // Traer todas las áreas de la base de datos
   const areasDB = await Area.findAll({
-    attributes: ['Idarea', 'Nombre'], // solo lo necesario
+    attributes: ['Idarea', 'Nombre'], 
   });
 
   // Transformar nombres a mayúsculas

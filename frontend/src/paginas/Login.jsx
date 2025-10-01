@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaEye, FaEyeSlash, FaUserAlt } from 'react-icons/fa';
 import './Login.css';
+import { API_URL } from '../paginas/config';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -35,7 +36,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('${API_URL}/auth/login', {
+      const response = await axios.post(`${API_URL}/auth/login`, {
         Usuario: username,
         Pass: password,
       });
