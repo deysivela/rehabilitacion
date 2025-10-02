@@ -1,8 +1,7 @@
 const ExcelJS = require("exceljs");
 const axios = require("axios");
-const db = require("../modelos");
+const db = require("../../../backend/modelos");
 const { Op } = require("sequelize");
-const { Area } = require('../modelos/area'); 
 
 // Función utilitaria para aplicar bordes a celdas combinadas
 function aplicarBordesCeldasCombinadas(hoja, rango, estilo) {
@@ -79,7 +78,7 @@ async function generarExcelReporte(datos, config) {
   };
   
   // Obtener las áreas desde la API
-/*   let areas = [];
+  let areas = [];
   try {
     const response = await axios.get(`${API_URL}/area/listar`);
     areas = response.data.map((area) => ({
@@ -88,8 +87,8 @@ async function generarExcelReporte(datos, config) {
     }));
   } catch (error) {
     console.error("Error al obtener áreas:", error);
-  } */
-  let areas = [];
+  }
+/*   let areas = [];
 
 try {
   // Traer todas las áreas de la base de datos
@@ -106,7 +105,7 @@ try {
   console.log(areas); // o usarlo donde necesites
 } catch (error) {
   console.error("Error al obtener áreas:", error);
-}
+} */
 
   // Si es reporte por profesional, usar su área
   if (tipoReporte === "por-profesional" && profesionalSeleccionado) {
