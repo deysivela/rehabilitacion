@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { generarExcelReporte } = require("../servicios/excel");
+const { generarExcelReporte } = require("../../frontend/src/servicios/excel");
 const db = require("../modelos");
 const { Op } = require("sequelize");
 
