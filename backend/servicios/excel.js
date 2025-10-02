@@ -2,7 +2,7 @@ const ExcelJS = require("exceljs");
 const axios = require("axios");
 const db = require("../modelos");
 const { Op } = require("sequelize");
-import { API_URL } from '../config';
+import { API_URL } from '../config/config';
 
 // Función utilitaria para aplicar bordes a celdas combinadas
 function aplicarBordesCeldasCombinadas(hoja, rango, estilo) {
