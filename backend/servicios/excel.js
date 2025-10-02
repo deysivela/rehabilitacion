@@ -1,6 +1,6 @@
 const ExcelJS = require("exceljs");
 const axios = require("axios");
-const db = require("../../../backend/modelos");
+const db = require("../modelos");
 const { Op } = require("sequelize");
 
 // Función utilitaria para aplicar bordes a celdas combinadas
