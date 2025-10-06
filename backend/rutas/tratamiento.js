@@ -53,13 +53,21 @@ router.get('/pacientes/:idprof', async (req, res) => {
 });
 
 // Crear tratamiento
+// Función para validar fecha
+function parseDateOrNull(fecha) {
+  const parsed = Date.parse(fecha);
+  return isNaN(parsed) ? null : new Date(parsed);
+}
+
 router.post('/crear', async (req, res) => {
   try {
+    // Eliminamos Idtrat si viene
     const { Idtrat, Fecha_fin, ...resto } = req.body;
 
     // Validamos Fecha_fin
     const fechaFinValida = parseDateOrNull(Fecha_fin);
 
+    // Creamos tratamiento
     const nuevoTratamiento = await Tratamiento.create({
       ...resto,
       Fecha_fin: fechaFinValida
@@ -74,6 +82,7 @@ router.post('/crear', async (req, res) => {
     });
   }
 });
+
 
 
 
