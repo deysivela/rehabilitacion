@@ -7,9 +7,7 @@ const mysqldump = require('mysqldump');
 router.get('/', async (req, res) => {
   try {
     const backupFile = path.join(__dirname, '../backups/backup_' + Date.now() + '.sql');
-
-    // Leer el certificado CA desde el archivo local
-    const caCert = fs.readFileSync(path.join(__dirname, 'ca.pem'));
+    const caCert = fs.readFileSync(path.join(__dirname, 'ca.pem')); 
 
     await mysqldump({
       connection: {
@@ -17,10 +15,10 @@ router.get('/', async (req, res) => {
         port: 18258,
         user: 'avnadmin',
         password: 'AVNS_rfkY_sLpQEWLwdmUu_g',
-        database: 'defaultdb', 
+        database: 'defaultdb',
         ssl: {
-          ca: caCert,
-          rejectUnauthorized: true, 
+          ca: caCert, 
+          rejectUnauthorized: false, 
         },
       },
       dumpToFile: backupFile,
