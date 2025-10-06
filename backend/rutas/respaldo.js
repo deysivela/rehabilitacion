@@ -2,17 +2,20 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const mysqldump = require('mysqldump');
-
-router.get('/', async (req, res) => { 
+router.get('/', async (req, res) => {
   try {
     const backupFile = path.join(__dirname, '../backups/backup_' + Date.now() + '.sql');
 
     await mysqldump({
       connection: {
-        host: 'localhost',
-        user: 'root',
-        password: '',
-        database: 'rehabilitacion',
+        host: 'rehabilitacion-deysivelaestrada-d394.k.aivencloud.com',
+        port: 18258,
+        user: 'avnadmin',
+        password: 'AVNS_rfkY_sLpQEWLwdmUu_g',
+        database: 'defaultdb', 
+        ssl: {
+          ca: path.join(__dirname, '../conexion/ca.pem') 
+        }
       },
       dumpToFile: backupFile,
     });
