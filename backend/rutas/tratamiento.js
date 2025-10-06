@@ -55,7 +55,14 @@ router.get('/pacientes/:idprof', async (req, res) => {
 // Crear tratamiento
 router.post('/crear', async (req, res) => {
   try {
-    const nuevoTratamiento = await Tratamiento.create(req.body);
+    const { Idtrat, ...datos } = req.body;
+
+    // Validamos fechas opcionales
+    if (datos.Fecha_fin && isNaN(Date.parse(datos.Fecha_fin))) {
+      datos.Fecha_fin = null; 
+    }
+
+    const nuevoTratamiento = await Tratamiento.create(datos);
     res.status(201).json(nuevoTratamiento);
   } catch (error) {
     console.error('Error al crear tratamiento:', error);
@@ -65,6 +72,7 @@ router.post('/crear', async (req, res) => {
     });
   }
 });
+
 
 // Actualizar tratamiento
 router.put('/actualizar/:id', async (req, res) => {
