@@ -7,10 +7,10 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
 
 sequelize.authenticate()
   .then(() => {
-    console.log('✅ Conexión EXITOSA con MySQL Aiven');
+    console.log(' Conexión EXITOSA con MySQL Aiven');
   })
   .catch((error) => {
-    console.error('❌ Error de conexión:', error.message);
+    console.error(' Error de conexión:', error.message);
   });
 
 module.exports = sequelize;
