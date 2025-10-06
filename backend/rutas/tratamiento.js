@@ -84,14 +84,17 @@ router.post('/crear', async (req, res) => {
 });
 
 
-
-
 // Actualizar tratamiento
 router.put('/actualizar/:id', async (req, res) => {
   try {
     const tratamiento = await Tratamiento.findByPk(req.params.id);
     if (!tratamiento) {
       return res.status(404).json({ error: 'Tratamiento no encontrado' });
+    }
+
+    // Validamos Fecha_fin antes de actualizar
+    if (req.body.Fecha_fin !== undefined) {
+      req.body.Fecha_fin = parseDateOrNull(req.body.Fecha_fin);
     }
 
     await tratamiento.update(req.body);
@@ -104,6 +107,7 @@ router.put('/actualizar/:id', async (req, res) => {
     });
   }
 });
+
 // Obtener tratamientos por ID de paciente
 router.get('/paciente/:idpac', async (req, res) => {
   try {
