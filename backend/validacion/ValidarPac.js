@@ -1,5 +1,5 @@
 const { check, validationResult } = require('express-validator');
-
+const { Paciente } = require('../modelos');
 // Validaciones para los campos de un paciente
 const ValidarPac = [
   check('Nombre_pac')
@@ -29,11 +29,19 @@ const ValidarPac = [
     .isIn(['F', 'M'])
     .withMessage('El género debe ser F o M'),
 
-  check('Ci_pac')
+
+    check('Ci_pac')
     .notEmpty()
     .withMessage('El CI es obligatorio')
-    .isLength({ max: 20 })
-    .withMessage('El CI no puede tener más de 20 caracteres'),
+    .isLength({ max: 10 })
+    .withMessage('El CI no puede tener más de 10 caracteres')
+    .custom(async (value) => {
+      const existente = await Paciente.findOne({ where: { Ci_pac: value } });
+      if (existente) {
+        throw new Error('El CI ya está registrado para otro paciente');
+      }
+      return true;
+    }),
 
   check('Telefono_pac')
     .optional()
